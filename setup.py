@@ -1,5 +1,3 @@
-import ast
-
 from setuptools import find_packages, setup
 
 packages = find_packages()
@@ -8,7 +6,7 @@ __version__ = open(f'{next(iter(packages))}/version').read()
 setup(
     name='amniotic',
     version=__version__,
-    url='https://github.com/ejohb/amniotic',
+    url='https://github.com/fmtr/amniotic',
     license='Copyright © 2022 Frontmatter. All rights reserved.',
     author='Frontmatter',
     description='Amniotic',
