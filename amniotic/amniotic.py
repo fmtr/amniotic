@@ -148,7 +148,10 @@ class Channel:
             if devices:
                 device = next(iter(devices))
                 logging.warning(f'Current device "{self.device}" not longer available. Defaulting to "{device}".')
+            else:
+                self.device = None
             self.enabled = False
+            self.device = device
 
         if self.enabled:
             self.player.audio_output_device_set(None, device)
