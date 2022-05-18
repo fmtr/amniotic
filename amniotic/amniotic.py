@@ -114,7 +114,7 @@ class Channel:
         if self.device not in self.devices:
             self.set_device(self.device)
 
-        return self.devices[self.device]
+        return self.devices.get(self.device)
 
     @property
     def devices(self):
