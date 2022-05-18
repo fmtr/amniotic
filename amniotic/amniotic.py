@@ -147,7 +147,7 @@ class Channel:
         if device not in devices:
             if devices:
                 device = next(iter(devices))
-                logging.warning(f'Current device "{self.device}" not longer available. Defaulting to "{device}".')
+                logging.warning(f'Current device "{self.device}" no longer available. Defaulting to "{device}".')
             else:
                 self.device = None
             self.enabled = False
