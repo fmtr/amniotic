@@ -6,8 +6,6 @@ from itertools import cycle
 from pathlib import Path
 from random import choice
 
-from version import __version__
-
 VLC_VERBOSITY = 0
 
 
@@ -25,6 +23,11 @@ class Amniotic:
         self._enabled = True
         path_base = Path(path_base)
         paths_channels = sorted([path.absolute() for path in path_base.glob('*')])
+
+        if not paths_channels:
+            msg = f'No audio directories found in "{path_base}"'
+            raise FileNotFoundError(msg)
+
         self.channels = [Channel(path, device_names=self.device_names) for path in paths_channels]
         self.channel_current = self.channels[0]
         self.channels = {channel.name: channel for channel in self.channels}

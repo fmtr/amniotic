@@ -1,17 +1,22 @@
+from pathlib import Path
 from setuptools import find_packages, setup
 
 packages = find_packages()
-__version__ = open(f'{next(iter(packages))}/version').read()
+name = next(iter(packages))
+path = Path(__file__).absolute().parent / name / 'version'
+__version__ = path.read_text()
 
 setup(
-    name='amniotic',
+    name=name,
     version=__version__,
-    url='https://github.com/fmtr/amniotic',
+    url=f'https://github.com/fmtr/{name}',
     license='Copyright © 2022 Frontmatter. All rights reserved.',
     author='Frontmatter',
     description='Amniotic',
     packages=packages,
-    package_data={},
+    package_data={
+        name: [f'version'],
+    },
     install_requires=[
         'paho-mqtt',
         'python-vlc',

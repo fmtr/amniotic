@@ -11,7 +11,7 @@ from typing import Any, Callable
 
 from amniotic.amniotic import Amniotic
 from amniotic.config import Config
-from version import __version__
+from amniotic.version import __version__
 
 # from amniotic.logger import logging
 
@@ -301,7 +301,7 @@ class AmnioticHomeAssistantMqttSwitch(AmnioticHomeAssistantMqttEntity):
     def handle_incoming(self, client: mqtt.Client, queue, amniotic: Amniotic, payload: Any):
         if payload is not None:
             amniotic.channel_current.enabled = payload == self.ON
-        message = Message(client.publish, self.topic_state, amniotic.channel_current.enabled == self.ON)
+        message = Message(client.publish, self.topic_state, self.VALUE_MAP[amniotic.channel_current.enabled])
         queue.append(message)
 
     def handle_outgoing(self, client: mqtt.Client, queue: list[Message], amniotic: Amniotic, force_announce=False):
@@ -309,7 +309,7 @@ class AmnioticHomeAssistantMqttSwitch(AmnioticHomeAssistantMqttEntity):
 
         value = amniotic.channel_current.enabled
         if value != self.value or force_announce:
-            message = Message(client.publish, self.topic_state, self.VALUE_MAP[value])
+            message = Message(client.publish, self.topic_state, self.VALUE_MAP[amniotic.channel_current.enabled])
             queue.append(message)
             self.value = value
 
@@ -390,7 +390,8 @@ class AmnioticEventLoop:
 
     def do_telemetry(self):
         status = json.dumps(self.amniotic.status)
-        logging.info(f'Telemetry: {status}')
+        logging.info(f'Telemetry: LWT')
+        logging.debug(f'Status: {status}')
         # self.client.publish(TOPIC_STATUS, status)
         self.client.publish(self.topic_lwt, "Online")
 
