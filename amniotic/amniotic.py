@@ -89,7 +89,7 @@ class Channel:
         self.players = cycle([self.get_player(), self.get_player()])
         self.player = self.device = None
         self.switch_player()
-        self.set_device(next(iter(self.devices)))
+        self.set_device(device=None)
         self.volume = self.VOLUME_DEFAULT
         self.volume_scaled = self.volume
 
@@ -110,6 +110,10 @@ class Channel:
 
     @property
     def device_name(self):
+
+        if self.device not in self.devices:
+            self.set_device(self.device)
+
         return self.devices[self.device]
 
     @property
@@ -135,10 +139,17 @@ class Channel:
 
     def set_device(self, device):
 
-        if device not in self.devices:
+        devices = self.devices
+
+        if device not in devices:
             device = self.get_device_id(device)
 
-        self.device = device
+        if device not in devices:
+            if devices:
+                device = next(iter(devices))
+                logging.warning(f'Current device "{self.device}" not longer available. Defaulting to "{device}".')
+            self.enabled = False
+
         if self.enabled:
             self.player.audio_output_device_set(None, device)
 
