@@ -154,7 +154,7 @@ class Channel:
             self.player.audio_output_device_set(None, device)
 
     def get_device_id(self, name):
-        device_id = {name: id for id, name in self.devices.items()}[name]
+        device_id = {name: id for id, name in self.devices.items()}.get(name)
         return device_id
 
     def switch_player(self):
