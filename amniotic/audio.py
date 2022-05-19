@@ -1,10 +1,11 @@
 import getpass
 import logging
-import vlc
 from datetime import datetime
 from itertools import cycle
 from pathlib import Path
 from random import choice
+
+import vlc
 
 VLC_VERBOSITY = 0
 
@@ -145,13 +146,16 @@ class Channel:
             device = self.get_device_id(device)
 
         if device not in devices:
+            self.enabled = False
             if devices:
                 device = next(iter(devices))
-                logging.warning(f'Current device "{self.device}" no longer available. Defaulting to "{device}".')
             else:
-                self.device = None
-            self.enabled = False
-            self.device = device
+                device = None
+            msg = f'Current device "{self.device}" no longer available for channel "{self.name}". ' \
+                  f'Defaulting to "{device}". Channel will be disabled.'
+            logging.warning(msg)
+
+        self.device = device
 
         if self.enabled:
             self.player.audio_output_device_set(None, device)

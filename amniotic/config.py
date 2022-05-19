@@ -6,7 +6,7 @@ from pathlib import Path
 import yaml
 from appdirs import AppDirs
 
-from .version import __version__
+from amniotic.version import __version__
 
 
 @dataclass

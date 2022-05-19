@@ -9,11 +9,9 @@ from typing import Any, Callable
 import paho.mqtt.client as mqtt
 from getmac import getmac
 
-from .audio import Amniotic
-from .config import Config
-from .version import __version__
-
-# from amniotic.logger import logging
+from amniotic.audio import Amniotic
+from amniotic.config import Config
+from amniotic.version import __version__
 
 MAC_ADDRESS = getmac.get_mac_address().replace(':', '')
 HOSTNAME = gethostname()
