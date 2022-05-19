@@ -1,17 +1,17 @@
-from json import JSONDecodeError
-
 import json
 import logging
-import paho.mqtt.client as mqtt
 from _socket import gethostname
 from dataclasses import dataclass
-from getmac import getmac
+from json import JSONDecodeError
 from time import sleep
 from typing import Any, Callable
 
-from amniotic.amniotic import Amniotic
-from amniotic.config import Config
-from amniotic.version import __version__
+import paho.mqtt.client as mqtt
+from getmac import getmac
+
+from .audio import Amniotic
+from .config import Config
+from .version import __version__
 
 # from amniotic.logger import logging
 

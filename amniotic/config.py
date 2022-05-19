@@ -1,12 +1,12 @@
-from os import getenv
-
 import logging
-import yaml
-from appdirs import AppDirs
 from dataclasses import dataclass
+from os import getenv
 from pathlib import Path
 
-from amniotic.version import __version__
+import yaml
+from appdirs import AppDirs
+
+from .version import __version__
 
 
 @dataclass
