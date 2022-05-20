@@ -1,18 +1,12 @@
 # Amniotic
 
-A multi-output, multi-channel ambient sound library for Home Assistant
+A multi-output, multi-channel ambient sound mixer for Home Assistant.
 
-Lets you create custom ambient audio mixes - e.g. mixing Waterfall sounds with Birdsong from one set of speakers, while
-playing Fireplace sounds from a second pair of speakers in a different room, and so on.
+Amniotic lets you create on-the-fly custom ambient audio mixes - e.g. mixing Waterfall sounds with Birdsong from one set
+of speakers, while playing Fireplace sounds from a second set of speakers in a different room, and so on.
 
 The library integrates with Home Assistant via MQTT as a new device, allowing you to create and control ambient mixes
 from the Home Assistant interface.
-
-## Concepts
-
-Amniotic uses multiple Channels. Channel here doesn't mean speaker channel (e.g. left and right) but a directory
-consisting of a certain theme of ambient sounds (e.g. Birdsong or Rain). See the *Adding Audio File* section for more on
-this.
 
 ## Setting Up
 
@@ -46,11 +40,16 @@ Once done, you should find `amnitoic` installed in  `~/.local/bin/amniotic`
 
 ### Adding Audio Files
 
+Amniotic uses multiple Channels you can mix together. Channel here doesn't mean speaker channel (e.g. left and right)
+but a certain theme of ambient sounds (e.g. Birdsong or Rain). Behind each channel is a directory on disk containing
+audio files for that theme.
+
 Since this version needs local audio files (steaming integration will need to wait for a later release), you'll need to
 put them on the target machine. The default path is `~/.local/share/amniotic` (which you can change in the config file,
-see below). A valid directory structure should consist of subfolders representing a ambient sound themes, each
-containing a flat set of individual audio files representing that theme. Here's an example of what the structure should
-look like:
+see below).
+
+A valid directory structure consists of subfolders representing ambient sound themes (Channels), each containing a flat
+set of individual audio files representing that theme. Here's an example of what the structure should look like:
 
 - `~/.local/share/amniotic`
     - `Birdsong`
