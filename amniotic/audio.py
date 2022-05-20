@@ -17,12 +17,12 @@ class Amniotic:
 
         user = getpass.getuser()
         if user == 'root':
-            msg = f'You are running as root. Unless you have set up PulseAudio in system-wide mode, this will not work.'
+            msg = f'You are running as root. This could cause issues with PulseAudio, unless it is configured in system-wide mode.'
             logging.warning(msg)
 
         self.device_names = device_names or {}
         self._enabled = True
-        path_base = Path(path_base)
+        path_base = Path(path_base).absolute()
         paths_channels = sorted([path.absolute() for path in path_base.glob('*')])
 
         if not paths_channels:
