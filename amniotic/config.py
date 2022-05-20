@@ -19,7 +19,7 @@ class Config:
     mqtt_username: str = None
     mqtt_password: str = None
     location: str = None
-    path_audio: str = dirs.site_data_dir
+    path_audio: str = dirs.user_data_dir
     device_names: dict = None
     logging: str = None
 
@@ -35,7 +35,7 @@ class Config:
 
         path_config_base = getenv('SC_CONFIG_BASE')
         if not path_config_base:
-            path_config_base = dirs.site_config_dir
+            path_config_base = dirs.user_config_dir
 
         path_config_base = Path(path_config_base)
         path_config_base.mkdir(parents=True, exist_ok=True)
