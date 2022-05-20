@@ -1,0 +1,8 @@
+[Unit]
+Description = Amniotic
+[Service]
+Type = simple
+Restart = always
+ExecStart = %h/.local/bin/amniotic
+[Install]
+WantedBy = default.target
