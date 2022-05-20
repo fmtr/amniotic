@@ -653,7 +653,8 @@ def start():
     logging.basicConfig(
         format='%(asctime)s %(levelname)-5s amniotic.%(module)-8s: %(message)s',
         level=config.logging,
-        datefmt='%Y-%m-%d %H:%M:%S'
+        datefmt='%Y-%m-%d %H:%M:%S',
+        force=True
     )
 
     mqtt_device = AmnioticHomeAssistantMqttDevice(name=config.name, location=config.location)
