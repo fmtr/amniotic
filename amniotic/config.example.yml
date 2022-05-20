@@ -1,0 +1,11 @@
+mqtt_host: homeassistant.local
+mqtt_port: 1883
+mqtt_username: mqtt
+mqtt_password: mypassword
+#location: Livingroom # Used devices names/IDs for when you have more than one Amniotic device running.
+#path_audio: /audio # Set custom audio directory
+#logging: DEBUG # Set custom logging level.
+device_names: # Custom device names, if the defaults are ambiguous/unclear.
+  Built-in Audio Stereo: HiFiBerry Amp2
+  Built-in Audio Analog Stereo: Broadcom BCM2835 Headphones/Line-Out
+  CD002 Analog Stereo: Jie Li USB Speaker
