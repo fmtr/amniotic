@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from setuptools import find_packages, setup
 
 packages = find_packages()
@@ -12,7 +13,7 @@ setup(
     url=f'https://github.com/fmtr/{name}',
     license='Copyright © 2022 Frontmatter. All rights reserved.',
     author='Frontmatter',
-    description='Amniotic',
+    description='A multi-output, multi-channel ambient sound mixer for Home Assistant',
     packages=packages,
     package_data={
         name: [f'version'],
