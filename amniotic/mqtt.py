@@ -657,13 +657,18 @@ def start():
         force=True
     )
 
+    amniotic = Amniotic(path_base=config.path_audio, device_names=config.device_names)
+    msg = f'Amniotic {__version__} has started.'
+    logging.info(msg)
+    msg = f'Amniotic {__version__} starting MQTT...'
+    logging.info(msg)
+
     mqtt_device = AmnioticHomeAssistantMqttDevice(name=config.name, location=config.location)
     channel = AmnioticHomeAssistantMqttSelectChannel(mqtt_device, 'Channel', icon='surround-sound', )
     volume_master = AmnioticHomeAssistantMqttVolumeMaster(mqtt_device, 'Master Volume', icon='volume-high')
     volume_current = AmnioticHomeAssistantMqttVolumeChannel(mqtt_device, 'Current Volume', icon='volume-medium')
     device = AmnioticHomeAssistantMqttSelectDevice(mqtt_device, 'Channel Device', icon='expansion-card-variant')
     enabled = AmnioticHomeAssistantMqttEnabled(mqtt_device, 'Channel Enabled', 'play-circle')
-    amniotic = Amniotic(path_base=config.path_audio, device_names=config.device_names)
 
     loop = AmnioticMqttEventLoop(
         amniotic=amniotic,
