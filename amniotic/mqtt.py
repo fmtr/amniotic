@@ -4,7 +4,7 @@ from _socket import gethostname
 from dataclasses import dataclass
 from json import JSONDecodeError
 from time import sleep
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
 import paho.mqtt.client as mqtt
 from getmac import getmac
@@ -19,55 +19,108 @@ HOSTNAME = gethostname()
 
 @dataclass
 class Message:
+    """
+
+    Object representing an MQTT message.
+
+    """
     method: Callable
     topic: str
     data: Any = None
     serialize: bool = False
 
     def __post_init__(self):
+        """
+
+        If data requires JSON serialization, apply it.
+
+        """
         if self.serialize:
             self.data = json.dumps(self.data)
 
     def __str__(self):
+        """
+
+        String representation from logging etc.
+
+        """
         return f'{self.method.__name__}:{self.topic}>{self.data}'
 
     def send(self):
+        """
+
+        Send the message by applying the method to the data.
+
+        """
         args = [] if self.data is None else [self.data]
         self.method(self.topic, *args)
 
 
-def sanitize(string, sep='-'):
+def sanitize(string, sep='-') -> str:
+    """
+
+    Replace spaces with URL- and ID-friendly characters, etc.
+
+    """
     return string.lower().strip().replace(' ', sep)
 
 
 class AmnioticHomeAssistantMqttDevice:
+    """
+
+    Representation of the parent device for Home Assistant.
+
+    """
     NAME_DEFAULT = 'Amniotic'
     MODEL_DEFAULT = 'Amniotic'
     MANUFACTURER = 'Frontmatter'
     URL = None
 
-    def __init__(self, name=None, location=None):
-        ...
+    def __init__(self, name: Optional[str] = None, location: Optional[str] = None):
+        """
 
+        Set any specified arguments.
+
+        """
         self.sw_version = __version__
         self._name = name or self.NAME_DEFAULT
         self.location = location
 
     @property
-    def uid(self):
+    def uid(self) -> str:
+        """
+
+        Home Assistant compatible unique ID.
+
+        """
         return sanitize(f'{self.location or ""} {self.name} {MAC_ADDRESS}')
 
     @property
-    def name(self):
+    def name(self) -> str:
+        """
+
+        Home Assistant compatible device name.
+
+        """
         return f'{self.location or ""} {self._name}'.strip()
 
     @property
-    def topic_lwt(self):
+    def topic_lwt(self) -> str:
+        """
+
+        Device LWT path.
+
+        """
         subpath = sanitize(f'{self.location or ""} {self._name}'.strip(), sep='/')
         return f'tele/{subpath}/LWT'
 
     @property
-    def data(self):
+    def announce_data(self) -> dict:
+        """
+
+        Home Assistant announce data for the device.
+
+        """
         data = {
             "connections": [["mac", MAC_ADDRESS]],
             'sw_version': self.sw_version,
@@ -80,6 +133,11 @@ class AmnioticHomeAssistantMqttDevice:
 
 
 class AmnioticHomeAssistantMqttEntity:
+    """
+
+    Base representation of an entity for Home Assistant.
+
+    """
     PAYLOAD_ONLINE = "Online"
     PAYLOAD_OFFLINE = "Offline"
     DEVICE_CLASS = None
@@ -88,11 +146,16 @@ class AmnioticHomeAssistantMqttEntity:
     _icon = None
 
     @property
-    def data(self):
+    def data(self) -> dict:
+        """
+
+        Home Assistant announce data for the entity.
+
+        """
         data = {
             "name": self.name,
             "unique_id": self.uid,
-            "device": self.device.data,
+            "device": self.device.announce_data,
             "device_class": self.DEVICE_CLASS,
             "force_update": True,
             "payload_available": self.PAYLOAD_ONLINE,
@@ -127,13 +190,28 @@ class AmnioticHomeAssistantMqttEntity:
 
     @property
     def icon(self):
+        """
+
+        Add Material Design Icons prefix to icon name.
+
+        """
         icon = f"mdi:{self._icon}" if self._icon else None
         return icon
 
     def handle_incoming(self, client: mqtt.Client, queue: list[Message], amniotic: Amniotic, payload: Any):
+        """
+
+        Callback to handle incoming messages.
+
+        """
         raise NotImplementedError()
 
-    def handle_outgoing(self, client: mqtt.Client, queue: list[Message], amniotic: Amniotic, force_announce=False):
+    def handle_outgoing(self, client: mqtt.Client, queue: list[Message], amniotic: Amniotic, force_announce: bool = False):
+        """
+
+        Handle outgoing messages, adding announce, subscriptions to the queue.
+
+        """
         if force_announce:
             queue += [
                 Message(client.publish, self.topic_announce, self.data, serialize=True),
@@ -142,9 +220,14 @@ class AmnioticHomeAssistantMqttEntity:
 
 
 class AmnioticHomeAssistantMqttVolume(AmnioticHomeAssistantMqttEntity):
+    """
+
+    Home Assistant base volume control.
+
+    """
     DEVICE_CLASS = 'number'
 
-    def __init__(self, device: AmnioticHomeAssistantMqttDevice, name: str, icon=None, min=0, max=100, ):
+    def __init__(self, device: AmnioticHomeAssistantMqttDevice, name: str, icon: Optional[str] = None, min: Optional[int] = 0, max: Optional[int] = 100):
         self.device = device
         self.name = name
         self.min = min
@@ -162,18 +245,20 @@ class AmnioticHomeAssistantMqttVolume(AmnioticHomeAssistantMqttEntity):
 
 
 class AmnioticHomeAssistantMqttVolumeMaster(AmnioticHomeAssistantMqttVolume):
-    DEVICE_CLASS = 'number'
+    """
 
-    def __init__(self, device: AmnioticHomeAssistantMqttDevice, name: str, icon=None, min=0, max=100, ):
-        self.device = device
-        self.name = name
-        self.min = min
-        self.max = max
-        self._icon = icon
-        self.value = None
+    Home Assistant master volume control.
+
+    """
+    DEVICE_CLASS = 'number'
 
     @property
     def data(self):
+        """
+
+        Home Assistant announce data for the entity.
+
+        """
         data = super().data | {
             'min': self.min,
             'max': self.max
@@ -181,7 +266,11 @@ class AmnioticHomeAssistantMqttVolumeMaster(AmnioticHomeAssistantMqttVolume):
         return data
 
     def handle_outgoing(self, client: mqtt.Client, queue: list[Message], amniotic: Amniotic, force_announce=False):
+        """
 
+        If volume has changed, send update message.
+
+        """
         super().handle_outgoing(client, queue, amniotic, force_announce=force_announce)
         value = amniotic.volume
         if value != self.value or force_announce:
@@ -190,6 +279,11 @@ class AmnioticHomeAssistantMqttVolumeMaster(AmnioticHomeAssistantMqttVolume):
             self.value = value
 
     def handle_incoming(self, client: mqtt.Client, queue, amniotic: Amniotic, payload: Any):
+        """
+
+        Apply change audio volume from incoming message.
+
+        """
         if payload is not None:
             amniotic.set_volume(payload)
         message = Message(client.publish, self.topic_state, amniotic.volume)
@@ -197,8 +291,18 @@ class AmnioticHomeAssistantMqttVolumeMaster(AmnioticHomeAssistantMqttVolume):
 
 
 class AmnioticHomeAssistantMqttVolumeChannel(AmnioticHomeAssistantMqttVolume):
+    """
+
+    Home Assistant channel volume control.
+
+    """
 
     def handle_outgoing(self, client: mqtt.Client, queue: list[Message], amniotic: Amniotic, force_announce=False):
+        """
+
+        If volume has changed, send update message.
+
+        """
 
         super().handle_outgoing(client, queue, amniotic, force_announce=force_announce)
         value = amniotic.channel_current.volume
@@ -208,6 +312,12 @@ class AmnioticHomeAssistantMqttVolumeChannel(AmnioticHomeAssistantMqttVolume):
             self.value = value
 
     def handle_incoming(self, client: mqtt.Client, queue, amniotic: Amniotic, payload: Any):
+        """
+
+        Apply change to audio volume from incoming message.
+
+        """
+
         if payload is not None:
             amniotic.set_volume_channel(payload)
         message = Message(client.publish, self.topic_state, amniotic.channel_current.volume)
@@ -215,6 +325,11 @@ class AmnioticHomeAssistantMqttVolumeChannel(AmnioticHomeAssistantMqttVolume):
 
 
 class AmnioticHomeAssistantMqttSelect(AmnioticHomeAssistantMqttEntity):
+    """
+
+    Base Home Assistant selector.
+
+    """
     DEVICE_CLASS = 'select'
 
     def __init__(
@@ -233,15 +348,31 @@ class AmnioticHomeAssistantMqttSelect(AmnioticHomeAssistantMqttEntity):
 
     @property
     def data(self):
+        """
+
+        Home Assistant announce data for the entity.
+
+        """
         data = super().data | {
             'options': self.options
         }
         return data
 
-    def get_select_state(self, amniotic: Amniotic):
+    def get_select_state(self, amniotic: Amniotic) -> tuple[list[str], str]:
+        """
+
+        Get state of the entity, i.e. the list of options and the currently selected option.
+
+        """
         raise NotImplementedError()
 
     def handle_outgoing(self, client: mqtt.Client, queue: list[Message], amniotic: Amniotic, force_announce=False):
+        """
+
+        Check if the list of options, or the current option, has changed. If so, send the relevant messages. This is a little awkward as if the options have
+        changed, the entity needs to be re-announced *before* the current select can be published.
+
+        """
 
         messages = []
         options, selected_option = self.get_select_state(amniotic)
@@ -260,12 +391,26 @@ class AmnioticHomeAssistantMqttSelect(AmnioticHomeAssistantMqttEntity):
 
 
 class AmnioticHomeAssistantMqttSelectChannel(AmnioticHomeAssistantMqttSelect):
-    ...
+    """
 
-    def get_select_state(self, amniotic: Amniotic):
+    Home Assistant channel selector.
+
+    """
+
+    def get_select_state(self, amniotic: Amniotic) -> tuple[list[str], str]:
+        """
+
+        Get state of the entity, i.e. the list of options and the currently selected option.
+
+        """
         return list(amniotic.channels.keys()), amniotic.channel_current.name
 
     def handle_incoming(self, client: mqtt.Client, queue, amniotic: Amniotic, payload: Any):
+        """
+
+        Apply change to current Channel from incoming message.
+
+        """
         if payload is not None:
             amniotic.set_channel(payload)
         message = Message(client.publish, self.topic_state, amniotic.channel_current.name)
@@ -273,21 +418,39 @@ class AmnioticHomeAssistantMqttSelectChannel(AmnioticHomeAssistantMqttSelect):
 
 
 class AmnioticHomeAssistantMqttSelectDevice(AmnioticHomeAssistantMqttSelect):
+    """
 
-    def get_select_state(self, amniotic: Amniotic):
+    Home Assistant device selector.
+
+    """
+
+    def get_select_state(self, amniotic: Amniotic) -> tuple[list[str], str]:
+        """
+
+        Get state of the entity, i.e. the list of options and the currently selected option.
+
+        """
         return list(amniotic.devices.values()), amniotic.channel_current.device_name
 
     def handle_incoming(self, client: mqtt.Client, queue, amniotic: Amniotic, payload: Any):
+        """
+
+        Apply change to current device from incoming message.
+
+        """
         if payload is not None:
             amniotic.channel_current.set_device(payload)
         message = Message(client.publish, self.topic_state, amniotic.channel_current.device_name)
         queue.append(message)
 
 
-class AmnioticHomeAssistantMqttSwitch(AmnioticHomeAssistantMqttEntity):
-    DEVICE_CLASS = 'switch'
-    ...
+class AmnioticHomeAssistantMqttEnabled(AmnioticHomeAssistantMqttEntity):
+    """
 
+    Base Home Assistant Channel enabled/disabled entity (switch/toggle).
+
+    """
+    DEVICE_CLASS = 'switch'
     VALUE_MAP = [(OFF := 'OFF'), (ON := 'ON')]
 
     def __init__(self, device: AmnioticHomeAssistantMqttDevice, name: str, icon=None):
@@ -297,12 +460,22 @@ class AmnioticHomeAssistantMqttSwitch(AmnioticHomeAssistantMqttEntity):
         self.value = None
 
     def handle_incoming(self, client: mqtt.Client, queue, amniotic: Amniotic, payload: Any):
+        """
+
+        Apply change to current Channel enabled/disabled from incoming message.
+
+        """
         if payload is not None:
             amniotic.channel_current.enabled = payload == self.ON
         message = Message(client.publish, self.topic_state, self.VALUE_MAP[amniotic.channel_current.enabled])
         queue.append(message)
 
     def handle_outgoing(self, client: mqtt.Client, queue: list[Message], amniotic: Amniotic, force_announce=False):
+        """
+
+        Check if the current Channel enabled/disabled state had changed. If so, send the relevant messages.
+
+        """
         super().handle_outgoing(client, queue, amniotic, force_announce=force_announce)
 
         value = amniotic.channel_current.enabled
@@ -313,13 +486,23 @@ class AmnioticHomeAssistantMqttSwitch(AmnioticHomeAssistantMqttEntity):
 
     @property
     def data(self):
+        """
+
+        Home Assistant announce data for the entity.
+
+        """
         data = super().data | {
             'device_class': 'outlet',
         }
         return data
 
 
-class AmnioticEventLoop:
+class AmnioticMqttEventLoop:
+    """
+
+    MQTT Event Loop
+
+    """
     CONNECTION_MESSAGES = [
         "Connection successful",
         "Connection refused - incorrect protocol version",
@@ -328,24 +511,40 @@ class AmnioticEventLoop:
         "Connection refused - bad username or password",
         "Connection refused - not authorised",
     ]
+    LOOP_PERIOD = 1
 
-    def on_message(self, client: mqtt.Client, amniotic: Amniotic, msg):
+    def on_message(self, client: mqtt.Client, amniotic: Amniotic, mqtt_message: mqtt.MQTTMessage):
+        """
 
-        func = self.callback_map[msg.topic]
+        Wrapper callback. Process payload and select and call the relevant entity object callback handler (`handle_incoming`) method.
+
+        """
+
+        func = self.callback_map[mqtt_message.topic]
 
         try:
-            payload = json.loads(msg.payload.decode())
+            payload = json.loads(mqtt_message.payload.decode())
         except JSONDecodeError:
-            payload = msg.payload.decode()
+            payload = mqtt_message.payload.decode()
 
-        logging.info(f'Incoming: {Message(func, msg.topic, payload)}')
+        logging.info(f'Incoming: {Message(func, mqtt_message.topic, payload)}')
 
         return func(client, self.queue, amniotic, payload)
 
-    def on_connect_fail(self, client, amniotic):
+    def on_connect_fail(self, client: mqtt.Client, amniotic: Amniotic):
+        """
+
+        Connection failed callback.
+
+        """
         logging.error('Connection to MQTT lost.')
 
-    def on_connect(self, client: mqtt.Client, amniotic, flags, code):
+    def on_connect(self, client: mqtt.Client, amniotic: Amniotic, flags: dict, code: int):
+        """
+
+        Connection established/failed callback.
+
+        """
 
         msg = f'Attempting to connect to MQTT "{client._host}:{client._port}": {self.CONNECTION_MESSAGES[code]}'
         if code:
@@ -355,8 +554,16 @@ class AmnioticEventLoop:
 
         self.has_reconnected = True
 
-    def __init__(self, host, port, entities: list[AmnioticHomeAssistantMqttEntity], amniotic: Amniotic, usename=None, password=None):
+    def __init__(self, host, port, entities: list[AmnioticHomeAssistantMqttEntity], amniotic: Amniotic, username: str = None, password: str = None,
+                 tele_period: int = 300):
+        """
 
+        Setup and connect MQTT Client.
+
+        """
+
+        self.queue = []
+        self.tele_period = tele_period
         self.has_reconnected = True
         self.topic_lwt = next(iter(entities)).device.topic_lwt
         self.entities = entities
@@ -372,47 +579,54 @@ class AmnioticEventLoop:
         self.client.user_data_set(amniotic)
         self.client.will_set(self.topic_lwt, payload='Offline', qos=0, retain=False, properties=None)
 
-        if usename is not None and password is not None:
-            self.client.username_pw_set(username=usename, password=password)
+        if username is not None and password is not None:
+            self.client.username_pw_set(username=username, password=password)
 
         self.client.connect(host=host, port=port)
 
-        self.queue = []
-
-        # self.loop_start()
-
     def handle_outgoing(self, force_announce=False):
+        """
+
+        Call entity outgoing methods to add to message queue.
+
+        """
 
         for entity in self.entities:
             entity.handle_outgoing(self.client, self.queue, self.amniotic, force_announce=force_announce)
 
     def do_telemetry(self):
+        """
+
+        Send LWT message.
+
+        """
         status = json.dumps(self.amniotic.status)
         logging.info(f'Telemetry: LWT')
         logging.debug(f'Status: {status}')
         # self.client.publish(TOPIC_STATUS, status)
         self.client.publish(self.topic_lwt, "Online")
 
-    def do_entity_messages(self):
-        pass
-
     def loop_start(self):
+        """
+
+        Run Event Loop. Once connected, periodically aggregate entity messages into the queue, send queue messages, send LWT/telemetry.
+
+        """
 
         self.client.loop_start()
 
-        tele_period = 60
         loop_count = 0
-        loop_period = 1
 
         while not self.client.is_connected():
-            sleep(loop_period)
+            sleep(self.LOOP_PERIOD)
 
         while True:
 
             if not self.client.is_connected():
+                sleep(self.LOOP_PERIOD)
                 continue
 
-            is_telem_loop = loop_count % tele_period == 0
+            is_telem_loop = loop_count % self.tele_period == 0
 
             self.handle_outgoing(force_announce=self.has_reconnected)
             self.has_reconnected = False
@@ -425,11 +639,16 @@ class AmnioticEventLoop:
             if is_telem_loop:
                 self.do_telemetry()
 
-            sleep(loop_period)
+            sleep(self.LOOP_PERIOD)
             loop_count += 1
 
 
 def start():
+    """
+
+    Load config, set up amniotic, MQTT devices and entities, and start MQTT event loop.
+
+    """
     config = Config.from_file()
     logging.basicConfig(
         format='%(asctime)s %(levelname)-5s amniotic.%(module)-8s: %(message)s',
@@ -442,15 +661,15 @@ def start():
     volume_master = AmnioticHomeAssistantMqttVolumeMaster(mqtt_device, 'Master Volume', icon='volume-high')
     volume_current = AmnioticHomeAssistantMqttVolumeChannel(mqtt_device, 'Current Volume', icon='volume-medium')
     device = AmnioticHomeAssistantMqttSelectDevice(mqtt_device, 'Channel Device', icon='expansion-card-variant')
-    enabled = AmnioticHomeAssistantMqttSwitch(mqtt_device, 'Channel Enabled', 'play-circle')
+    enabled = AmnioticHomeAssistantMqttEnabled(mqtt_device, 'Channel Enabled', 'play-circle')
     amniotic = Amniotic(path_base=config.path_audio, device_names=config.device_names)
 
-    loop = AmnioticEventLoop(
+    loop = AmnioticMqttEventLoop(
         amniotic=amniotic,
         entities=[channel, device, volume_master, volume_current, enabled],
         host=config.mqtt_host,
         port=config.mqtt_port,
-        usename=config.mqtt_username,
+        username=config.mqtt_username,
         password=config.mqtt_password
     )
 
