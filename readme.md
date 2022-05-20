@@ -28,7 +28,7 @@ First you'll need to clone this repository with Git.
 git clone https://github.com/fmtr/amniotic.git
 ```
 
-For Raspbian/Debian, you can just the [install.sh](`install.sh`):
+For Raspbian/Debian, you can just the [`install.sh`](install.sh):
 
 ```console
 sudo bash install.sh
