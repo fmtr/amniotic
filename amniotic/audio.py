@@ -29,7 +29,7 @@ class Amniotic:
         self.device_names = device_names or {}
         self._enabled = True
         path_base = Path(path_base).absolute()
-        paths_channels = sorted([path.absolute() for path in path_base.glob('*')])
+        paths_channels = sorted([path.absolute() for path in path_base.glob('*') if path.is_dir()])
 
         if not paths_channels:
             msg = f'No audio directories found in "{path_base}"'
