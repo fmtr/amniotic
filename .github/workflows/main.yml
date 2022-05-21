@@ -19,12 +19,13 @@ jobs:
       - name: Increment Version
         env:
           VERSION: ${{ github.event.inputs.version }}
+          NAME: ${{ github.event.repository.name }}
         run: |
           git config --global user.name 'Frontmatter Actions'
           git config --global user.email 'frontmatter-actions@frontmatter.ai'
-          echo -n ${VERSION} > amniotic/version
+          echo -n ${VERSION} > ${NAME}/version
           git tag v${VERSION}
-          git add amniotic/version
+          git add ${NAME}/version
           git commit -am "Increment version number to ${VERSION} for release"
           git push
           git push --tags
