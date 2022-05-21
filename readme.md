@@ -3,8 +3,8 @@
 A multi-output ambient sound mixer for Home Assistant.
 
 Amniotic lets you use a single device to create on-the-fly, custom ambient audio mixes - e.g. mixing Waterfall sounds
-with Birdsong on one set of speakers, while playing Fireplace sounds from a second set of speakers and so on - to suit
-your tastes and environment.
+with Birdsong on one set of speakers, while playing Fireplace sounds from a second audio device - to suit your tastes
+and environment.
 
 The library integrates with Home Assistant via MQTT as a new device, allowing you to create and control ambient mixes
 from the Home Assistant interface.
