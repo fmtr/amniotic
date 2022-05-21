@@ -11,7 +11,7 @@ from the Home Assistant interface.
 
 ### Why Would I Want Such a Thing?
 
-I won't explain the potential benefits of introducing non-musical sounds into one's environment, but if you
+I won't explain the general reasons for introducing non-musical sounds into one's environment, but if you
 find [sound masking](https://en.wikipedia.org/wiki/Sound_masking) helps you concentrate in noisy environments, if
 you're (as I am) slightly [misophonic](https://www.webmd.com/mental-health/what-is-misophonia), if you
 use [white noise machines](https://en.wikipedia.org/wiki/White_noise_machine) to induce sleep or relaxation, or if you
@@ -23,23 +23,26 @@ Since those systems are intended for music, they aren't designed for playing or 
 with a single device, even if set up in multi-room configurations. Also, the streaming services often won't allow a
 single account to play multiple streams, even _if_ multiple devices are used.
 
+These limitations motivated me to create Amniotic.
+
 ## Setting Up
 
 ### Hardware
 
 Any vaguely suitable device (i.e. with a network connection and audio outputs) should work, but it was primarily
-intended for (and developed on) a Raspberry Pi 4B. The lowest spec I've tested on is a Pi Zero W 1, which works fine but
-struggled playing more than one Theme at a time.
+intended for (and developed on) a dedicated Raspberry Pi 4B. The lowest spec I've tested on is a Pi Zero W 1, which
+works fine but struggled playing more than one Theme at a time. And obviously you'll have better results with better
+audio equipment (amps, speakers, etc.), especially for lower-frequency themes.
 
 ### Platform
 
-Again any platform should work, but these instructions focus on Raspbian/Debian.
+Again any platform should work, but Raspbian/Debian are best tested.
 
 ### Installing
 
 #### Raspberry Pi (Linux)
 
-To install on Raspbian, or any Debian Linux etc., first install dependencies, then the Amntioc package:
+To install on Raspbian, or any Debian Linux etc., first install dependencies, then the Amniotic package:
 
 ```console
 apt update -y
