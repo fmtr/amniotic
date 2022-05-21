@@ -21,6 +21,7 @@ jobs:
           git config --global user.email 'frontmatter-actions@frontmatter.ai'
           echo -n ${VERSION} > amniotic/version
           git tag v${VERSION}
+          git add amniotic/version
           git commit -am "Increment version number to ${VERSION} for release"
           git push --tags
       - name: Build Wheel
@@ -30,4 +31,5 @@ jobs:
         env:
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
         run: |
+          pip install twine
           twine -u token upload dist/*
