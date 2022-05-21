@@ -17,7 +17,7 @@ class Amniotic:
     def __init__(self, path_base: Union[Path, str], device_names: Optional[dict[str, str]] = None):
         """
 
-        Read audio directories and instantiate Channel objects
+        Read audio directories and instantiate Theme objects
 
         """
 
@@ -29,15 +29,15 @@ class Amniotic:
         self.device_names = device_names or {}
         self._enabled = True
         path_base = Path(path_base).absolute()
-        paths_channels = sorted([path.absolute() for path in path_base.glob('*') if path.is_dir()])
+        paths_themes = sorted([path.absolute() for path in path_base.glob('*') if path.is_dir()])
 
-        if not paths_channels:
+        if not paths_themes:
             msg = f'No audio directories found in "{path_base}"'
             raise FileNotFoundError(msg)
 
-        self.channels = [Channel(path, device_names=self.device_names) for path in paths_channels]
-        self.channel_current = self.channels[0]
-        self.channels = {channel.name: channel for channel in self.channels}
+        self.themes = [Theme(path, device_names=self.device_names) for path in paths_themes]
+        self.theme_current = self.themes[0]
+        self.themes = {theme.name: theme for theme in self.themes}
         self.volume = 0
         self.set_volume(self.VOLUME_DEFAULT)
 
@@ -45,81 +45,81 @@ class Amniotic:
     def devices(self) -> dict[str, str]:
         """
 
-        Get general (system-wide) devices. Just use those of the first Channel.
+        Get general (system-wide) devices. Just use those of the first Theme.
 
         """
-        return self.channel_current.devices
+        return self.theme_current.devices
 
     @property
     def enabled(self) -> bool:
         """
 
-        Are any Channels enabled?
+        Are any Themes enabled?
 
         """
-        return any([channel.enabled for channel in self.channels.values()])
+        return any([theme.enabled for theme in self.themes.values()])
 
     @enabled.setter
     def enabled(self, value: bool):
         """
 
-        If set to `False`, disable all Channels.
+        If set to `False`, disable all Themes.
 
         """
         value = bool(value)
         self._enabled = value
 
         if not self._enabled:
-            for channel in self.channels.values():
-                channel.enabled = self._enabled
+            for theme in self.themes.values():
+                theme.enabled = self._enabled
 
-    def set_channel(self, id: str):
+    def set_theme(self, id: str):
         """
 
-        Set current channel by the specified name/ID.
+        Set current theme by the specified name/ID.
 
         """
-        if id not in self.channels:
-            id = self.channel_current.get_device_id(id)
-        self.channel_current = self.channels[id]
+        if id not in self.themes:
+            id = self.theme_current.get_device_id(id)
+        self.theme_current = self.themes[id]
 
     def set_volume(self, value: int):
         """
 
-        Set Master Volume, and propagate to all Channels.
+        Set Master Volume, and propagate to all Themes.
 
         """
         self.volume = value
-        for channel in self.channels.values():
-            channel.set_volume(self.volume)
+        for theme in self.themes.values():
+            theme.set_volume(self.volume)
 
-    def set_volume_channel(self, value):
+    def set_volume_theme(self, value):
         """
 
-        Set the current Channel Volume.
+        Set the current Theme Volume.
 
         """
-        self.channel_current.set_volume(self.volume, value)
+        self.theme_current.set_volume(self.volume, value)
 
     @property
     def status(self) -> dict:
         """
 
-        General status information, including that of all channels.
+        General status information, including that of all themes.
 
         """
-        channels = [channel.status for channel in self.channels.values()]
-        data = {'datetime': datetime.now().isoformat(), 'volume': self.volume, 'channels': channels}
+        themes = [theme.status for theme in self.themes.values()]
+        data = {'datetime': datetime.now().isoformat(), 'volume': self.volume, 'themes': themes}
         return data
 
 
-class Channel:
+class Theme:
     VOLUME_DEFAULT = 40
 
     def __init__(self, path: Path, device_names: Optional[dict[str, str]] = None):
         """
 
-        Fetch paths from Channel audio directory, set up two alternating players (so they can call each other without thread deadlocks) and set a default
+        Fetch paths from Theme audio directory, set up two alternating players (so they can call each other without thread deadlocks) and set a default
         audio output device.
 
         """
@@ -127,7 +127,7 @@ class Channel:
         self.name = path.stem
         self.paths = list(path.glob('*'))
         if not self.paths:
-            msg = f'Audio directory is empty: "{path}"'
+            msg = f'Audio themes directory is empty: "{path}"'
             raise FileNotFoundError(msg)
 
         self.device_names = device_names or {}
@@ -153,7 +153,7 @@ class Channel:
         Method to register as a VLC callback. Once a file finishes playing, start playing the next file in the other player.
 
         """
-        logging.debug(f'Channel "{self.name}" hit media end callback with event: {event.type=} {event.obj=} {event.meta_type=}')
+        logging.debug(f'Theme "{self.name}" hit media end callback with event: {event.type=} {event.obj=} {event.meta_type=}')
         self.switch_player()
         self.play()
 
@@ -219,8 +219,8 @@ class Channel:
         if device not in devices:
             self.enabled = False
             device = next(iter(devices or {None}))
-            msg = f'Current device "{self.device}" no longer available for channel "{self.name}". ' \
-                  f'Defaulting to "{device}". Channel will be disabled.'
+            msg = f'Current device "{self.device}" no longer available for theme "{self.name}". ' \
+                  f'Defaulting to "{device}". Theme will be disabled.'
             logging.warning(msg)
 
         self.device = device
@@ -244,12 +244,12 @@ class Channel:
 
         """
         self.player = next(self.players)
-        logging.debug(f'Channel "{self.name}" switched player to: {self.player}')
+        logging.debug(f'Theme "{self.name}" switched player to: {self.player}')
 
     def play(self):
         """
 
-        Play a single audio file at random from this Channel's directory. Many settings (e.g. the output device) will default between plays,
+        Play a single audio file at random from this Theme's directory. Many settings (e.g. the output device) will default between plays,
         so this all needs specifying each time.
 
         """
@@ -259,14 +259,14 @@ class Channel:
         self.player.set_media(media)
         self.set_device(self.device)
         self.player.audio_set_volume(self.volume_scaled)
-        logging.info(f'Channel "{self.name}" playing file {path}')
+        logging.info(f'Theme "{self.name}" playing file {path}')
         self.player.play()
 
     @property
     def enabled(self) -> bool:
         """
 
-        Is this channel enabled?
+        Is this theme enabled?
 
         """
         return self._enabled
@@ -275,7 +275,7 @@ class Channel:
     def enabled(self, value: bool):
         """
 
-        Set whether Channel is enabled. If the input value if different from current, either start playing or toggle pause, depending on Channel state.
+        Set whether Theme is enabled. If the input value if different from current, either start playing or toggle pause, depending on Theme state.
 
         """
         value = bool(value)
@@ -292,7 +292,7 @@ class Channel:
     def set_volume(self, volume_master: int, volume: Optional[int] = None):
         """
 
-        Set the scaled volume by multiplying the master volume with the channel volume.
+        Set the scaled volume by multiplying the master volume with the theme volume.
 
         """
 
@@ -301,7 +301,7 @@ class Channel:
 
         volume_old = self.volume_scaled
         volume_scaled = round(self.volume * (volume_master / 100))
-        logging.info(f'Changing scaled volume for channel "{self.name}": from {volume_old} to {volume_scaled}')
+        logging.info(f'Changing scaled volume for theme "{self.name}": from {volume_old} to {volume_scaled}')
         self.volume_scaled = volume_scaled
         self.player.audio_set_volume(volume_scaled)
 
@@ -309,7 +309,7 @@ class Channel:
     def status(self):
         """
 
-        General Channel status information
+        General Theme status information
 
         """
         media = self.player.get_media()
@@ -318,7 +318,7 @@ class Channel:
             'name': self.name,
             'device': {'id': self.device, 'name': self.devices[self.device]},
             'enabled': self.enabled,
-            'volume': {'channel': self.volume, 'scaled': self.volume_scaled},
+            'volume': {'theme': self.volume, 'scaled': self.volume_scaled},
             'position': self.player.get_position(),
             'state': str(self.player.get_state()),
             'duration': media.get_duration() if media else None,

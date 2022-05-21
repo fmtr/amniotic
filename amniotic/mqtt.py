@@ -155,6 +155,7 @@ class AmnioticHomeAssistantMqttEntity:
         data = {
             "name": self.name,
             "unique_id": self.uid,
+            "object_id": self.uid,
             "device": self.device.announce_data,
             "device_class": self.DEVICE_CLASS,
             "force_update": True,
@@ -290,10 +291,10 @@ class AmnioticHomeAssistantMqttVolumeMaster(AmnioticHomeAssistantMqttVolume):
         queue.append(message)
 
 
-class AmnioticHomeAssistantMqttVolumeChannel(AmnioticHomeAssistantMqttVolume):
+class AmnioticHomeAssistantMqttVolumeTheme(AmnioticHomeAssistantMqttVolume):
     """
 
-    Home Assistant channel volume control.
+    Home Assistant theme volume control.
 
     """
 
@@ -305,7 +306,7 @@ class AmnioticHomeAssistantMqttVolumeChannel(AmnioticHomeAssistantMqttVolume):
         """
 
         super().handle_outgoing(client, queue, amniotic, force_announce=force_announce)
-        value = amniotic.channel_current.volume
+        value = amniotic.theme_current.volume
         if value != self.value or force_announce:
             message = Message(client.publish, self.topic_state, value)
             queue.append(message)
@@ -319,8 +320,8 @@ class AmnioticHomeAssistantMqttVolumeChannel(AmnioticHomeAssistantMqttVolume):
         """
 
         if payload is not None:
-            amniotic.set_volume_channel(payload)
-        message = Message(client.publish, self.topic_state, amniotic.channel_current.volume)
+            amniotic.set_volume_theme(payload)
+        message = Message(client.publish, self.topic_state, amniotic.theme_current.volume)
         queue.append(message)
 
 
@@ -390,10 +391,10 @@ class AmnioticHomeAssistantMqttSelect(AmnioticHomeAssistantMqttEntity):
         queue += messages
 
 
-class AmnioticHomeAssistantMqttSelectChannel(AmnioticHomeAssistantMqttSelect):
+class AmnioticHomeAssistantMqttSelectTheme(AmnioticHomeAssistantMqttSelect):
     """
 
-    Home Assistant channel selector.
+    Home Assistant theme selector.
 
     """
 
@@ -403,17 +404,17 @@ class AmnioticHomeAssistantMqttSelectChannel(AmnioticHomeAssistantMqttSelect):
         Get state of the entity, i.e. the list of options and the currently selected option.
 
         """
-        return list(amniotic.channels.keys()), amniotic.channel_current.name
+        return list(amniotic.themes.keys()), amniotic.theme_current.name
 
     def handle_incoming(self, client: mqtt.Client, queue, amniotic: Amniotic, payload: Any):
         """
 
-        Apply change to current Channel from incoming message.
+        Apply change to current Theme from incoming message.
 
         """
         if payload is not None:
-            amniotic.set_channel(payload)
-        message = Message(client.publish, self.topic_state, amniotic.channel_current.name)
+            amniotic.set_theme(payload)
+        message = Message(client.publish, self.topic_state, amniotic.theme_current.name)
         queue.append(message)
 
 
@@ -430,7 +431,7 @@ class AmnioticHomeAssistantMqttSelectDevice(AmnioticHomeAssistantMqttSelect):
         Get state of the entity, i.e. the list of options and the currently selected option.
 
         """
-        return list(amniotic.devices.values()), amniotic.channel_current.device_name
+        return list(amniotic.devices.values()), amniotic.theme_current.device_name
 
     def handle_incoming(self, client: mqtt.Client, queue, amniotic: Amniotic, payload: Any):
         """
@@ -439,15 +440,15 @@ class AmnioticHomeAssistantMqttSelectDevice(AmnioticHomeAssistantMqttSelect):
 
         """
         if payload is not None:
-            amniotic.channel_current.set_device(payload)
-        message = Message(client.publish, self.topic_state, amniotic.channel_current.device_name)
+            amniotic.theme_current.set_device(payload)
+        message = Message(client.publish, self.topic_state, amniotic.theme_current.device_name)
         queue.append(message)
 
 
 class AmnioticHomeAssistantMqttEnabled(AmnioticHomeAssistantMqttEntity):
     """
 
-    Base Home Assistant Channel enabled/disabled entity (switch/toggle).
+    Base Home Assistant Theme enabled/disabled entity (switch/toggle).
 
     """
     DEVICE_CLASS = 'switch'
@@ -462,25 +463,25 @@ class AmnioticHomeAssistantMqttEnabled(AmnioticHomeAssistantMqttEntity):
     def handle_incoming(self, client: mqtt.Client, queue, amniotic: Amniotic, payload: Any):
         """
 
-        Apply change to current Channel enabled/disabled from incoming message.
+        Apply change to current Theme enabled/disabled from incoming message.
 
         """
         if payload is not None:
-            amniotic.channel_current.enabled = payload == self.ON
-        message = Message(client.publish, self.topic_state, self.VALUE_MAP[amniotic.channel_current.enabled])
+            amniotic.theme_current.enabled = payload == self.ON
+        message = Message(client.publish, self.topic_state, self.VALUE_MAP[amniotic.theme_current.enabled])
         queue.append(message)
 
     def handle_outgoing(self, client: mqtt.Client, queue: list[Message], amniotic: Amniotic, force_announce=False):
         """
 
-        Check if the current Channel enabled/disabled state had changed. If so, send the relevant messages.
+        Check if the current Theme enabled/disabled state had changed. If so, send the relevant messages.
 
         """
         super().handle_outgoing(client, queue, amniotic, force_announce=force_announce)
 
-        value = amniotic.channel_current.enabled
+        value = amniotic.theme_current.enabled
         if value != self.value or force_announce:
-            message = Message(client.publish, self.topic_state, self.VALUE_MAP[amniotic.channel_current.enabled])
+            message = Message(client.publish, self.topic_state, self.VALUE_MAP[amniotic.theme_current.enabled])
             queue.append(message)
             self.value = value
 
@@ -604,7 +605,8 @@ class AmnioticMqttEventLoop:
         logging.info(f'Telemetry: LWT')
         logging.debug(f'Status: {status}')
         # self.client.publish(TOPIC_STATUS, status)
-        self.client.publish(self.topic_lwt, "Online")
+        self.client.publish(self.topic_lwt, "Online", qos=1)
+        self
 
     def loop_start(self):
         """
@@ -664,15 +666,15 @@ def start():
     logging.info(msg)
 
     mqtt_device = AmnioticHomeAssistantMqttDevice(name=config.name, location=config.location)
-    channel = AmnioticHomeAssistantMqttSelectChannel(mqtt_device, 'Channel', icon='surround-sound', )
+    theme = AmnioticHomeAssistantMqttSelectTheme(mqtt_device, 'Theme', icon='surround-sound', )
     volume_master = AmnioticHomeAssistantMqttVolumeMaster(mqtt_device, 'Master Volume', icon='volume-high')
-    volume_current = AmnioticHomeAssistantMqttVolumeChannel(mqtt_device, 'Current Volume', icon='volume-medium')
-    device = AmnioticHomeAssistantMqttSelectDevice(mqtt_device, 'Channel Device', icon='expansion-card-variant')
-    enabled = AmnioticHomeAssistantMqttEnabled(mqtt_device, 'Channel Enabled', 'play-circle')
+    volume_theme = AmnioticHomeAssistantMqttVolumeTheme(mqtt_device, 'Theme Volume', icon='volume-medium')
+    device = AmnioticHomeAssistantMqttSelectDevice(mqtt_device, 'Theme Device', icon='expansion-card-variant')
+    enabled = AmnioticHomeAssistantMqttEnabled(mqtt_device, 'Theme Enabled', 'play-circle')
 
     loop = AmnioticMqttEventLoop(
         amniotic=amniotic,
-        entities=[channel, device, volume_master, volume_current, enabled],
+        entities=[theme, device, volume_master, volume_theme, enabled],
         host=config.mqtt_host,
         port=config.mqtt_port,
         username=config.mqtt_username,

@@ -1,6 +1,6 @@
 # Amniotic
 
-A multi-output, multi-channel ambient sound mixer for Home Assistant.
+A multi-output, multi-theme ambient sound mixer for Home Assistant.
 
 Amniotic lets you create on-the-fly custom ambient audio mixes - e.g. mixing Waterfall sounds with Birdsong from one set
 of speakers, while playing Fireplace sounds from a second set of speakers in a different room, and so on.
@@ -14,7 +14,7 @@ from the Home Assistant interface.
 
 Any vaguely suitable device (i.e. with a network connection and audio outputs) should work, but it was primarily
 intended for (and developed on) a Raspberry Pi 4B. The lowest spec I've tested on is a Pi Zero W 1, which works fine but
-struggled playing more than one Channel at a time.
+struggled playing more than one Theme at a time.
 
 ### Platform
 
@@ -40,15 +40,15 @@ Once done, you should find `amnitoic` installed in  `~/.local/bin/amniotic`
 
 ### Adding Audio Files
 
-Amniotic uses multiple Channels you can mix together. Channel here doesn't mean speaker channel (e.g. left and right)
-but a certain theme of ambient sounds (e.g. Birdsong or Rain). Behind each channel is a directory on disk containing
-audio files for that theme.
+Amniotic uses multiple Themes you can mix together. Theme here doesn't mean speaker theme (e.g. left and right)
+but a certain theme of ambient sounds (e.g. Birdsong or Rain). Behind each theme is a directory on disk containing audio
+files for that theme.
 
 Since this version needs local audio files (steaming integration will need to wait for a later release), you'll need to
 put them on the target machine. The default path is `~/.local/share/amniotic` (which you can change in the config file,
 see below).
 
-A valid directory structure consists of subfolders representing ambient sound themes (Channels), each containing a flat
+A valid directory structure consists of subfolders representing ambient sound themes (Themes), each containing a flat
 set of individual audio files representing that theme. Here's an example of what the structure should look like:
 
 - `~/.local/share/amniotic`
@@ -102,12 +102,12 @@ device controls like this:
 
 ![](ha_controls.png)
 
-Each subdirectory from the audio directory set up above will show up as a Channel in the frontend, and when that channel
-is enabled the individual files will be played in "Shuffle"
+Each subdirectory from the audio directory set up above will show up as a Theme in the frontend, and when that theme is
+enabled the individual files will be played in "Shuffle"
 mode.
 
-Switching between Channels with the Channel pull-down, you'll be able to enable/disable each one, set their relative
-volume and their output devices etc.
+Switching between Themes with the Theme pull-down, you'll be able to enable/disable each one, set their relative volume
+and their output devices etc.
 
 Since these controls are exposed as Home Assistant entities, you can also define and play custom mixes from scenes,
 scripts, automations, etc. - and anything else Home Assistant will allow.
