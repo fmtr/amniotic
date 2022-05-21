@@ -17,6 +17,7 @@ setup(
     license='Copyright © 2022 Frontmatter. All rights reserved.',
     author='Frontmatter',
     description='A multi-output ambient sound mixer for Home Assistant',
+    keywords='ambient sound audio white noise masking sleep',
     packages=packages,
     package_data={
         name: [f'version'],
