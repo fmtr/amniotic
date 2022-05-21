@@ -5,7 +5,7 @@ from setuptools import find_packages, setup
 packages = find_packages()
 name = next(iter(packages))
 path = Path(__file__).absolute().parent / name / 'version'
-__version__ = path.read_text()
+__version__ = path.read_text().strip()
 
 setup(
     name=name,
