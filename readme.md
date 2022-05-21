@@ -130,7 +130,7 @@ that restarts, running on boot etc., are handled automatically.
 With MQTT connected, Amniotic will announce itself as a new device to Home Assistant, and in the frontend you'll see
 device controls like this:
 
-<img src="ha_controls.png" width="562"/>
+<img src="ha_controls.png" width="281"/>
 
 Each subdirectory from the audio directory set up above will show up as a Theme in the frontend, and when that theme is
 enabled the individual files will be played in "Shuffle"
