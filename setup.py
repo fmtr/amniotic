@@ -16,7 +16,7 @@ setup(
     url=f'https://github.com/fmtr/{name}',
     license='Copyright © 2022 Frontmatter. All rights reserved.',
     author='Frontmatter',
-    description='A multi-output, multi-theme ambient sound mixer for Home Assistant',
+    description='A multi-output ambient sound mixer for Home Assistant',
     packages=packages,
     package_data={
         name: [f'version'],
