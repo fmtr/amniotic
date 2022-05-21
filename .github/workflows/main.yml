@@ -34,4 +34,4 @@ jobs:
           TWINE_USERNAME: token
         run: |
           pip install twine
-          twine -utoken upload dist/*
+          twine upload dist/*
