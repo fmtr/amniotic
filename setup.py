@@ -4,10 +4,13 @@ from setuptools import find_packages, setup
 
 packages = find_packages()
 name = next(iter(packages))
-path = Path(__file__).absolute().parent / name / 'version'
+path_base = Path(__file__).absolute().parent
+path = path_base / name / 'version'
 __version__ = path.read_text().strip()
 
 setup(
+    long_description=(path_base / 'readme.md').read_text(),
+    long_description_content_type='text/markdown',
     name=name,
     version=__version__,
     url=f'https://github.com/fmtr/{name}',
@@ -32,3 +35,4 @@ setup(
         ],
     }
 )
+setup
