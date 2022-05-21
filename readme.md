@@ -46,7 +46,7 @@ To install on Raspbian, or any Debian Linux etc., first install dependencies, th
 
 ```console
 apt update -y
-apt install -y git vlc python3-pip
+apt install -y python3-pip vlc
 pip3 install amniotic
 ```
 
@@ -72,14 +72,13 @@ pip3 install amniotic
 
 ### Adding Audio Files
 
-Amniotic uses multiple Themes you can mix together. Theme here just mean a certain theme of ambient sounds (e.g.
+Amniotic uses multiple Themes you can mix together. Theme here just means a certain theme of ambient sounds (e.g.
 Birdsong or Rainfall). Behind each theme is a directory on disk containing audio files for that theme. Since this
 version of Amniotic needs local audio files (steaming integration will need to wait for a later release), you'll need to
 put them on the target machine. The default path is `~/.local/share/amniotic` (which you can change in the config file,
 see below).
 
-A valid directory structure consists of subfolders representing each Theme, each containing a flat set of individual
-audio files representing that theme. Here's an example of what the structure should look like:
+Here's an example of what the structure should look like:
 
 - `~/.local/share/amniotic`
     - `Birdsong`
