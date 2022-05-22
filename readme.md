@@ -128,7 +128,7 @@ that restarts, running on boot etc., are handled automatically.
 ### Docker Image
 
 There's also a [pre-built Docker Image](https://hub.docker.com/r/fmtr/amniotic) available, so you can run on a NAS or
-home server etc. To run as in container, use this command to map through sound devices, audio and config files:
+home server etc. To run in container, use this command to map through sound devices, audio and config files:
 
 ```console
 docker run --device /dev/snd --volume <local audio path>:/root/.local/share/amniotic --volume <local config path>:/root/.config/amniotic/ fmtr/amniotic:latest
