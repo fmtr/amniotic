@@ -125,6 +125,16 @@ that restarts, running on boot etc., are handled automatically.
 - And to stop: `systemctl --user stop amniotic.service`
 - To view service logs: `journalctl --user --unit amniotic.service`
 
+### Docker Image
+
+There's also a [pre-built Docker Image](https://hub.docker.com/repository/docker/fmtr/amniotic) available, so you can
+run on a NAS or home server etc. To run as in container, use this command to map through sound devices, audio and config
+files:
+
+```console
+docker run --device /dev/snd --volume <local audio path>:/root/.local/share/amniotic --volume <local config path>:/root/.config/amniotic/ fmtr/amniotic:latest
+```
+
 ## Home Assistant
 
 With MQTT connected, Amniotic will announce itself as a new device to Home Assistant, and in the frontend you'll see
