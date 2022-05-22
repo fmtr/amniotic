@@ -34,7 +34,7 @@ jobs:
       - name: Increment Version
         run: |
           git config --global user.name 'Frontmatter Actions'
-          git config --global user.email 'frontmatter-actions@frontmatter.ai'
+          git config --global user.email 'actions@frontmatter.ai'
           echo -n ${VERSION} > ${NAME}/version
           git tag v${VERSION}
           git add ${NAME}/version
