@@ -11,6 +11,15 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    env:
+      DOCKER_USER: ${{ secrets.DOCKER_USER }}
+      DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+      VERSION: ${{ github.event.inputs.version }}
+      NAME: ${{ github.event.repository.name }}
+      TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+      TWINE_USERNAME: __token__
+
     steps:
       - uses: actions/checkout@v2
 
@@ -19,16 +28,10 @@ jobs:
           pip install twine
 
       - name: Docker Login
-        env:
-          DOCKER_USER: ${{ secrets.DOCKER_USER }}
-          DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
         run: |
           echo $DOCKER_TOKEN | docker login --username $DOCKER_USER --password-stdin
 
       - name: Increment Version
-        env:
-          VERSION: ${{ github.event.inputs.version }}
-          NAME: ${{ github.event.repository.name }}
         run: |
           git config --global user.name 'Frontmatter Actions'
           git config --global user.email 'frontmatter-actions@frontmatter.ai'
@@ -44,22 +47,14 @@ jobs:
           python setup.py sdist bdist_wheel
 
       - name: PyPI Push
-        env:
-          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-          TWINE_USERNAME: __token__
         run: |
           twine upload dist/*
 
       - name: Docker Build
-        env:
-          VERSION: ${{ github.event.inputs.version }}
-          NAME: ${{ github.event.repository.name }}
         run: |
           docker build . --build-arg TYPE=release --tag fmtr/${NAME}:v${VERSION}          
           docker tag fmtr/${NAME}:v${VERSION} fmtr/${NAME}:latest        
 
       - name: Docker Push
-        env:
-          NAME: ${{ github.event.repository.name }}
         run: |
           docker push --all-tags fmtr/${NAME}
