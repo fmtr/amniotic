@@ -13,9 +13,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+
       - name: Install Twine
         run: |
           pip install twine
+
+      - name: Docker Login
+        env:
+          DOCKER_USER: ${{ secrets.DOCKER_USER }}
+          DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+        run: |
+          echo $DOCKER_TOKEN | docker login --username $DOCKER_USER --password-stdin
+
       - name: Increment Version
         env:
           VERSION: ${{ github.event.inputs.version }}
@@ -29,12 +38,28 @@ jobs:
           git commit -am "Increment version number to ${VERSION} for release"
           git push
           git push --tags
+
       - name: Build Wheel
         run: |
           python setup.py sdist bdist_wheel
+
       - name: PyPI Push
         env:
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
           TWINE_USERNAME: __token__
         run: |
           twine upload dist/*
+
+      - name: Docker Build
+        env:
+          VERSION: ${{ github.event.inputs.version }}
+          NAME: ${{ github.event.repository.name }}
+        run: |
+          docker build . --build-arg TYPE=release --tag fmtr/${NAME}:v${VERSION}          
+          docker tag fmtr/${NAME}:v${VERSION} fmtr/${NAME}:latest        
+
+      - name: Docker Push
+        env:
+          NAME: ${{ github.event.repository.name }}
+        run: |
+          docker push --all-tags fmtr/${NAME}
