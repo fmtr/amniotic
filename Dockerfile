@@ -1,9 +1,7 @@
-FROM edwardbrown/python
+FROM edwardbrown/python as base
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt update -y
-RUN apt install -y git vlc python3-pip python-is-python3
-WORKDIR /usr/src
-COPY . .
-RUN pip install .
-RUN which amniotic
+RUN apt install -y vlc
+ARG VERSION
+RUN if [ -z "$VERSION" ] ; then pip3 install amniotic ; else pip3 install amniotic==${VERSION} ; fi
 CMD amniotic
