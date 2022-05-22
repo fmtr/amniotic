@@ -678,7 +678,8 @@ def start():
         host=config.mqtt_host,
         port=config.mqtt_port,
         username=config.mqtt_username,
-        password=config.mqtt_password
+        password=config.mqtt_password,
+        tele_period=config.tele_period
     )
 
     loop.loop_start()
