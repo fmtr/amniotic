@@ -22,6 +22,7 @@ class Config:
     path_audio: str = APP_DIRS.user_data_dir
     device_names: dict = None
     logging: str = None
+    tele_period: int = 300
 
     def __post_init__(self):
         path_audio = Path(self.path_audio).absolute()
