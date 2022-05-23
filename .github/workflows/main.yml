@@ -19,6 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+
       - name: Install Twine
         run: |
           pip install twine
@@ -41,22 +42,27 @@ jobs:
           git push
           git push --tags
 
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          generateReleaseNotes: true
+
       - name: Build Wheel
         run: |
           python setup.py sdist bdist_wheel
 
-      - name: PyPI Push
+      - name: Push Wheel
         env:
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
           TWINE_USERNAME: __token__
         run: |
           twine upload dist/*
 
-      - name: Docker Build
+      - name: Build Docker
         run: |
           docker build . --build-arg TYPE=release --build-arg VERSION=${VERSION} --tag fmtr/${NAME}:v${VERSION}          
           docker tag fmtr/${NAME}:v${VERSION} fmtr/${NAME}:latest        
 
-      - name: Docker Push
+      - name: Push Docker
         run: |
           docker push --all-tags fmtr/${NAME}
