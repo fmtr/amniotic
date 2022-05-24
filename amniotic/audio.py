@@ -1,12 +1,11 @@
 import getpass
 import logging
+import vlc
 from datetime import datetime
 from itertools import cycle
 from pathlib import Path
 from random import choice
 from typing import Union, Optional
-
-import vlc
 
 VLC_VERBOSITY = 0
 
@@ -314,15 +313,24 @@ class Theme:
         """
         media = self.player.get_media()
 
+        position = self.player.get_position()
+        duration = media.get_duration() if media else None
+
+        if position and duration:
+            elapsed = round(position * duration)
+        else:
+            elapsed = None
+
         data = {
             'name': self.name,
             'device': {'id': self.device, 'name': self.devices[self.device]},
             'enabled': self.enabled,
             'volume': {'theme': self.volume, 'scaled': self.volume_scaled},
-            'position': self.player.get_position(),
+            'position': position,
+            'position_percentage': round(position * 100) if position else None,
+            'elapsed': elapsed,
             'state': str(self.player.get_state()),
             'duration': media.get_duration() if media else None,
-            'duration_percentage': round(media.get_duration() * 100) if media else None,
             'meta_data': {
                 value: datum
                 for key, value in vlc.Meta._enum_names_.items()

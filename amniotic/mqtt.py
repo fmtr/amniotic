@@ -1,13 +1,14 @@
+from json import JSONDecodeError
+
 import json
 import logging
+import paho.mqtt.client as mqtt
 from _socket import gethostname
 from dataclasses import dataclass
-from json import JSONDecodeError
-from time import sleep
-from typing import Any, Callable, Optional
-
-import paho.mqtt.client as mqtt
+from datetime import timedelta
 from getmac import getmac
+from time import sleep
+from typing import Any, Callable, Optional, Union
 
 from amniotic.audio import Amniotic
 from amniotic.config import Config
@@ -53,7 +54,7 @@ class Message:
 
         """
         args = [] if self.data is None else [self.data]
-        self.method(self.topic, *args)
+        self.method(self.topic, *args, qos=1)
 
 
 def sanitize(string, sep='-') -> str:
@@ -140,7 +141,7 @@ class AmnioticHomeAssistantMqttEntity:
     """
     PAYLOAD_ONLINE = "Online"
     PAYLOAD_OFFLINE = "Offline"
-    DEVICE_CLASS = None
+    HA_PLATFORM = None
     name = None
     device = None
     _icon = None
@@ -157,7 +158,7 @@ class AmnioticHomeAssistantMqttEntity:
             "unique_id": self.uid,
             "object_id": self.uid,
             "device": self.device.announce_data,
-            "device_class": self.DEVICE_CLASS,
+            "device_class": self.HA_PLATFORM,
             "force_update": True,
             "payload_available": self.PAYLOAD_ONLINE,
             "payload_not_available": self.PAYLOAD_OFFLINE,
@@ -185,7 +186,7 @@ class AmnioticHomeAssistantMqttEntity:
     @property
     def topic_announce(self):
         subpath = sanitize(f'{self.device.name} {self.name}', sep='-')
-        path = f'homeassistant/{self.DEVICE_CLASS}/{subpath}/config'
+        path = f'homeassistant/{self.HA_PLATFORM}/{subpath}/config'
 
         return path
 
@@ -214,10 +215,11 @@ class AmnioticHomeAssistantMqttEntity:
 
         """
         if force_announce:
-            queue += [
-                Message(client.publish, self.topic_announce, self.data, serialize=True),
-                Message(client.subscribe, self.topic_command),
-            ]
+            message = Message(client.publish, self.topic_announce, self.data, serialize=True)
+            queue.append(message)
+            if self.topic_command:
+                message = Message(client.subscribe, self.topic_command)
+                queue.append(message)
 
 
 class AmnioticHomeAssistantMqttVolume(AmnioticHomeAssistantMqttEntity):
@@ -226,7 +228,7 @@ class AmnioticHomeAssistantMqttVolume(AmnioticHomeAssistantMqttEntity):
     Home Assistant base volume control.
 
     """
-    DEVICE_CLASS = 'number'
+    HA_PLATFORM = 'number'
 
     def __init__(self, device: AmnioticHomeAssistantMqttDevice, name: str, icon: Optional[str] = None, min: Optional[int] = 0, max: Optional[int] = 100):
         self.device = device
@@ -251,7 +253,7 @@ class AmnioticHomeAssistantMqttVolumeMaster(AmnioticHomeAssistantMqttVolume):
     Home Assistant master volume control.
 
     """
-    DEVICE_CLASS = 'number'
+    HA_PLATFORM = 'number'
 
     @property
     def data(self):
@@ -331,7 +333,7 @@ class AmnioticHomeAssistantMqttSelect(AmnioticHomeAssistantMqttEntity):
     Base Home Assistant selector.
 
     """
-    DEVICE_CLASS = 'select'
+    HA_PLATFORM = 'select'
 
     def __init__(
             self,
@@ -451,7 +453,7 @@ class AmnioticHomeAssistantMqttEnabled(AmnioticHomeAssistantMqttEntity):
     Base Home Assistant Theme enabled/disabled entity (switch/toggle).
 
     """
-    DEVICE_CLASS = 'switch'
+    HA_PLATFORM = 'switch'
     VALUE_MAP = [(OFF := 'OFF'), (ON := 'ON')]
 
     def __init__(self, device: AmnioticHomeAssistantMqttDevice, name: str, icon=None):
@@ -496,6 +498,137 @@ class AmnioticHomeAssistantMqttEnabled(AmnioticHomeAssistantMqttEntity):
             'device_class': 'outlet',
         }
         return data
+
+
+class AmnioticHomeAssistantMqttSensor(AmnioticHomeAssistantMqttEntity):
+    """
+
+    Base Home Assistant Theme sensor entity, sends messages taken from current Theme status data.
+
+    """
+    HA_PLATFORM = 'sensor'
+    NA_VALUE = '-'
+    META_KEY = None
+    IS_SOURCE_META = True
+    UOM = None
+
+    def __init__(self, device: AmnioticHomeAssistantMqttDevice, name: str, icon: Optional[str] = None):
+        self.device = device
+        self.name = name
+        self._icon = icon
+        self.value = None
+
+    @property
+    def topic_command(self):
+        return None
+
+    @property
+    def data(self):
+        data = super().data
+        data.pop('device_class')
+        if self.UOM:
+            data['unit_of_measurement'] = self.UOM
+        return data
+
+    def get_value(self, amniotic: Amniotic, key: Optional[str] = None) -> Union[str, int, float]:
+        """
+
+        Get the relevant value from the Theme status or metadata dictionaries
+
+        """
+        key = key or self.META_KEY
+        status = amniotic.theme_current.status
+        if self.IS_SOURCE_META:
+            status = status.get('meta_data') or {}
+        meta_value = status.get(key) or self.NA_VALUE
+        return meta_value
+
+    def handle_outgoing(self, client: mqtt.Client, queue: list[Message], amniotic: Amniotic, force_announce=False):
+        """
+
+        Check if the current value as changed. If so, send the relevant messages.
+
+        """
+
+        super().handle_outgoing(client, queue, amniotic, force_announce=force_announce)
+
+        value = self.get_value(amniotic)
+        if value != self.value:
+            self.value = value
+            message = Message(client.publish, self.topic_state, self.value)
+            queue.append(message)
+
+
+class AmnioticHomeAssistantMqttSensorTitle(AmnioticHomeAssistantMqttSensor):
+    """
+
+    Home Assistant Title sensor
+
+    """
+    META_KEY = 'Title'
+
+
+class AmnioticHomeAssistantMqttSensorAlbum(AmnioticHomeAssistantMqttSensor):
+    """
+
+    Home Assistant Album sensor
+
+    """
+    META_KEY = 'Album'
+
+
+class AmnioticHomeAssistantMqttSensorDate(AmnioticHomeAssistantMqttSensor):
+    """
+
+    Home Assistant Date sensor
+
+    """
+    META_KEY = 'Date'
+
+
+class AmnioticHomeAssistantMqttSensorBy(AmnioticHomeAssistantMqttSensor):
+    """
+
+    Home Assistant By (Artist) sensor
+
+    """
+    META_KEY = 'Artist'
+
+
+class AmnioticHomeAssistantMqttSensorDuration(AmnioticHomeAssistantMqttSensor):
+    """
+
+    Home Assistant Duration sensor
+
+    """
+    META_KEY = 'duration'
+    IS_SOURCE_META = False
+
+    def get_value(self, amniotic: Amniotic, key: Optional[str] = None):
+        """
+
+        Get the value in milliseconds from the status, change to per-second granularity and return as string.
+
+        """
+        milliseconds = super().get_value(amniotic)
+
+        if milliseconds == self.NA_VALUE or milliseconds < 0:
+            return super().NA_VALUE
+
+        delta = timedelta(milliseconds=milliseconds)
+        delta -= timedelta(microseconds=delta.microseconds)
+        delta_str = str(delta)
+
+        return delta_str
+
+
+class AmnioticHomeAssistantMqttSensorElapsed(AmnioticHomeAssistantMqttSensorDuration):
+    """
+
+    Home Assistant Elapsed sensor
+
+    """
+    META_KEY = 'elapsed'
 
 
 class AmnioticMqttEventLoop:
@@ -578,7 +711,7 @@ class AmnioticMqttEventLoop:
         self.client.on_message = self.on_message
         self.client.on_connect_fail = self.on_connect_fail
         self.client.user_data_set(amniotic)
-        self.client.will_set(self.topic_lwt, payload='Offline', qos=0, retain=False, properties=None)
+        self.client.will_set(self.topic_lwt, payload='Offline', qos=1, retain=False, properties=None)
 
         if username is not None and password is not None:
             self.client.username_pw_set(username=username, password=password)
@@ -672,9 +805,16 @@ def start():
     device = AmnioticHomeAssistantMqttSelectDevice(mqtt_device, 'Theme Device', icon='expansion-card-variant')
     enabled = AmnioticHomeAssistantMqttEnabled(mqtt_device, 'Theme Enabled', 'play-circle')
 
+    sensor = AmnioticHomeAssistantMqttSensorTitle(mqtt_device, 'Title', icon='rename-box')
+    sensor_album = AmnioticHomeAssistantMqttSensorAlbum(mqtt_device, 'Album', icon='album')
+    sensor_date = AmnioticHomeAssistantMqttSensorDate(mqtt_device, 'Date', icon='calendar-outline')
+    sensor_by = AmnioticHomeAssistantMqttSensorBy(mqtt_device, 'By', icon='account')
+    sensor_duration = AmnioticHomeAssistantMqttSensorDuration(mqtt_device, 'Duration', icon='timer')
+    sensor_elapsed = AmnioticHomeAssistantMqttSensorElapsed(mqtt_device, 'Elapsed', icon='clock-time-twelve-outline')
+
     loop = AmnioticMqttEventLoop(
         amniotic=amniotic,
-        entities=[theme, device, volume_master, volume_theme, enabled],
+        entities=[theme, device, volume_master, volume_theme, enabled, sensor, sensor_album, sensor_date, sensor_by, sensor_duration, sensor_elapsed],
         host=config.mqtt_host,
         port=config.mqtt_port,
         username=config.mqtt_username,
