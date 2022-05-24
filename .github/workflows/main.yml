@@ -35,11 +35,11 @@ jobs:
         run: |
           git config --global user.name 'Frontmatter Actions'
           git config --global user.email 'actions@frontmatter.ai'
-          echo -n ${VERSION} > ${NAME}/version
-          git tag v${VERSION}
+          echo -n ${VERSION} > ${NAME}/version          
           git add ${NAME}/version
           git commit -am "Increment version number to ${VERSION} for release"
           git push
+          git tag v${VERSION}
           git push --tags
 
       - name: Create GitHub Release
