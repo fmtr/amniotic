@@ -1,12 +1,13 @@
-import logging
-from dataclasses import dataclass
 from os import getenv
-from pathlib import Path
 
+import logging
 import yaml
 from appdirs import AppDirs
+from dataclasses import dataclass
+from pathlib import Path
 
 APP_DIRS = AppDirs('amniotic', 'frontmatter')
+
 
 @dataclass
 class Config:
@@ -38,7 +39,7 @@ class Config:
         if not path_config_base:
             path_config_base = APP_DIRS.user_config_dir
 
-        path_config_base = Path(path_config_base)
+        path_config_base = Path(path_config_base).absolute()
         path_config_base.mkdir(parents=True, exist_ok=True)
         path_config = path_config_base / 'config.yml'
 

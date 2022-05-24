@@ -136,17 +136,21 @@ docker run --device /dev/snd --volume <local audio path>:/root/.local/share/amni
 
 ## Home Assistant
 
-With MQTT connected, Amniotic will announce itself as a new device to Home Assistant, and in the frontend you'll see
-device controls like this:
+With MQTT connected, Amniotic will announce itself to Home Assistant, and in
+the [Devices section of the frontend](http://homeassistant.local:8123/config/devices/dashboard) you'll see a new
+device (called something like **Amniotic** or **Bedroom Amniotic**, depending on your config) with device controls like
+this:
 
 <img src="ha_controls.png" width="281"/>
 
 Each subdirectory from the audio directory set up above will show up as a Theme in the frontend, and when that theme is
-enabled the individual files will be played in "Shuffle"
+enabled the individual files will be looped in "Shuffle"
 mode.
 
 Switching between Themes with the Theme pull-down, you'll be able to enable/disable each one, set their relative volume
-and their output devices etc.
+and their output devices etc., and the sensors will update to provide details of the current media.
 
-Since these controls are exposed as Home Assistant entities, you can also define and play custom mixes from scenes,
-scripts, automations, etc. - and anything else Home Assistant will allow.
+<img src="ha_sensors.png" width="281"/>
+
+Since these controls and sensors are exposed as Home Assistant entities, you can also define and play custom mixes from
+scenes, scripts, automations, etc. - and anything else Home Assistant will allow.
