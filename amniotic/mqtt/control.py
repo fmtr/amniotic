@@ -415,9 +415,6 @@ class ButtonUpdateCheck(Entity):
 
         update_status.message = message
 
-        self.do_check = False
-
-
 class ButtonUpdate(Entity):
     """
 
