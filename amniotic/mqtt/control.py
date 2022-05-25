@@ -108,8 +108,12 @@ class Entity:
         return name
 
     @property
-    def device(self):
+    def device(self) -> Device:
         return self.loop.device
+
+    @property
+    def amniotic(self) -> Amniotic:
+        return self.loop.amniotic
 
     @property
     def uid(self) -> str:
@@ -186,13 +190,29 @@ class Entity:
         }
         return data
 
-    def handle_incoming(self, client: mqtt.Client, queue: list[Message], amniotic: Amniotic, payload: Any):
-        """
-
-        Callback to handle incoming messages.
-
-        """
+    def get_value(self) -> Any:
         raise NotImplementedError()
+
+    def set_value(self, value) -> Any:
+        raise NotImplementedError()
+
+    def handle_incoming(self, client: mqtt.Client, queue, amniotic: Amniotic, value: Any):
+        """
+
+        Apply change audio volume from incoming message.
+
+        """
+        if value is not None:
+            self.set_value(value)
+        message = Message(client.publish, self.topic_state, self.get_value())
+        queue.append(message)
+
+    def handle_announce(self, client: mqtt.Client, queue: list[Message], ):
+        message = Message(client.publish, self.topic_announce, self.data, serialize=True)
+        queue.append(message)
+        if self.topic_command:
+            message = Message(client.subscribe, self.topic_command)
+            queue.append(message)
 
     def handle_outgoing(self, client: mqtt.Client, queue: list[Message], amniotic: Amniotic, force_announce: bool = False):
         """
@@ -201,11 +221,15 @@ class Entity:
 
         """
         if force_announce:
-            message = Message(client.publish, self.topic_announce, self.data, serialize=True)
+            self.handle_announce(client, queue)
+
+        value = self.get_value()
+        if value != self.value or force_announce:
+            self.set_value(value)
+            self.value = self.get_value()
+            message = Message(client.publish, self.topic_state, self.value)
             queue.append(message)
-            if self.topic_command:
-                message = Message(client.subscribe, self.topic_command)
-                queue.append(message)
+
 
 
 class Select(Entity):
@@ -231,7 +255,7 @@ class Select(Entity):
         }
         return data
 
-    def get_select_state(self, amniotic: Amniotic) -> tuple[list[str], str]:
+    def get_options(self, amniotic: Amniotic) -> list[str]:
         """
 
         Get state of the entity, i.e. the list of options and the currently selected option.
@@ -239,28 +263,26 @@ class Select(Entity):
         """
         raise NotImplementedError()
 
+    def get_value(self) -> Any:
+        raise NotImplementedError()
+
+    def set_value(self, value) -> Any:
+        raise NotImplementedError()
+
     def handle_outgoing(self, client: mqtt.Client, queue: list[Message], amniotic: Amniotic, force_announce: bool = False):
         """
 
-        Check if the list of options, or the current option, has changed. If so, send the relevant messages. This is a little awkward as if the options have
-        changed, the entity needs to be re-announced *before* the current select can be published.
+        Handle outgoing messages, adding announce, subscriptions to the queue.
 
         """
 
-        messages = []
-        options, selected_option = self.get_select_state(amniotic)
-
-        if options != self.options:
+        options = self.get_options(amniotic)
+        if options != self.options or force_announce:
             force_announce = True
             self.options = options
 
-        if selected_option != self.selected:
-            message = Message(client.publish, self.topic_state, selected_option)
-            messages.append(message)
-            self.selected = selected_option
-
         super().handle_outgoing(client, queue, amniotic, force_announce=force_announce)
-        queue += messages
+
 
 
 class SelectTheme(Select):
@@ -272,24 +294,19 @@ class SelectTheme(Select):
     ICON_SUFFIX = 'surround-sound'
     NAME = 'Theme'
 
-    def get_select_state(self, amniotic: Amniotic) -> tuple[list[str], str]:
+    def get_value(self) -> Any:
+        return self.amniotic.theme_current.name
+
+    def set_value(self, value) -> Any:
+        self.amniotic.set_theme(value)
+
+    def get_options(self, amniotic: Amniotic) -> list[str]:
         """
 
         Get state of the entity, i.e. the list of options and the currently selected option.
 
         """
-        return list(amniotic.themes.keys()), amniotic.theme_current.name
-
-    def handle_incoming(self, client: mqtt.Client, queue, amniotic: Amniotic, payload: Any):
-        """
-
-        Apply change to current Theme from incoming message.
-
-        """
-        if payload is not None:
-            amniotic.set_theme(payload)
-        message = Message(client.publish, self.topic_state, amniotic.theme_current.name)
-        queue.append(message)
+        return list(amniotic.themes.keys())
 
 
 class Volume(Entity):
@@ -334,29 +351,15 @@ class VolumeMaster(Volume):
         }
         return data
 
-    def handle_outgoing(self, client: mqtt.Client, queue: list[Message], amniotic: Amniotic, force_announce: bool = False):
-        """
+    def get_value(self) -> Any:
+        return self.amniotic.volume
 
-        If volume has changed, send update message.
+    def set_value(self, value) -> Any:
+        self.amniotic.set_volume(value)
 
-        """
-        super().handle_outgoing(client, queue, amniotic, force_announce=force_announce)
-        value = amniotic.volume
-        if value != self.value or force_announce:
-            message = Message(client.publish, self.topic_state, value)
-            queue.append(message)
-            self.value = value
 
-    def handle_incoming(self, client: mqtt.Client, queue, amniotic: Amniotic, payload: Any):
-        """
 
-        Apply change audio volume from incoming message.
 
-        """
-        if payload is not None:
-            amniotic.set_volume(payload)
-        message = Message(client.publish, self.topic_state, amniotic.volume)
-        queue.append(message)
 
 
 class VolumeTheme(Volume):
@@ -369,31 +372,13 @@ class VolumeTheme(Volume):
     ICON_SUFFIX = 'volume-medium'
     NAME = 'Theme Volume'
 
-    def handle_outgoing(self, client: mqtt.Client, queue: list[Message], amniotic: Amniotic, force_announce: bool = False):
-        """
+    def get_value(self) -> Any:
+        return self.amniotic.theme_current.volume
 
-        If volume has changed, send update message.
+    def set_value(self, value) -> Any:
+        self.amniotic.set_volume_theme(value)
 
-        """
 
-        super().handle_outgoing(client, queue, amniotic, force_announce=force_announce)
-        value = amniotic.theme_current.volume
-        if value != self.value or force_announce:
-            message = Message(client.publish, self.topic_state, value)
-            queue.append(message)
-            self.value = value
-
-    def handle_incoming(self, client: mqtt.Client, queue, amniotic: Amniotic, payload: Any):
-        """
-
-        Apply change to audio volume from incoming message.
-
-        """
-
-        if payload is not None:
-            amniotic.set_volume_theme(payload)
-        message = Message(client.publish, self.topic_state, amniotic.theme_current.volume)
-        queue.append(message)
 
 
 class DeviceTheme(Select):
@@ -405,24 +390,22 @@ class DeviceTheme(Select):
     ICON_SUFFIX = 'expansion-card-variant'
     NAME = 'Theme Device'
 
-    def get_select_state(self, amniotic: Amniotic) -> tuple[list[str], str]:
+    def get_value(self) -> Any:
+        return self.amniotic.theme_current.device_name
+
+    def set_value(self, value) -> Any:
+        self.amniotic.theme_current.set_device(value)
+
+    def get_options(self, amniotic: Amniotic) -> list[str]:
         """
 
         Get state of the entity, i.e. the list of options and the currently selected option.
 
         """
-        return list(amniotic.devices.values()), amniotic.theme_current.device_name
+        return list(amniotic.devices.values())
 
-    def handle_incoming(self, client: mqtt.Client, queue, amniotic: Amniotic, payload: Any):
-        """
 
-        Apply change to current device from incoming message.
 
-        """
-        if payload is not None:
-            amniotic.theme_current.set_device(payload)
-        message = Message(client.publish, self.topic_state, amniotic.theme_current.device_name)
-        queue.append(message)
 
 
 class ToggleTheme(Entity):
@@ -436,31 +419,11 @@ class ToggleTheme(Entity):
     VALUE_MAP = [(OFF := 'OFF'), (ON := 'ON')]
     NAME = 'Theme Enabled'
 
+    def get_value(self) -> Any:
+        return self.VALUE_MAP[self.amniotic.theme_current.enabled]
 
-    def handle_incoming(self, client: mqtt.Client, queue, amniotic: Amniotic, payload: Any):
-        """
-
-        Apply change to current Theme enabled/disabled from incoming message.
-
-        """
-        if payload is not None:
-            amniotic.theme_current.enabled = payload == self.ON
-        message = Message(client.publish, self.topic_state, self.VALUE_MAP[amniotic.theme_current.enabled])
-        queue.append(message)
-
-    def handle_outgoing(self, client: mqtt.Client, queue: list[Message], amniotic: Amniotic, force_announce: bool = False):
-        """
-
-        Check if the current Theme enabled/disabled state had changed. If so, send the relevant messages.
-
-        """
-        super().handle_outgoing(client, queue, amniotic, force_announce=force_announce)
-
-        value = amniotic.theme_current.enabled
-        if value != self.value or force_announce:
-            message = Message(client.publish, self.topic_state, self.VALUE_MAP[amniotic.theme_current.enabled])
-            queue.append(message)
-            self.value = value
+    def set_value(self, value) -> Any:
+        self.amniotic.theme_current.enabled = value == self.ON
 
     @property
     def data(self):

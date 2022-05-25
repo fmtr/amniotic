@@ -1,11 +1,7 @@
 from datetime import timedelta
 from typing import Optional, Union
 
-from paho.mqtt import client as mqtt
-
-from amniotic.audio import Amniotic
 from amniotic.mqtt import control
-from amniotic.mqtt.tools import Message
 
 
 class Sensor(control.Entity):
@@ -32,33 +28,21 @@ class Sensor(control.Entity):
             data['unit_of_measurement'] = self.UOM
         return data
 
-    def get_value(self, amniotic: Amniotic, key: Optional[str] = None) -> Union[str, int, float]:
+    def set_value(self, value):
+        pass
+
+    def get_value(self, key=None) -> Union[str, int, float]:
         """
 
         Get the relevant value from the Theme status or metadata dictionaries
 
         """
         key = key or self.META_KEY
-        status = amniotic.theme_current.status
+        status = self.amniotic.theme_current.status
         if self.IS_SOURCE_META:
             status = status.get('meta_data') or {}
         meta_value = status.get(key) or self.NA_VALUE
         return meta_value
-
-    def handle_outgoing(self, client: mqtt.Client, queue: list[Message], amniotic: Amniotic, force_announce=False):
-        """
-
-        Check if the current value as changed. If so, send the relevant messages.
-
-        """
-
-        super().handle_outgoing(client, queue, amniotic, force_announce=force_announce)
-
-        value = self.get_value(amniotic)
-        if value != self.value:
-            self.value = value
-            message = Message(client.publish, self.topic_state, self.value)
-            queue.append(message)
 
 
 class Title(Sensor):
@@ -109,13 +93,13 @@ class Duration(Sensor):
     NAME = 'Duration'
     IS_SOURCE_META = False
 
-    def get_value(self, amniotic: Amniotic, key: Optional[str] = None):
+    def get_value(self, key: Optional[str] = None):
         """
 
         Get the value in milliseconds from the status, change to per-second granularity and return as string.
 
         """
-        milliseconds = super().get_value(amniotic)
+        milliseconds = super().get_value()
 
         if milliseconds == self.NA_VALUE or milliseconds < 0:
             return super().NA_VALUE
