@@ -129,7 +129,7 @@ class Elapsed(Duration):
 class UpdateStatus(Sensor):
     NAME = 'Update Status'
     ICON_SUFFIX = 'semantic-web'
-    message = None
+    message = Sensor.NA_VALUE
 
     def set_value(self, value):
         """
