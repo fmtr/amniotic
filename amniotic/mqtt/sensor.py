@@ -53,6 +53,7 @@ class Title(Sensor):
     """
 
     NAME = META_KEY = 'Title'
+    ICON_SUFFIX = 'text-recognition'
 
 
 class Album(Sensor):
@@ -62,6 +63,7 @@ class Album(Sensor):
 
     """
     NAME = META_KEY = 'Album'
+    ICON_SUFFIX = 'album'
 
 
 class Date(Sensor):
@@ -71,6 +73,7 @@ class Date(Sensor):
 
     """
     NAME = META_KEY = 'Date'
+    ICON_SUFFIX = 'calendar-outline'
 
 
 class By(Sensor):
@@ -81,6 +84,7 @@ class By(Sensor):
     """
     META_KEY = 'Artist'
     NAME = 'By'
+    ICON_SUFFIX = 'account'
 
 
 class Duration(Sensor):
@@ -92,6 +96,7 @@ class Duration(Sensor):
     META_KEY = 'duration'
     NAME = 'Duration'
     IS_SOURCE_META = False
+    ICON_SUFFIX = 'timer'
 
     def get_value(self, key: Optional[str] = None):
         """
@@ -119,3 +124,4 @@ class Elapsed(Duration):
     """
     META_KEY = 'elapsed'
     NAME = 'Elapsed'
+    ICON_SUFFIX = 'clock-time-twelve-outline'
