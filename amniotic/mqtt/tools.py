@@ -1,7 +1,9 @@
 import json
+import re
 from dataclasses import dataclass
 from typing import Callable, Any
 
+WHITESPACE = re.compile('[\s\-_]+')
 
 @dataclass
 class Message:
@@ -42,10 +44,17 @@ class Message:
         self.method(self.topic, *args, qos=1)
 
 
-def sanitize(string, sep='-') -> str:
+def sanitize(*strings, sep: str = '-') -> str:
     """
 
     Replace spaces with URL- and ID-friendly characters, etc.
 
     """
-    return string.lower().strip().replace(' ', sep)
+
+    strings = [string for string in strings if string]
+    string = ' '.join(strings)
+    strings = [c.lower() for c in string if c.isalnum() or c in {' '}]
+    string = ''.join(strings)
+    string = WHITESPACE.sub(sep, string).strip()
+
+    return string

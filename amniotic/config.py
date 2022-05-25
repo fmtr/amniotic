@@ -18,7 +18,6 @@ class Config:
     """
 
     """
-    name: str = None
     mqtt_host: str = 'homeassistant.local'
     mqtt_port: int = 1883
     mqtt_username: str = None

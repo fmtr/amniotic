@@ -14,19 +14,17 @@ class Device:
     Representation of the parent device for Home Assistant.
 
     """
-    NAME_DEFAULT = 'Amniotic'
-    MODEL_DEFAULT = 'Amniotic'
+    NAME = 'Amniotic'
+    MODEL = 'Amniotic'
     MANUFACTURER = 'Frontmatter'
     URL = None
 
-    def __init__(self, name: Optional[str] = None, location: Optional[str] = None):
+    def __init__(self, location: Optional[str] = None):
         """
 
         Set any specified arguments.
 
         """
-        self.sw_version = __version__
-        self._name = name or self.NAME_DEFAULT
         self.location = location
 
     @property
@@ -36,7 +34,8 @@ class Device:
         Home Assistant compatible unique ID.
 
         """
-        return sanitize(f'{self.location or ""} {self.name} {MAC_ADDRESS}')
+        uid = sanitize(self.name, MAC_ADDRESS)
+        return uid
 
     @property
     def name(self) -> str:
@@ -45,7 +44,12 @@ class Device:
         Home Assistant compatible device name.
 
         """
-        return f'{self.location or ""} {self._name}'.strip()
+
+        name = self.NAME
+        if self.location:
+            name = f'{self.location} {name}'
+
+        return name
 
     @property
     def topic_lwt(self) -> str:
@@ -54,8 +58,9 @@ class Device:
         Device LWT path.
 
         """
-        subpath = sanitize(f'{self.location or ""} {self._name}'.strip(), sep='/')
-        return f'tele/{subpath}/LWT'
+        subpath = sanitize(self.name, sep='/')
+        topic = f'tele/{subpath}/LWT'
+        return topic
 
     @property
     def announce_data(self) -> dict:
@@ -65,10 +70,10 @@ class Device:
 
         """
         data = {
-            "connections": [["mac", MAC_ADDRESS]],
-            'sw_version': self.sw_version,
+            "connections": [["mac", self.uid]],
+            'sw_version': __version__,
             'name': self.name,
-            'model': self.MODEL_DEFAULT,
+            'model': self.MODEL,
             'manufacturer': self.MANUFACTURER,
             'identifiers': self.uid
         }
@@ -86,7 +91,7 @@ class Entity:
     HA_PLATFORM = None
     name = None
     device = None
-    _icon = None
+    icon_suffix = None
 
     @property
     def data(self) -> dict:
@@ -112,25 +117,42 @@ class Entity:
         return data
 
     @property
-    def uid(self):
-        return sanitize(f'{self.device.name} {self.name}', sep='_')
+    def uid(self) -> str:
+        """
+
+        Unique ID
+
+        """
+        return sanitize(self.device.name, self.name, sep='_')
 
     @property
-    def topic_state(self):
-        subpath = sanitize(f'{self.device.name} {self.name}', sep='/')
-        return f'stat/{subpath}/state'
+    def topic_state(self) -> str:
+        """
+
+        State topic
+
+        """
+        subpath = sanitize(self.device.name, self.name, sep='/')
+        topic = f'stat/{subpath}/state'
+        return topic
 
     @property
-    def topic_command(self):
-        subpath = sanitize(f'{self.device.name} {self.name}', sep='/')
-        return f'stat/{subpath}/command'
+    def topic_command(self) -> str:
+        """
+
+        Command topic
+
+        """
+        subpath = sanitize(self.device.name, self.name, sep='/')
+        topic = f'stat/{subpath}/command'
+        return topic
 
     @property
-    def topic_announce(self):
-        subpath = sanitize(f'{self.device.name} {self.name}', sep='-')
-        path = f'homeassistant/{self.HA_PLATFORM}/{subpath}/config'
+    def topic_announce(self) -> str:
+        subpath = sanitize(self.device.name, self.name, sep='_')
+        topic = f'homeassistant/{self.HA_PLATFORM}/{subpath}/config'
 
-        return path
+        return topic
 
     @property
     def icon(self):
@@ -139,7 +161,7 @@ class Entity:
         Add Material Design Icons prefix to icon name.
 
         """
-        icon = f"mdi:{self._icon}" if self._icon else None
+        icon = f"mdi:{self.icon_suffix}" if self.icon_suffix else None
         return icon
 
     def handle_incoming(self, client: mqtt.Client, queue: list[Message], amniotic: Amniotic, payload: Any):
@@ -177,7 +199,7 @@ class Volume(Entity):
         self.name = name
         self.min = min
         self.max = max
-        self._icon = icon
+        self.icon_suffix = icon
         self.value = None
 
     @property
@@ -287,7 +309,7 @@ class Select(Entity):
     ):
         self.device = device
         self.name = name
-        self._icon = icon
+        self.icon_suffix = icon
         self.options = options or []
         self.selected = selected
 
@@ -401,7 +423,7 @@ class ToggleTheme(Entity):
     def __init__(self, device: Device, name: str, icon=None):
         self.device = device
         self.name = name
-        self._icon = icon
+        self.icon_suffix = icon
         self.value = None
 
     def handle_incoming(self, client: mqtt.Client, queue, amniotic: Amniotic, payload: Any):

@@ -179,7 +179,7 @@ def start():
     msg = f'Amniotic {__version__} starting MQTT...'
     logging.info(msg)
 
-    mqtt_device = control.Device(name=config.name, location=config.location)
+    mqtt_device = control.Device(location=config.location)
     theme = control.SelectTheme(mqtt_device, 'Theme', icon='surround-sound', )
     volume_master = control.VolumeMaster(mqtt_device, 'Master Volume', icon='volume-high')
     volume_theme = control.VolumeTheme(mqtt_device, 'Theme Volume', icon='volume-medium')
