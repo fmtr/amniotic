@@ -96,7 +96,7 @@ class Duration(Sensor):
     META_KEY = 'duration'
     NAME = 'Duration'
     IS_SOURCE_META = False
-    ICON_SUFFIX = 'time'
+    ICON_SUFFIX = 'timer'
 
     def get_value(self, key: Optional[str] = None):
         """
