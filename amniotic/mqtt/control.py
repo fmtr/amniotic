@@ -8,7 +8,7 @@ from amniotic.mqtt.tools import Message, sanitize
 from amniotic.version import __version__
 
 
-class AmnioticHomeAssistantMqttDevice:
+class Device:
     """
 
     Representation of the parent device for Home Assistant.
@@ -75,7 +75,7 @@ class AmnioticHomeAssistantMqttDevice:
         return data
 
 
-class AmnioticHomeAssistantMqttEntity:
+class Entity:
     """
 
     Base representation of an entity for Home Assistant.
@@ -164,7 +164,7 @@ class AmnioticHomeAssistantMqttEntity:
                 queue.append(message)
 
 
-class AmnioticHomeAssistantMqttVolume(AmnioticHomeAssistantMqttEntity):
+class Volume(Entity):
     """
 
     Home Assistant base volume control.
@@ -172,7 +172,7 @@ class AmnioticHomeAssistantMqttVolume(AmnioticHomeAssistantMqttEntity):
     """
     HA_PLATFORM = 'number'
 
-    def __init__(self, device: AmnioticHomeAssistantMqttDevice, name: str, icon: Optional[str] = None, min: Optional[int] = 0, max: Optional[int] = 100):
+    def __init__(self, device: Device, name: str, icon: Optional[str] = None, min: Optional[int] = 0, max: Optional[int] = 100):
         self.device = device
         self.name = name
         self.min = min
@@ -189,7 +189,7 @@ class AmnioticHomeAssistantMqttVolume(AmnioticHomeAssistantMqttEntity):
         return data
 
 
-class AmnioticHomeAssistantMqttVolumeMaster(AmnioticHomeAssistantMqttVolume):
+class VolumeMaster(Volume):
     """
 
     Home Assistant master volume control.
@@ -235,7 +235,7 @@ class AmnioticHomeAssistantMqttVolumeMaster(AmnioticHomeAssistantMqttVolume):
         queue.append(message)
 
 
-class AmnioticHomeAssistantMqttVolumeTheme(AmnioticHomeAssistantMqttVolume):
+class VolumeTheme(Volume):
     """
 
     Home Assistant theme volume control.
@@ -269,7 +269,7 @@ class AmnioticHomeAssistantMqttVolumeTheme(AmnioticHomeAssistantMqttVolume):
         queue.append(message)
 
 
-class AmnioticHomeAssistantMqttSelect(AmnioticHomeAssistantMqttEntity):
+class Select(Entity):
     """
 
     Base Home Assistant selector.
@@ -279,7 +279,7 @@ class AmnioticHomeAssistantMqttSelect(AmnioticHomeAssistantMqttEntity):
 
     def __init__(
             self,
-            device: AmnioticHomeAssistantMqttDevice,
+            device: Device,
             name: str,
             selected=None,
             icon=None,
@@ -335,7 +335,7 @@ class AmnioticHomeAssistantMqttSelect(AmnioticHomeAssistantMqttEntity):
         queue += messages
 
 
-class AmnioticHomeAssistantMqttSelectTheme(AmnioticHomeAssistantMqttSelect):
+class SelectTheme(Select):
     """
 
     Home Assistant theme selector.
@@ -362,7 +362,7 @@ class AmnioticHomeAssistantMqttSelectTheme(AmnioticHomeAssistantMqttSelect):
         queue.append(message)
 
 
-class AmnioticHomeAssistantMqttSelectDevice(AmnioticHomeAssistantMqttSelect):
+class SelectDevice(Select):
     """
 
     Home Assistant device selector.
@@ -389,7 +389,7 @@ class AmnioticHomeAssistantMqttSelectDevice(AmnioticHomeAssistantMqttSelect):
         queue.append(message)
 
 
-class AmnioticHomeAssistantMqttEnabled(AmnioticHomeAssistantMqttEntity):
+class ToggleTheme(Entity):
     """
 
     Base Home Assistant Theme enabled/disabled entity (switch/toggle).
@@ -398,7 +398,7 @@ class AmnioticHomeAssistantMqttEnabled(AmnioticHomeAssistantMqttEntity):
     HA_PLATFORM = 'switch'
     VALUE_MAP = [(OFF := 'OFF'), (ON := 'ON')]
 
-    def __init__(self, device: AmnioticHomeAssistantMqttDevice, name: str, icon=None):
+    def __init__(self, device: Device, name: str, icon=None):
         self.device = device
         self.name = name
         self._icon = icon

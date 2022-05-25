@@ -7,10 +7,7 @@ from paho.mqtt import client as mqtt
 
 from amniotic.audio import Amniotic
 from amniotic.config import Config
-from amniotic.mqtt.control import AmnioticHomeAssistantMqttEntity, AmnioticHomeAssistantMqttDevice, AmnioticHomeAssistantMqttSelectTheme, \
-    AmnioticHomeAssistantMqttVolumeMaster, AmnioticHomeAssistantMqttVolumeTheme, AmnioticHomeAssistantMqttSelectDevice, AmnioticHomeAssistantMqttEnabled
-from amniotic.mqtt.sensor import AmnioticHomeAssistantMqttSensorTitle, AmnioticHomeAssistantMqttSensorAlbum, AmnioticHomeAssistantMqttSensorDate, \
-    AmnioticHomeAssistantMqttSensorBy, AmnioticHomeAssistantMqttSensorDuration, AmnioticHomeAssistantMqttSensorElapsed
+from amniotic.mqtt import control, sensor
 from amniotic.mqtt.tools import Message
 from amniotic.version import __version__
 
@@ -72,7 +69,7 @@ class AmnioticMqttEventLoop:
 
         self.has_reconnected = True
 
-    def __init__(self, host, port, entities: list[AmnioticHomeAssistantMqttEntity], amniotic: Amniotic, username: str = None, password: str = None,
+    def __init__(self, host, port, entities: list[control.Entity], amniotic: Amniotic, username: str = None, password: str = None,
                  tele_period: int = 300):
         """
 
@@ -182,23 +179,23 @@ def start():
     msg = f'Amniotic {__version__} starting MQTT...'
     logging.info(msg)
 
-    mqtt_device = AmnioticHomeAssistantMqttDevice(name=config.name, location=config.location)
-    theme = AmnioticHomeAssistantMqttSelectTheme(mqtt_device, 'Theme', icon='surround-sound', )
-    volume_master = AmnioticHomeAssistantMqttVolumeMaster(mqtt_device, 'Master Volume', icon='volume-high')
-    volume_theme = AmnioticHomeAssistantMqttVolumeTheme(mqtt_device, 'Theme Volume', icon='volume-medium')
-    device = AmnioticHomeAssistantMqttSelectDevice(mqtt_device, 'Theme Device', icon='expansion-card-variant')
-    enabled = AmnioticHomeAssistantMqttEnabled(mqtt_device, 'Theme Enabled', 'play-circle')
+    mqtt_device = control.Device(name=config.name, location=config.location)
+    theme = control.SelectTheme(mqtt_device, 'Theme', icon='surround-sound', )
+    volume_master = control.VolumeMaster(mqtt_device, 'Master Volume', icon='volume-high')
+    volume_theme = control.VolumeTheme(mqtt_device, 'Theme Volume', icon='volume-medium')
+    device = control.SelectDevice(mqtt_device, 'Theme Device', icon='expansion-card-variant')
+    enabled = control.ToggleTheme(mqtt_device, 'Theme Enabled', 'play-circle')
 
-    sensor = AmnioticHomeAssistantMqttSensorTitle(mqtt_device, 'Title', icon='rename-box')
-    sensor_album = AmnioticHomeAssistantMqttSensorAlbum(mqtt_device, 'Album', icon='album')
-    sensor_date = AmnioticHomeAssistantMqttSensorDate(mqtt_device, 'Date', icon='calendar-outline')
-    sensor_by = AmnioticHomeAssistantMqttSensorBy(mqtt_device, 'By', icon='account')
-    sensor_duration = AmnioticHomeAssistantMqttSensorDuration(mqtt_device, 'Duration', icon='timer')
-    sensor_elapsed = AmnioticHomeAssistantMqttSensorElapsed(mqtt_device, 'Elapsed', icon='clock-time-twelve-outline')
+    sensor_title = sensor.Title(mqtt_device, 'Title', icon='rename-box')
+    sensor_album = sensor.Album(mqtt_device, 'Album', icon='album')
+    sensor_date = sensor.Date(mqtt_device, 'Date', icon='calendar-outline')
+    sensor_by = sensor.By(mqtt_device, 'By', icon='account')
+    sensor_duration = sensor.Duration(mqtt_device, 'Duration', icon='timer')
+    sensor_elapsed = sensor.Elapsed(mqtt_device, 'Elapsed', icon='clock-time-twelve-outline')
 
     loop = AmnioticMqttEventLoop(
         amniotic=amniotic,
-        entities=[theme, device, volume_master, volume_theme, enabled, sensor, sensor_album, sensor_date, sensor_by, sensor_duration, sensor_elapsed],
+        entities=[theme, device, volume_master, volume_theme, enabled, sensor_title, sensor_album, sensor_date, sensor_by, sensor_duration, sensor_elapsed],
         host=config.mqtt_host,
         port=config.mqtt_port,
         username=config.mqtt_username,

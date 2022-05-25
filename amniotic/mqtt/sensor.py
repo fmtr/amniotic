@@ -4,11 +4,11 @@ from typing import Optional, Union
 from paho.mqtt import client as mqtt
 
 from amniotic.audio import Amniotic
-from amniotic.mqtt.control import AmnioticHomeAssistantMqttEntity, AmnioticHomeAssistantMqttDevice
+from amniotic.mqtt import control
 from amniotic.mqtt.tools import Message
 
 
-class AmnioticHomeAssistantMqttSensor(AmnioticHomeAssistantMqttEntity):
+class Sensor(control.Entity):
     """
 
     Base Home Assistant Theme sensor entity, sends messages taken from current Theme status data.
@@ -20,7 +20,7 @@ class AmnioticHomeAssistantMqttSensor(AmnioticHomeAssistantMqttEntity):
     IS_SOURCE_META = True
     UOM = None
 
-    def __init__(self, device: AmnioticHomeAssistantMqttDevice, name: str, icon: Optional[str] = None):
+    def __init__(self, device: control.Device, name: str, icon: Optional[str] = None):
         self.device = device
         self.name = name
         self._icon = icon
@@ -67,7 +67,7 @@ class AmnioticHomeAssistantMqttSensor(AmnioticHomeAssistantMqttEntity):
             queue.append(message)
 
 
-class AmnioticHomeAssistantMqttSensorTitle(AmnioticHomeAssistantMqttSensor):
+class Title(Sensor):
     """
 
     Home Assistant Title sensor
@@ -76,7 +76,7 @@ class AmnioticHomeAssistantMqttSensorTitle(AmnioticHomeAssistantMqttSensor):
     META_KEY = 'Title'
 
 
-class AmnioticHomeAssistantMqttSensorAlbum(AmnioticHomeAssistantMqttSensor):
+class Album(Sensor):
     """
 
     Home Assistant Album sensor
@@ -85,7 +85,7 @@ class AmnioticHomeAssistantMqttSensorAlbum(AmnioticHomeAssistantMqttSensor):
     META_KEY = 'Album'
 
 
-class AmnioticHomeAssistantMqttSensorDate(AmnioticHomeAssistantMqttSensor):
+class Date(Sensor):
     """
 
     Home Assistant Date sensor
@@ -94,7 +94,7 @@ class AmnioticHomeAssistantMqttSensorDate(AmnioticHomeAssistantMqttSensor):
     META_KEY = 'Date'
 
 
-class AmnioticHomeAssistantMqttSensorBy(AmnioticHomeAssistantMqttSensor):
+class By(Sensor):
     """
 
     Home Assistant By (Artist) sensor
@@ -103,7 +103,7 @@ class AmnioticHomeAssistantMqttSensorBy(AmnioticHomeAssistantMqttSensor):
     META_KEY = 'Artist'
 
 
-class AmnioticHomeAssistantMqttSensorDuration(AmnioticHomeAssistantMqttSensor):
+class Duration(Sensor):
     """
 
     Home Assistant Duration sensor
@@ -130,7 +130,7 @@ class AmnioticHomeAssistantMqttSensorDuration(AmnioticHomeAssistantMqttSensor):
         return delta_str
 
 
-class AmnioticHomeAssistantMqttSensorElapsed(AmnioticHomeAssistantMqttSensorDuration):
+class Elapsed(Duration):
     """
 
     Home Assistant Elapsed sensor
