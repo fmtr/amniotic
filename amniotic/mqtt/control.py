@@ -1,11 +1,14 @@
 from typing import Optional, Any
 
+import pip
+from johnnydep.lib import JohnnyDist
 from paho.mqtt import client as mqtt
 
 from amniotic.audio import Amniotic
 from amniotic.mqtt.device import Device
 from amniotic.mqtt.loop import Loop
 from amniotic.mqtt.tools import Message, sanitize
+from amniotic.version import __version__
 
 
 class Entity:
@@ -94,12 +97,15 @@ class Entity:
         return topic
 
     @property
-    def icon(self):
+    def icon(self) -> Optional[str]:
         """
 
         Add Material Design Icons prefix to icon name.
 
         """
+        if not self.ICON_SUFFIX:
+            return self.ICON_SUFFIX
+
         icon = f"mdi:{self.ICON_SUFFIX}"
         return icon
 
@@ -122,8 +128,11 @@ class Entity:
             "availability_topic": self.device.topic_lwt,
             "state_topic": self.topic_state,
             "command_topic": self.topic_command,
-            "icon": self.icon
         }
+
+        if self.icon:
+            data['icon'] = self.icon
+
         return data
 
     def get_value(self) -> Any:
@@ -364,3 +373,81 @@ class ToggleTheme(Entity):
             'device_class': 'outlet',
         }
         return data
+
+
+class ButtonUpdateCheck(Entity):
+    """
+
+    Home Assistant update button.
+
+    """
+    HA_PLATFORM = 'button'
+    ICON_SUFFIX = 'source-branch-sync'
+    NAME = 'Update Check'
+
+    def get_value(self) -> Any:
+        pass
+
+    def set_value(self, value) -> Any:
+        pass
+
+    @property
+    def data(self):
+        """
+
+        Home Assistant announce data for the entity.
+
+        """
+        data = super().data
+        data.pop('device_class')
+        return data
+
+    def handle_incoming(self, value: Any):
+
+        from amniotic.mqtt.sensor import UpdateStatus
+        update_status = self.loop.entities[UpdateStatus]
+        update_status.message = 'Checking for updates...'
+        package = JohnnyDist("amniotic")
+        if __version__ == package.version_latest:
+            message = 'None available'
+        else:
+            message = f'Update available: {__version__}->{package.version_latest}'
+
+        update_status.message = message
+
+class ButtonUpdate(Entity):
+    """
+
+    Home Assistant update button.
+
+    """
+    HA_PLATFORM = 'button'
+    NAME = 'Update Check'
+
+    def get_value(self) -> Any:
+        pass
+
+    def set_value(self, value) -> Any:
+        pass
+
+    @property
+    def data(self):
+        """
+
+        Home Assistant announce data for the entity.
+
+        """
+        data = super().data | {
+            'device_class': 'update'
+        }
+
+        return data
+
+    def handle_incoming(self, value: Any):
+        """
+
+        Update from PyPI, then tell loop to exit.
+
+        """
+        pip.main(['install', 'amniotic', '--upgrade'])
+        self.loop.exit_reason = f'Updating to latest version.'

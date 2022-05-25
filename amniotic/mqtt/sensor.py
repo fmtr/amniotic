@@ -125,3 +125,24 @@ class Elapsed(Duration):
     META_KEY = 'elapsed'
     NAME = 'Elapsed'
     ICON_SUFFIX = 'clock-time-twelve-outline'
+
+class UpdateStatus(Sensor):
+    NAME = 'Update Status'
+    ICON_SUFFIX = 'semantic-web'
+    message = None
+
+    def set_value(self, value):
+        """
+
+        Dummy method.
+
+        """
+        pass
+
+    def get_value(self, key=None) -> Union[str, int, float]:
+        """
+
+        Return current message
+
+        """
+        return self.message
