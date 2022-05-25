@@ -83,6 +83,8 @@ class Loop:
 
         self.device = device
 
+        self.exit_reason = False
+
         self.entities = {
             entity_class: entity_class(self)
             for entity_class in self.entity_classes
@@ -115,8 +117,8 @@ class Loop:
     def entity_classes(self):
         from amniotic.mqtt import control, sensor
         entity_classes = [
-            control.SelectTheme, control.VolumeMaster, control.VolumeTheme, control.ToggleTheme, control.DeviceTheme,
-            sensor.Title, sensor.Album, sensor.Date, sensor.By, sensor.Duration, sensor.Elapsed
+            control.SelectTheme, control.VolumeMaster, control.VolumeTheme, control.ToggleTheme, control.DeviceTheme, control.ButtonUpdateCheck,
+            sensor.Title, sensor.Album, sensor.Date, sensor.By, sensor.Duration, sensor.Elapsed, sensor.UpdateStatus
         ]
         return entity_classes
 
@@ -157,7 +159,7 @@ class Loop:
         while not self.client.is_connected():
             sleep(self.LOOP_PERIOD)
 
-        while True:
+        while not self.exit_reason:
 
             if not loop_count:
                 delay = self.DELAY_FIRST
@@ -181,6 +183,9 @@ class Loop:
 
             sleep(self.LOOP_PERIOD)
             loop_count += 1
+
+        msg = f'Event loop exiting gracefully for: {self.exit_reason}'
+        logging.info(msg)
 
 
 def start():

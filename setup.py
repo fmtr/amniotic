@@ -27,7 +27,8 @@ setup(
         'python-vlc',
         'getmac',
         'pyyaml',
-        'appdirs'
+        'appdirs',
+        'johnnydep'
     ],
     extras_require={},
     entry_points={
