@@ -89,9 +89,79 @@ class Entity:
     PAYLOAD_ONLINE = "Online"
     PAYLOAD_OFFLINE = "Offline"
     HA_PLATFORM = None
-    name = None
-    device = None
-    icon_suffix = None
+    NAME = None
+    ICON_SUFFIX = None
+    value = None
+
+    def __init__(self, loop: 'AmnioticMqttEventLoop'):
+        self.loop = loop
+
+    @property
+    def name(self) -> str:
+        """
+
+        Home Assistant compatible entity name.
+
+        """
+
+        name = f'{self.device.name} {self.NAME}'
+        return name
+
+    @property
+    def device(self):
+        return self.loop.device
+
+    @property
+    def uid(self) -> str:
+        """
+
+        Unique ID
+
+        """
+        return sanitize(self.name, sep='_')
+
+    @property
+    def topic_state(self) -> str:
+        """
+
+        State topic
+
+        """
+        subpath = sanitize(self.name, sep='/')
+        topic = f'stat/{subpath}/state'
+        return topic
+
+    @property
+    def topic_command(self) -> str:
+        """
+
+        Command topic
+
+        """
+        subpath = sanitize(self.name, sep='/')
+        topic = f'stat/{subpath}/command'
+        return topic
+
+    @property
+    def topic_announce(self) -> str:
+        """
+
+        Topic to announce to Home Assistant
+
+        """
+        subpath = sanitize(self.name, sep='_')
+        topic = f'homeassistant/{self.HA_PLATFORM}/{subpath}/config'
+        return topic
+
+    @property
+    def icon(self):
+        """
+
+        Add Material Design Icons prefix to icon name.
+
+        """
+        icon = f"mdi:{self.ICON_SUFFIX}"
+        return icon
 
     @property
     def data(self) -> dict:
@@ -116,54 +186,6 @@ class Entity:
         }
         return data
 
-    @property
-    def uid(self) -> str:
-        """
-
-        Unique ID
-
-        """
-        return sanitize(self.device.name, self.name, sep='_')
-
-    @property
-    def topic_state(self) -> str:
-        """
-
-        State topic
-
-        """
-        subpath = sanitize(self.device.name, self.name, sep='/')
-        topic = f'stat/{subpath}/state'
-        return topic
-
-    @property
-    def topic_command(self) -> str:
-        """
-
-        Command topic
-
-        """
-        subpath = sanitize(self.device.name, self.name, sep='/')
-        topic = f'stat/{subpath}/command'
-        return topic
-
-    @property
-    def topic_announce(self) -> str:
-        subpath = sanitize(self.device.name, self.name, sep='_')
-        topic = f'homeassistant/{self.HA_PLATFORM}/{subpath}/config'
-
-        return topic
-
-    @property
-    def icon(self):
-        """
-
-        Add Material Design Icons prefix to icon name.
-
-        """
-        icon = f"mdi:{self.icon_suffix}" if self.icon_suffix else None
-        return icon
-
     def handle_incoming(self, client: mqtt.Client, queue: list[Message], amniotic: Amniotic, payload: Any):
         """
 
@@ -186,6 +208,90 @@ class Entity:
                 queue.append(message)
 
 
+class Select(Entity):
+    """
+
+    Base Home Assistant selector.
+
+    """
+    HA_PLATFORM = 'select'
+    ICON_SUFFIX = None
+    options: list[str] = []
+    selected: Optional[str] = None
+
+    @property
+    def data(self):
+        """
+
+        Home Assistant announce data for the entity.
+
+        """
+        data = super().data | {
+            'options': self.options
+        }
+        return data
+
+    def get_select_state(self, amniotic: Amniotic) -> tuple[list[str], str]:
+        """
+
+        Get state of the entity, i.e. the list of options and the currently selected option.
+
+        """
+        raise NotImplementedError()
+
+    def handle_outgoing(self, client: mqtt.Client, queue: list[Message], amniotic: Amniotic, force_announce: bool = False):
+        """
+
+        Check if the list of options, or the current option, has changed. If so, send the relevant messages. This is a little awkward as if the options have
+        changed, the entity needs to be re-announced *before* the current select can be published.
+
+        """
+
+        messages = []
+        options, selected_option = self.get_select_state(amniotic)
+
+        if options != self.options:
+            force_announce = True
+            self.options = options
+
+        if selected_option != self.selected:
+            message = Message(client.publish, self.topic_state, selected_option)
+            messages.append(message)
+            self.selected = selected_option
+
+        super().handle_outgoing(client, queue, amniotic, force_announce=force_announce)
+        queue += messages
+
+
+class SelectTheme(Select):
+    """
+
+    Home Assistant theme selector.
+
+    """
+    ICON_SUFFIX = 'surround-sound'
+    NAME = 'Theme'
+
+    def get_select_state(self, amniotic: Amniotic) -> tuple[list[str], str]:
+        """
+
+        Get state of the entity, i.e. the list of options and the currently selected option.
+
+        """
+        return list(amniotic.themes.keys()), amniotic.theme_current.name
+
+    def handle_incoming(self, client: mqtt.Client, queue, amniotic: Amniotic, payload: Any):
+        """
+
+        Apply change to current Theme from incoming message.
+
+        """
+        if payload is not None:
+            amniotic.set_theme(payload)
+        message = Message(client.publish, self.topic_state, amniotic.theme_current.name)
+        queue.append(message)
+
+
 class Volume(Entity):
     """
 
@@ -193,20 +299,14 @@ class Volume(Entity):
 
     """
     HA_PLATFORM = 'number'
-
-    def __init__(self, device: Device, name: str, icon: Optional[str] = None, min: Optional[int] = 0, max: Optional[int] = 100):
-        self.device = device
-        self.name = name
-        self.min = min
-        self.max = max
-        self.icon_suffix = icon
-        self.value = None
+    MIN = 0
+    MAX = 100
 
     @property
     def data(self):
         data = super().data | {
-            'min': self.min,
-            'max': self.max
+            'min': self.MIN,
+            'max': self.MAX
         }
         return data
 
@@ -218,6 +318,8 @@ class VolumeMaster(Volume):
 
     """
     HA_PLATFORM = 'number'
+    ICON_SUFFIX = 'volume-high'
+    NAME = 'Master Volume'
 
     @property
     def data(self):
@@ -227,12 +329,12 @@ class VolumeMaster(Volume):
 
         """
         data = super().data | {
-            'min': self.min,
-            'max': self.max
+            'min': self.MIN,
+            'max': self.MAX
         }
         return data
 
-    def handle_outgoing(self, client: mqtt.Client, queue: list[Message], amniotic: Amniotic, force_announce=False):
+    def handle_outgoing(self, client: mqtt.Client, queue: list[Message], amniotic: Amniotic, force_announce: bool = False):
         """
 
         If volume has changed, send update message.
@@ -264,7 +366,10 @@ class VolumeTheme(Volume):
 
     """
 
-    def handle_outgoing(self, client: mqtt.Client, queue: list[Message], amniotic: Amniotic, force_announce=False):
+    ICON_SUFFIX = 'volume-medium'
+    NAME = 'Theme Volume'
+
+    def handle_outgoing(self, client: mqtt.Client, queue: list[Message], amniotic: Amniotic, force_announce: bool = False):
         """
 
         If volume has changed, send update message.
@@ -291,105 +396,14 @@ class VolumeTheme(Volume):
         queue.append(message)
 
 
-class Select(Entity):
-    """
-
-    Base Home Assistant selector.
-
-    """
-    HA_PLATFORM = 'select'
-
-    def __init__(
-            self,
-            device: Device,
-            name: str,
-            selected=None,
-            icon=None,
-            options=None,
-    ):
-        self.device = device
-        self.name = name
-        self.icon_suffix = icon
-        self.options = options or []
-        self.selected = selected
-
-    @property
-    def data(self):
-        """
-
-        Home Assistant announce data for the entity.
-
-        """
-        data = super().data | {
-            'options': self.options
-        }
-        return data
-
-    def get_select_state(self, amniotic: Amniotic) -> tuple[list[str], str]:
-        """
-
-        Get state of the entity, i.e. the list of options and the currently selected option.
-
-        """
-        raise NotImplementedError()
-
-    def handle_outgoing(self, client: mqtt.Client, queue: list[Message], amniotic: Amniotic, force_announce=False):
-        """
-
-        Check if the list of options, or the current option, has changed. If so, send the relevant messages. This is a little awkward as if the options have
-        changed, the entity needs to be re-announced *before* the current select can be published.
-
-        """
-
-        messages = []
-        options, selected_option = self.get_select_state(amniotic)
-
-        if options != self.options:
-            force_announce = True
-            self.options = options
-
-        if selected_option != self.selected:
-            message = Message(client.publish, self.topic_state, selected_option)
-            messages.append(message)
-            self.selected = selected_option
-
-        super().handle_outgoing(client, queue, amniotic, force_announce=force_announce)
-        queue += messages
-
-
-class SelectTheme(Select):
-    """
-
-    Home Assistant theme selector.
-
-    """
-
-    def get_select_state(self, amniotic: Amniotic) -> tuple[list[str], str]:
-        """
-
-        Get state of the entity, i.e. the list of options and the currently selected option.
-
-        """
-        return list(amniotic.themes.keys()), amniotic.theme_current.name
-
-    def handle_incoming(self, client: mqtt.Client, queue, amniotic: Amniotic, payload: Any):
-        """
-
-        Apply change to current Theme from incoming message.
-
-        """
-        if payload is not None:
-            amniotic.set_theme(payload)
-        message = Message(client.publish, self.topic_state, amniotic.theme_current.name)
-        queue.append(message)
-
-
-class SelectDevice(Select):
+class DeviceTheme(Select):
     """
 
     Home Assistant device selector.
 
     """
+    ICON_SUFFIX = 'expansion-card-variant'
+    NAME = 'Theme Device'
 
     def get_select_state(self, amniotic: Amniotic) -> tuple[list[str], str]:
         """
@@ -418,13 +432,10 @@ class ToggleTheme(Entity):
 
     """
     HA_PLATFORM = 'switch'
+    ICON_SUFFIX = 'play-circle'
     VALUE_MAP = [(OFF := 'OFF'), (ON := 'ON')]
+    NAME = 'Theme Enabled'
 
-    def __init__(self, device: Device, name: str, icon=None):
-        self.device = device
-        self.name = name
-        self.icon_suffix = icon
-        self.value = None
 
     def handle_incoming(self, client: mqtt.Client, queue, amniotic: Amniotic, payload: Any):
         """
@@ -437,7 +448,7 @@ class ToggleTheme(Entity):
         message = Message(client.publish, self.topic_state, self.VALUE_MAP[amniotic.theme_current.enabled])
         queue.append(message)
 
-    def handle_outgoing(self, client: mqtt.Client, queue: list[Message], amniotic: Amniotic, force_announce=False):
+    def handle_outgoing(self, client: mqtt.Client, queue: list[Message], amniotic: Amniotic, force_announce: bool = False):
         """
 
         Check if the current Theme enabled/disabled state had changed. If so, send the relevant messages.

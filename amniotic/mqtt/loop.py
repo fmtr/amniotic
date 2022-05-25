@@ -18,6 +18,11 @@ class AmnioticMqttEventLoop:
     MQTT Event Loop
 
     """
+
+    ENTITY_CLASSES = [
+        control.SelectTheme, control.VolumeMaster, control.VolumeTheme, control.ToggleTheme, control.DeviceTheme,
+        sensor.Title, sensor.Album, sensor.Date, sensor.By, sensor.Duration, sensor.Elapsed
+    ]
     CONNECTION_MESSAGES = [
         "Connection successful",
         "Connection refused - incorrect protocol version",
@@ -69,7 +74,7 @@ class AmnioticMqttEventLoop:
 
         self.has_reconnected = True
 
-    def __init__(self, host, port, entities: list[control.Entity], amniotic: Amniotic, username: str = None, password: str = None,
+    def __init__(self, host, port, device: control.Device, amniotic: Amniotic, username: str = None, password: str = None,
                  tele_period: int = 300):
         """
 
@@ -77,17 +82,25 @@ class AmnioticMqttEventLoop:
 
         """
 
+        self.device = device
+
+        self.entities = {
+            entity_class: entity_class(self)
+            for entity_class in self.ENTITY_CLASSES
+        }
+        self.callback_map = {
+            entity.topic_command: entity.handle_incoming
+            for entity in self.entities.values()
+        }
+
         self.queue = []
         self.tele_period = tele_period
         self.has_reconnected = True
-        self.topic_lwt = next(iter(entities)).device.topic_lwt
-        self.entities = entities
+        self.topic_lwt = self.device.topic_lwt
+
         self.amniotic = amniotic
         self.client = mqtt.Client()
-        self.callback_map = {
-            entity.topic_command: entity.handle_incoming
-            for entity in entities
-        }
+
         self.client.on_connect = self.on_connect
         self.client.on_message = self.on_message
         self.client.on_connect_fail = self.on_connect_fail
@@ -106,7 +119,7 @@ class AmnioticMqttEventLoop:
 
         """
 
-        for entity in self.entities:
+        for entity in self.entities.values():
             entity.handle_outgoing(self.client, self.queue, self.amniotic, force_announce=force_announce)
 
     def do_telemetry(self):
@@ -179,23 +192,10 @@ def start():
     msg = f'Amniotic {__version__} starting MQTT...'
     logging.info(msg)
 
-    mqtt_device = control.Device(location=config.location)
-    theme = control.SelectTheme(mqtt_device, 'Theme', icon='surround-sound', )
-    volume_master = control.VolumeMaster(mqtt_device, 'Master Volume', icon='volume-high')
-    volume_theme = control.VolumeTheme(mqtt_device, 'Theme Volume', icon='volume-medium')
-    device = control.SelectDevice(mqtt_device, 'Theme Device', icon='expansion-card-variant')
-    enabled = control.ToggleTheme(mqtt_device, 'Theme Enabled', 'play-circle')
-
-    sensor_title = sensor.Title(mqtt_device, 'Title', icon='rename-box')
-    sensor_album = sensor.Album(mqtt_device, 'Album', icon='album')
-    sensor_date = sensor.Date(mqtt_device, 'Date', icon='calendar-outline')
-    sensor_by = sensor.By(mqtt_device, 'By', icon='account')
-    sensor_duration = sensor.Duration(mqtt_device, 'Duration', icon='timer')
-    sensor_elapsed = sensor.Elapsed(mqtt_device, 'Elapsed', icon='clock-time-twelve-outline')
-
     loop = AmnioticMqttEventLoop(
+        device=control.Device(location=config.location),
         amniotic=amniotic,
-        entities=[theme, device, volume_master, volume_theme, enabled, sensor_title, sensor_album, sensor_date, sensor_by, sensor_duration, sensor_elapsed],
+
         host=config.mqtt_host,
         port=config.mqtt_port,
         username=config.mqtt_username,

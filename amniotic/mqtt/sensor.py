@@ -20,12 +20,6 @@ class Sensor(control.Entity):
     IS_SOURCE_META = True
     UOM = None
 
-    def __init__(self, device: control.Device, name: str, icon: Optional[str] = None):
-        self.device = device
-        self.name = name
-        self._icon = icon
-        self.value = None
-
     @property
     def topic_command(self):
         return None
@@ -73,7 +67,8 @@ class Title(Sensor):
     Home Assistant Title sensor
 
     """
-    META_KEY = 'Title'
+
+    NAME = META_KEY = 'Title'
 
 
 class Album(Sensor):
@@ -82,7 +77,7 @@ class Album(Sensor):
     Home Assistant Album sensor
 
     """
-    META_KEY = 'Album'
+    NAME = META_KEY = 'Album'
 
 
 class Date(Sensor):
@@ -91,7 +86,7 @@ class Date(Sensor):
     Home Assistant Date sensor
 
     """
-    META_KEY = 'Date'
+    NAME = META_KEY = 'Date'
 
 
 class By(Sensor):
@@ -101,6 +96,7 @@ class By(Sensor):
 
     """
     META_KEY = 'Artist'
+    NAME = 'By'
 
 
 class Duration(Sensor):
@@ -110,6 +106,7 @@ class Duration(Sensor):
 
     """
     META_KEY = 'duration'
+    NAME = 'Duration'
     IS_SOURCE_META = False
 
     def get_value(self, amniotic: Amniotic, key: Optional[str] = None):
@@ -137,3 +134,4 @@ class Elapsed(Duration):
 
     """
     META_KEY = 'elapsed'
+    NAME = 'Elapsed'
