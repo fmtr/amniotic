@@ -1,12 +1,16 @@
-from os import getenv
-
 import logging
-import yaml
-from appdirs import AppDirs
+from _socket import gethostname
 from dataclasses import dataclass
+from os import getenv
 from pathlib import Path
 
+import yaml
+from appdirs import AppDirs
+from getmac import getmac
+
 APP_DIRS = AppDirs('amniotic', 'frontmatter')
+MAC_ADDRESS = getmac.get_mac_address().replace(':', '')
+HOSTNAME = gethostname()
 
 
 @dataclass
