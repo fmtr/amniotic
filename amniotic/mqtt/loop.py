@@ -29,6 +29,8 @@ class Loop:
         "Connection refused - not authorised",
     ]
     LOOP_PERIOD = 1
+    DELAY = 0.5
+    DELAY_FIRST = 3
 
     def on_message(self, client: mqtt.Client, amniotic: Amniotic, mqtt_message: mqtt.MQTTMessage):
         """
@@ -158,9 +160,9 @@ class Loop:
         while True:
 
             if not loop_count:
-                delay = 2
+                delay = self.DELAY_FIRST
             else:
-                delay = 0.5
+                delay = self.DELAY
 
             if not self.client.is_connected():
                 sleep(self.LOOP_PERIOD)
@@ -204,7 +206,6 @@ def start():
     loop = Loop(
         device=Device(location=config.location),
         amniotic=amniotic,
-
         host=config.mqtt_host,
         port=config.mqtt_port,
         username=config.mqtt_username,

@@ -76,14 +76,17 @@ class Message:
         announces = [message for message in messages if message.is_announce]
         subscriptions = [message for message in messages if message.is_subscribe]
         publishes = [message for message in messages if message.is_publish]
+        batches = [announces, subscriptions, publishes]
 
-        for batch in [announces, subscriptions, publishes]:
+        do_delays = [True, True, False]
+
+        for batch, do_delay in zip(batches, do_delays):
 
             for message in batch:
                 logging.info(f'Queue: {message}')
                 message.send()
 
-            if batch:
+            if batch and do_delay:
                 sleep(delay)
 
 
