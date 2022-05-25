@@ -1,5 +1,6 @@
 import json
 import logging
+from functools import cached_property
 from json import JSONDecodeError
 from time import sleep
 
@@ -7,22 +8,18 @@ from paho.mqtt import client as mqtt
 
 from amniotic.audio import Amniotic
 from amniotic.config import Config
-from amniotic.mqtt import control, sensor
+from amniotic.mqtt.device import Device
 from amniotic.mqtt.tools import Message
 from amniotic.version import __version__
 
 
-class AmnioticMqttEventLoop:
+class Loop:
     """
 
     MQTT Event Loop
 
     """
 
-    ENTITY_CLASSES = [
-        control.SelectTheme, control.VolumeMaster, control.VolumeTheme, control.ToggleTheme, control.DeviceTheme,
-        sensor.Title, sensor.Album, sensor.Date, sensor.By, sensor.Duration, sensor.Elapsed
-    ]
     CONNECTION_MESSAGES = [
         "Connection successful",
         "Connection refused - incorrect protocol version",
@@ -74,7 +71,7 @@ class AmnioticMqttEventLoop:
 
         self.has_reconnected = True
 
-    def __init__(self, host, port, device: control.Device, amniotic: Amniotic, username: str = None, password: str = None,
+    def __init__(self, host, port, device: Device, amniotic: Amniotic, username: str = None, password: str = None,
                  tele_period: int = 300):
         """
 
@@ -86,7 +83,7 @@ class AmnioticMqttEventLoop:
 
         self.entities = {
             entity_class: entity_class(self)
-            for entity_class in self.ENTITY_CLASSES
+            for entity_class in self.entity_classes
         }
         self.callback_map = {
             entity.topic_command: entity.handle_incoming
@@ -111,6 +108,15 @@ class AmnioticMqttEventLoop:
             self.client.username_pw_set(username=username, password=password)
 
         self.client.connect(host=host, port=port)
+
+    @cached_property
+    def entity_classes(self):
+        from amniotic.mqtt import control, sensor
+        entity_classes = [
+            control.SelectTheme, control.VolumeMaster, control.VolumeTheme, control.ToggleTheme, control.DeviceTheme,
+            sensor.Title, sensor.Album, sensor.Date, sensor.By, sensor.Duration, sensor.Elapsed
+        ]
+        return entity_classes
 
     def handle_outgoing(self, force_announce=False):
         """
@@ -192,8 +198,8 @@ def start():
     msg = f'Amniotic {__version__} starting MQTT...'
     logging.info(msg)
 
-    loop = AmnioticMqttEventLoop(
-        device=control.Device(location=config.location),
+    loop = Loop(
+        device=Device(location=config.location),
         amniotic=amniotic,
 
         host=config.mqtt_host,
