@@ -32,10 +32,20 @@ class Message:
 
     @property
     def is_publish(self):
+        """
+
+        Is this a publish message?
+
+        """
         return self.method.__name__ == 'publish' and not self.is_announce
 
     @property
     def is_subscribe(self):
+        """
+
+        Is this a subscribe message?
+
+        """
         return self.method.__name__ == 'subscribe'
 
     def __str__(self):
@@ -58,7 +68,11 @@ class Message:
 
     @classmethod
     def send_many(self, messages: list['Message'], delay: float = 0.5):
+        """
 
+        Send message types (announce/sub/pub) in distinct batches.
+
+        """
         announces = [message for message in messages if message.is_announce]
         subscriptions = [message for message in messages if message.is_subscribe]
         publishes = [message for message in messages if message.is_publish]

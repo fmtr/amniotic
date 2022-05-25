@@ -173,10 +173,6 @@ class Loop:
 
             Message.send_many(self.queue, delay=delay)
             self.queue.clear()
-            # while self.queue:
-            #     message = self.queue.pop(0)
-            #     logging.info(f'Queue: {message}')
-            #     message.send()
 
             if is_telem_loop:
                 self.do_telemetry()
