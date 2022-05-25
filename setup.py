@@ -32,7 +32,7 @@ setup(
     extras_require={},
     entry_points={
         'console_scripts': [
-            'amniotic = amniotic.mqtt:start',
+            'amniotic = amniotic.mqtt.loop:start',
         ],
     }
 )
