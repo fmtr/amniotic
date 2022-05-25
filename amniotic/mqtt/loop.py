@@ -40,13 +40,13 @@ class Loop:
         func = self.callback_map[mqtt_message.topic]
 
         try:
-            payload = json.loads(mqtt_message.payload.decode())
+            value = json.loads(mqtt_message.payload.decode())
         except JSONDecodeError:
-            payload = mqtt_message.payload.decode()
+            value = mqtt_message.payload.decode()
 
-        logging.info(f'Incoming: {Message(func, mqtt_message.topic, payload)}')
+        logging.info(f'Incoming: {Message(func, mqtt_message.topic, value)}')
 
-        return func(client, self.queue, amniotic, payload)
+        return func(value)
 
     def on_connect_fail(self, client: mqtt.Client, amniotic: Amniotic):
         """
@@ -126,7 +126,7 @@ class Loop:
         """
 
         for entity in self.entities.values():
-            entity.handle_outgoing(self.client, self.queue, self.amniotic, force_announce=force_announce)
+            entity.handle_outgoing(force_announce=force_announce)
 
     def do_telemetry(self):
         """
@@ -157,6 +157,11 @@ class Loop:
 
         while True:
 
+            if not loop_count:
+                delay = 2
+            else:
+                delay = 0.5
+
             if not self.client.is_connected():
                 sleep(self.LOOP_PERIOD)
                 continue
@@ -166,10 +171,12 @@ class Loop:
             self.handle_outgoing(force_announce=self.has_reconnected)
             self.has_reconnected = False
 
-            while self.queue:
-                message = self.queue.pop(0)
-                logging.info(f'Queue: {message}')
-                message.send()
+            Message.send_many(self.queue, delay=delay)
+            self.queue.clear()
+            # while self.queue:
+            #     message = self.queue.pop(0)
+            #     logging.info(f'Queue: {message}')
+            #     message.send()
 
             if is_telem_loop:
                 self.do_telemetry()

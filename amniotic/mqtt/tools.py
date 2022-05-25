@@ -1,6 +1,9 @@
 import json
+import logging
 import re
+
 from dataclasses import dataclass
+from time import sleep
 from typing import Callable, Any
 
 WHITESPACE = re.compile('[\s\-_]+')
@@ -16,6 +19,7 @@ class Message:
     topic: str
     data: Any = None
     serialize: bool = False
+    is_announce: bool = False
 
     def __post_init__(self):
         """
@@ -25,6 +29,14 @@ class Message:
         """
         if self.serialize:
             self.data = json.dumps(self.data)
+
+    @property
+    def is_publish(self):
+        return self.method.__name__ == 'publish' and not self.is_announce
+
+    @property
+    def is_subscribe(self):
+        return self.method.__name__ == 'subscribe'
 
     def __str__(self):
         """
@@ -40,8 +52,25 @@ class Message:
         Send the message by applying the method to the data.
 
         """
+
         args = [] if self.data is None else [self.data]
         self.method(self.topic, *args, qos=1)
+
+    @classmethod
+    def send_many(self, messages: list['Message'], delay: float = 0.5):
+
+        announces = [message for message in messages if message.is_announce]
+        subscriptions = [message for message in messages if message.is_subscribe]
+        publishes = [message for message in messages if message.is_publish]
+
+        for batch in [announces, subscriptions, publishes]:
+
+            for message in batch:
+                logging.info(f'Queue: {message}')
+                message.send()
+
+            if batch:
+                sleep(delay)
 
 
 def sanitize(*strings, sep: str = '-') -> str:

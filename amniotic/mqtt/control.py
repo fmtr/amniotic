@@ -40,8 +40,12 @@ class Entity:
         return self.loop.device
 
     @property
-    def queue(self) -> Device:
+    def queue(self) -> list[Message]:
         return self.loop.queue
+
+    @property
+    def client(self) -> mqtt.Client:
+        return self.loop.client
 
     @property
     def amniotic(self) -> Amniotic:
@@ -128,7 +132,7 @@ class Entity:
     def set_value(self, value) -> Any:
         raise NotImplementedError()
 
-    def handle_incoming(self, client: mqtt.Client, queue, amniotic: Amniotic, value: Any):
+    def handle_incoming(self, value: Any):
         """
 
         Apply change audio volume from incoming message.
@@ -137,28 +141,28 @@ class Entity:
         if value is not None:
             self.set_value(value)
 
-    def handle_announce(self, client: mqtt.Client, queue: list[Message], ):
-        message = Message(client.publish, self.topic_announce, self.data, serialize=True)
-        queue.append(message)
+    def handle_announce(self):
+        message = Message(self.client.publish, self.topic_announce, self.data, serialize=True, is_announce=True)
+        self.queue.append(message)
         if self.topic_command:
-            message = Message(client.subscribe, self.topic_command)
-            queue.append(message)
+            message = Message(self.client.subscribe, self.topic_command)
+            self.queue.append(message)
 
-    def handle_outgoing(self, client: mqtt.Client, queue: list[Message], amniotic: Amniotic, force_announce: bool = False):
+    def handle_outgoing(self, force_announce: bool = False):
         """
 
         Handle outgoing messages, adding announce, subscriptions to the queue.
 
         """
         if force_announce:
-            self.handle_announce(client, queue)
+            self.handle_announce()
 
         value = self.get_value()
         if value != self.value or force_announce:
             self.set_value(value)
             self.value = self.get_value()
-            message = Message(client.publish, self.topic_state, self.value)
-            queue.append(message)
+            message = Message(self.client.publish, self.topic_state, self.value)
+            self.queue.append(message)
 
 
 
@@ -193,25 +197,19 @@ class Select(Entity):
         """
         raise NotImplementedError()
 
-    def get_value(self) -> Any:
-        raise NotImplementedError()
-
-    def set_value(self, value) -> Any:
-        raise NotImplementedError()
-
-    def handle_outgoing(self, client: mqtt.Client, queue: list[Message], amniotic: Amniotic, force_announce: bool = False):
+    def handle_outgoing(self, force_announce: bool = False):
         """
 
         Handle outgoing messages, adding announce, subscriptions to the queue.
 
         """
 
-        options = self.get_options(amniotic)
+        options = self.get_options(self.amniotic)
         if options != self.options or force_announce:
             force_announce = True
             self.options = options
 
-        super().handle_outgoing(client, queue, amniotic, force_announce=force_announce)
+        super().handle_outgoing(force_announce=force_announce)
 
 
 
