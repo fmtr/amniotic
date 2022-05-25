@@ -422,7 +422,7 @@ class ButtonUpdate(Entity):
 
     """
     HA_PLATFORM = 'button'
-    NAME = 'Update Check'
+    NAME = 'Update'
 
     def get_value(self) -> Any:
         pass
