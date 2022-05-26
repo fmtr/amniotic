@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import Optional, Union
+from typing import Optional, Union, Any
 
 from amniotic.mqtt import control
 
@@ -28,7 +28,12 @@ class Sensor(control.Entity):
             data['unit_of_measurement'] = self.UOM
         return data
 
-    def set_value(self, value):
+    def set_value(self, value: Any):
+        """
+
+        Dummy method.
+
+        """
         pass
 
     def get_value(self, key=None) -> Union[str, int, float]:
@@ -128,18 +133,15 @@ class Elapsed(Duration):
     NAME = 'Elapsed'
     ICON_SUFFIX = 'clock-time-twelve-outline'
 
-class UpdateStatus(Sensor):
-    NAME = 'Update Status'
-    ICON_SUFFIX = 'semantic-web'
-    message = 'Never checked'
 
-    def set_value(self, value):
-        """
+class StaticMessageSensor(Sensor):
+    """
 
-        Dummy method.
+    Base Home Assistant static message sensor. Just reports a static message. The message will be set by other controls.
 
-        """
-        pass
+    """
+
+    message = Sensor.NA_VALUE
 
     def get_value(self, key=None) -> Union[str, int, float]:
         """
@@ -150,10 +152,32 @@ class UpdateStatus(Sensor):
         return self.message
 
 
+class UpdateStatus(StaticMessageSensor):
+    """
+
+    Home Assistant update status sensor. Messages set by Check Update button etc.
+
+    """
+    NAME = 'Update Status'
+    ICON_SUFFIX = 'semantic-web'
+    message = 'Never checked'
+
+
+class DownloaderStatus(StaticMessageSensor):
+    """
+
+    Home Assistant downloader status sensor. Messages set by downloader input etc.
+
+    """
+    NAME = 'Downloader Status'
+    ICON_SUFFIX = 'cloud-sync-outline'
+    message = 'Idle'
+
+
 class TrackCount(Sensor):
     """
 
-    Home Assistant Duration sensor
+    Home Assistant Track Count sensor
 
     """
     META_KEY = 'track_count'

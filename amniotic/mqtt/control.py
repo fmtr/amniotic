@@ -1,3 +1,4 @@
+import logging
 import threading
 from functools import cached_property
 from time import sleep
@@ -6,6 +7,7 @@ from typing import Optional, Any
 import pip
 from johnnydep import JohnnyDist as Package
 from paho.mqtt import client as mqtt
+from pytube import YouTube
 
 from amniotic.audio import Amniotic
 from amniotic.config import NAME
@@ -178,7 +180,6 @@ class Entity:
             self.queue.append(message)
 
 
-
 class Select(Entity):
     """
 
@@ -223,7 +224,6 @@ class Select(Entity):
             self.options = options
 
         super().handle_outgoing(force_announce=force_announce)
-
 
 
 class SelectTheme(Select):
@@ -299,10 +299,6 @@ class VolumeMaster(Volume):
         self.amniotic.set_volume(value)
 
 
-
-
-
-
 class VolumeTheme(Volume):
     """
 
@@ -318,8 +314,6 @@ class VolumeTheme(Volume):
 
     def set_value(self, value) -> Any:
         self.amniotic.set_volume_theme(value)
-
-
 
 
 class DeviceTheme(Select):
@@ -344,9 +338,6 @@ class DeviceTheme(Select):
 
         """
         return list(amniotic.devices.values())
-
-
-
 
 
 class ToggleTheme(Entity):
@@ -510,3 +501,129 @@ class ButtonUpdate(ButtonUpdateCheck):
 
         self.update_sensor.message = 'Updating...'
         threading.Thread(target=self.do_update).start()
+
+
+class Downloader(Entity):
+    """
+
+    Base Home Assistant track downloader URL input. Note: this control abuses an alarm panel code entry box, as it seems to be the only way to allow a user
+    to send arbitrary text (e.g. a URL) from a Home Assistant control.
+
+    """
+    HA_PLATFORM = 'alarm_control_panel'
+    ICON_SUFFIX = 'cloud-download-outline'
+    NAME = 'Download from YouTube URL'
+    IDLE = 'pending'
+    DOWNLOADING = 'triggered'
+    alarm_state = IDLE
+
+    @cached_property
+    def update_sensor(self):
+        """
+
+        Get the sensor for displaying update messages
+
+        """
+        from amniotic.mqtt.sensor import DownloaderStatus
+        update_status = self.loop.entities[DownloaderStatus]
+        return update_status
+
+    def get_value(self) -> Any:
+        """
+
+        The current state of this control. Pending means Idle, and Triggered means downloading.
+
+        """
+        return self.alarm_state
+
+    def set_value(self, value) -> Any:
+        """
+
+        Dummy method
+
+        """
+        pass
+
+    def progress_callback(self, stream, chunk, bytes_remaining):
+        """
+
+        Send download progress to sensor
+
+        """
+        percentage = (1 - (bytes_remaining / stream.filesize)) * 100
+        self.update_sensor.message = f'Downloading: {round(percentage)}% complete'
+
+    def completed_callback(self, stream, path):
+        """
+
+        Send download completion message to sensor
+
+        """
+
+        self.update_sensor.message = f'Download complete: "{stream.title}"'
+        self.alarm_state = self.IDLE
+
+    def do_download(self, url: str):
+        """
+
+        Download highest bitrate audio stream from the video specified
+
+        """
+
+        try:
+
+            self.alarm_state = self.DOWNLOADING
+            theme = self.amniotic.theme_current
+            self.update_sensor.message = 'Fetching video metadata...'
+
+            video = YouTube(
+                url,
+                on_progress_callback=self.progress_callback,
+                on_complete_callback=self.completed_callback
+            )
+            self.update_sensor.message = 'Finding audio streams...'
+            audio_streams = video.streams.filter(only_audio=True).order_by('bitrate')
+            if not audio_streams:
+                self.update_sensor.message = f'Error downloading: no audio streams found in "{video.title}"'
+                self.alarm_state = self.IDLE
+                return
+            stream = audio_streams.last()
+
+            if stream.filesize == 0:
+                self.update_sensor.message = f'Error downloading: empty audio stream found in "{video.title}"'
+                self.alarm_state = self.IDLE
+                return
+
+            self.update_sensor.message = 'Starting download...'
+            stream.download(output_path=str(theme.path))
+
+        except Exception as exception:
+
+            self.update_sensor.message = f'Error downloading: {exception.__class__.__name__}'
+            logging.error(f'Download error for "{url}": {repr(exception)}')
+            self.alarm_state = self.IDLE
+            return
+
+    def handle_incoming(self, value: Any):
+        """
+
+        Start download from the specified URL without blocking.
+
+        """
+
+        if self.alarm_state == self.DOWNLOADING:
+            return
+        threading.Thread(target=self.do_download, args=[value]).start()
+
+    @property
+    def data(self):
+        """
+
+        Home Assistant announce data for the entity.
+
+        """
+        data = super().data | {
+            'code': 'REMOTE_CODE_TEXT',
+            'command_template': "{{ code }}"
+        }
+        return data

@@ -28,7 +28,8 @@ setup(
         'getmac',
         'pyyaml',
         'appdirs',
-        'johnnydep'
+        'johnnydep',
+        'pytube'
     ],
     extras_require={},
     entry_points={

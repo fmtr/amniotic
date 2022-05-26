@@ -118,8 +118,8 @@ class Loop:
         from amniotic.mqtt import control, sensor
         entity_classes = [
             control.SelectTheme, control.VolumeMaster, control.VolumeTheme, control.ToggleTheme, control.DeviceTheme, control.ButtonUpdateCheck,
-            control.ButtonUpdate,
-            sensor.Title, sensor.Album, sensor.TrackCount, sensor.Date, sensor.By, sensor.Duration, sensor.Elapsed, sensor.UpdateStatus
+            control.ButtonUpdate, control.Downloader,
+            sensor.Title, sensor.Album, sensor.TrackCount, sensor.Date, sensor.By, sensor.Duration, sensor.Elapsed, sensor.UpdateStatus, sensor.DownloaderStatus
         ]
         return entity_classes
 
