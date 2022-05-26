@@ -14,7 +14,7 @@ VLC_VERBOSITY = 0
 class Amniotic:
     VOLUME_DEFAULT = 50
 
-    def __init__(self, path_base: Union[Path, str], device_names: Optional[dict[str, str]] = None):
+    def __init__(self, path: Union[Path, str], device_names: Optional[dict[str, str]] = None):
         """
 
         Read audio directories and instantiate Theme objects
@@ -28,16 +28,23 @@ class Amniotic:
 
         self.device_names = device_names or {}
         self._enabled = True
-        path_base = Path(path_base).absolute()
-        paths_themes = sorted([path.absolute() for path in path_base.glob('*') if path.is_dir()])
+        path = Path(path).absolute()
+        paths_themes = sorted([path.absolute() for path in path.glob('*') if path.is_dir()])
 
         if not paths_themes:
-            msg = f'No audio directories found in "{path_base}"'
-            raise FileNotFoundError(msg)
+            msg = f'No audio directories found in "{path}". Default theme will be created.'
+            logging.warning(msg)
+
+        self.path = path
 
         self.themes = [Theme(path, device_names=self.device_names) for path in paths_themes]
-        self.theme_current = self.themes[0]
         self.themes = {theme.name: theme for theme in self.themes}
+        if not self.themes:
+            self.add_new_theme('First Theme')
+
+        self.theme_current = None
+        self.set_theme(next(iter(self.themes.keys())))
+
         self.volume = 0
         self.set_volume(self.VOLUME_DEFAULT)
 
@@ -82,6 +89,20 @@ class Amniotic:
         if id not in self.themes:
             id = self.theme_current.get_device_id(id)
         self.theme_current = self.themes[id]
+
+    def add_new_theme(self, name: str, set_current: bool = False):
+        """
+
+        Add a new, empty theme by the specified name/ID.
+
+        """
+        if name not in self.themes:
+            path = self.path / name
+            path.mkdir()
+            theme = Theme(path, device_names=self.device_names)
+            self.themes[name] = theme
+            if set_current:
+                self.set_theme(name)
 
     def set_volume(self, value: int):
         """
