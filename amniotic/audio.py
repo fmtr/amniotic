@@ -153,7 +153,7 @@ class Theme:
     def get_paths(self) -> list[Path]:
         """
 
-        Update file paths from disk.
+        Get file paths from disk.
 
         """
         paths = list(self.path.glob('*'))
@@ -295,7 +295,7 @@ class Theme:
         """
 
         Set whether Theme is enabled. If the input value if different from current, either start playing or toggle pause, depending on Theme state. Themes
-        with no tracks cannot be enabled.
+        with no tracks (paths) cannot be enabled.
 
         """
 

@@ -515,7 +515,7 @@ class Downloader(Entity):
     NAME = 'Download from YouTube URL'
     IDLE = 'pending'
     DOWNLOADING = 'triggered'
-    alarm_state = IDLE
+    download_status = IDLE
 
     @cached_property
     def update_sensor(self):
@@ -531,10 +531,10 @@ class Downloader(Entity):
     def get_value(self) -> Any:
         """
 
-        The current state of this control. Pending means Idle, and Triggered means downloading.
+        The current state of this control. Pending means Idle, and Triggered means Downloading.
 
         """
-        return self.alarm_state
+        return self.download_status
 
     def set_value(self, value) -> Any:
         """
@@ -561,7 +561,7 @@ class Downloader(Entity):
         """
 
         self.update_sensor.message = f'Download complete: "{stream.title}"'
-        self.alarm_state = self.IDLE
+        self.download_status = self.IDLE
 
     def do_download(self, url: str):
         """
@@ -572,7 +572,7 @@ class Downloader(Entity):
 
         try:
 
-            self.alarm_state = self.DOWNLOADING
+            self.download_status = self.DOWNLOADING
             theme = self.amniotic.theme_current
             self.update_sensor.message = 'Fetching video metadata...'
 
@@ -585,13 +585,13 @@ class Downloader(Entity):
             audio_streams = video.streams.filter(only_audio=True).order_by('bitrate')
             if not audio_streams:
                 self.update_sensor.message = f'Error downloading: no audio streams found in "{video.title}"'
-                self.alarm_state = self.IDLE
+                self.download_status = self.IDLE
                 return
             stream = audio_streams.last()
 
             if stream.filesize == 0:
                 self.update_sensor.message = f'Error downloading: empty audio stream found in "{video.title}"'
-                self.alarm_state = self.IDLE
+                self.download_status = self.IDLE
                 return
 
             self.update_sensor.message = 'Starting download...'
@@ -601,7 +601,7 @@ class Downloader(Entity):
 
             self.update_sensor.message = f'Error downloading: {exception.__class__.__name__}'
             logging.error(f'Download error for "{url}": {repr(exception)}')
-            self.alarm_state = self.IDLE
+            self.download_status = self.IDLE
             return
 
     def handle_incoming(self, value: Any):
@@ -611,7 +611,7 @@ class Downloader(Entity):
 
         """
 
-        if self.alarm_state == self.DOWNLOADING:
+        if self.download_status == self.DOWNLOADING:
             return
         threading.Thread(target=self.do_download, args=[value]).start()
 

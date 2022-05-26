@@ -183,7 +183,7 @@ class TrackCount(Sensor):
     META_KEY = 'track_count'
     NAME = 'Track Count'
     IS_SOURCE_META = False
-    ICON_SUFFIX = 'folder-pound'
+    ICON_SUFFIX = 'pound-box'
 
     def get_value(self, key=None) -> Union[str, int, float]:
         """
