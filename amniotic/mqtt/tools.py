@@ -1,12 +1,16 @@
 import json
 import logging
 import re
-
 from dataclasses import dataclass
 from time import sleep
 from typing import Callable, Any
 
+from johnnydep import JohnnyDist
+
+from amniotic.version import __version__
+
 WHITESPACE = re.compile('[\s\-_]+')
+
 
 @dataclass
 class Message:
@@ -104,3 +108,10 @@ def sanitize(*strings, sep: str = '-') -> str:
     string = WHITESPACE.sub(sep, string).strip()
 
     return string
+
+
+def check_update():
+    package = JohnnyDist("amniotic")
+    version = package.version_latest
+    if __version__ == package.version_latest:
+        return version

@@ -1,14 +1,14 @@
+import threading
+from time import sleep
 from typing import Optional, Any
 
 import pip
-from johnnydep.lib import JohnnyDist
 from paho.mqtt import client as mqtt
 
 from amniotic.audio import Amniotic
 from amniotic.mqtt.device import Device
 from amniotic.mqtt.loop import Loop
-from amniotic.mqtt.tools import Message, sanitize
-from amniotic.version import __version__
+from amniotic.mqtt.tools import Message, sanitize, check_update
 
 
 class Entity:
@@ -407,13 +407,17 @@ class ButtonUpdateCheck(Entity):
         from amniotic.mqtt.sensor import UpdateStatus
         update_status = self.loop.entities[UpdateStatus]
         update_status.message = 'Checking for updates...'
-        package = JohnnyDist("amniotic")
-        if __version__ == package.version_latest:
-            message = 'None available'
-        else:
-            message = f'Update available: {__version__}->{package.version_latest}'
 
-        update_status.message = message
+        def check_update_thread():
+            version = check_update()
+            if version:
+                message = f'Update available: {version}'
+            else:
+                message = 'None available'
+            update_status.message = message
+
+        threading.Thread(target=check_update_thread).start()
+
 
 class ButtonUpdate(Entity):
     """
@@ -449,5 +453,15 @@ class ButtonUpdate(Entity):
         Update from PyPI, then tell loop to exit.
 
         """
-        pip.main(['install', 'amniotic', '--upgrade'])
-        self.loop.exit_reason = f'Updating to latest version.'
+
+        from amniotic.mqtt.sensor import UpdateStatus
+        update_status = self.loop.entities[UpdateStatus]
+        update_status.message = 'Updating...'
+
+        def do_update_thread():
+            pip.main(['install', 'amniotic', '--upgrade'])
+            update_status.message = 'Update complete. Restarting...'
+            sleep(2)
+            self.loop.exit_reason = f'Updating to latest version.'
+
+        threading.Thread(target=do_update_thread).start()
