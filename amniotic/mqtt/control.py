@@ -426,9 +426,9 @@ class ButtonUpdateCheck(Entity):
         package = Package(NAME)
         version = package.version_latest
         if __version__ == package.version_latest:
-            return version
-        else:
             return False
+        else:
+            return version
 
     def check_update(self):
         """
