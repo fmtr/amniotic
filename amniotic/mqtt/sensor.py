@@ -41,7 +41,9 @@ class Sensor(control.Entity):
         status = self.amniotic.theme_current.status
         if self.IS_SOURCE_META:
             status = status.get('meta_data') or {}
-        meta_value = status.get(key) or self.NA_VALUE
+        meta_value = status.get(key)
+        if meta_value is None:
+            meta_value = self.NA_VALUE
         return meta_value
 
 
@@ -129,7 +131,7 @@ class Elapsed(Duration):
 class UpdateStatus(Sensor):
     NAME = 'Update Status'
     ICON_SUFFIX = 'semantic-web'
-    message = Sensor.NA_VALUE
+    message = 'Never checked'
 
     def set_value(self, value):
         """
@@ -146,3 +148,24 @@ class UpdateStatus(Sensor):
 
         """
         return self.message
+
+
+class TrackCount(Sensor):
+    """
+
+    Home Assistant Duration sensor
+
+    """
+    META_KEY = 'track_count'
+    NAME = 'Track Count'
+    IS_SOURCE_META = False
+    ICON_SUFFIX = 'folder-pound'
+
+    def get_value(self, key=None) -> Union[str, int, float]:
+        """
+
+        Update theme from disk before reporting track count.
+
+        """
+        self.amniotic.theme_current.update_paths()
+        return super().get_value(key)

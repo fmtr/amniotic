@@ -1,11 +1,12 @@
 import getpass
 import logging
-import vlc
 from datetime import datetime
 from itertools import cycle
 from pathlib import Path
 from random import choice
 from typing import Union, Optional
+
+import vlc
 
 VLC_VERBOSITY = 0
 
@@ -124,10 +125,11 @@ class Theme:
         """
         self.path = path
         self.name = path.stem
-        self.paths = list(path.glob('*'))
+        self.paths = self.get_paths()
+
         if not self.paths:
-            msg = f'Audio themes directory is empty: "{path}"'
-            raise FileNotFoundError(msg)
+            msg = f'Theme "{self.name}" directory is empty: "{self.path}"'
+            logging.warning(msg)
 
         self.device_names = device_names or {}
         self._enabled = False
@@ -139,6 +141,24 @@ class Theme:
         self.set_device(device=None)
         self.volume = self.VOLUME_DEFAULT
         self.volume_scaled = self.volume
+
+    def update_paths(self):
+        """
+
+        Update file paths from disk.
+
+        """
+        self.paths = self.get_paths()
+
+    def get_paths(self) -> list[Path]:
+        """
+
+        Update file paths from disk.
+
+        """
+        paths = list(self.path.glob('*'))
+
+        return paths
 
     def get_player(self) -> vlc.MediaPlayer:
         instance = vlc.Instance(f'--verbose {VLC_VERBOSITY}')
@@ -204,7 +224,7 @@ class Theme:
 
         return devices
 
-    def set_device(self, device: str):
+    def set_device(self, device: Optional[str]):
         """
 
         Set the output audio device from its ID. Also handle when that device had been unplugged, etc.
@@ -274,9 +294,14 @@ class Theme:
     def enabled(self, value: bool):
         """
 
-        Set whether Theme is enabled. If the input value if different from current, either start playing or toggle pause, depending on Theme state.
+        Set whether Theme is enabled. If the input value if different from current, either start playing or toggle pause, depending on Theme state. Themes
+        with no tracks cannot be enabled.
 
         """
+
+        if not self.paths:
+            return
+
         value = bool(value)
         if value == self._enabled:
             return
@@ -325,6 +350,7 @@ class Theme:
             'name': self.name,
             'device': {'id': self.device, 'name': self.devices[self.device]},
             'enabled': self.enabled,
+            'track_count': len(self.paths),
             'volume': {'theme': self.volume, 'scaled': self.volume_scaled},
             'position': position,
             'position_percentage': round(position * 100) if position else None,
