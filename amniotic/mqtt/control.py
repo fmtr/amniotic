@@ -1,7 +1,7 @@
 import threading
 from functools import cached_property
 from time import sleep
-from typing import Optional, Any, Union
+from typing import Optional, Any
 
 import pip
 from johnnydep import JohnnyDist as Package
@@ -417,7 +417,7 @@ class ButtonUpdateCheck(Entity):
         update_status = self.loop.entities[UpdateStatus]
         return update_status
 
-    def get_pypi_latest(self) -> Union[str, bool]:
+    def get_pypi_latest(self) -> Optional[str]:
         """
 
         Check if newer version is available.
@@ -426,7 +426,7 @@ class ButtonUpdateCheck(Entity):
         package = Package(NAME)
         version = package.version_latest
         if __version__ == package.version_latest:
-            return False
+            return None
         else:
             return version
 
