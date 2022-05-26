@@ -1,10 +1,14 @@
+import threading
+from functools import cached_property
+from time import sleep
 from typing import Optional, Any
 
 import pip
-from johnnydep.lib import JohnnyDist
+from johnnydep import JohnnyDist as Package
 from paho.mqtt import client as mqtt
 
 from amniotic.audio import Amniotic
+from amniotic.config import NAME
 from amniotic.mqtt.device import Device
 from amniotic.mqtt.loop import Loop
 from amniotic.mqtt.tools import Message, sanitize
@@ -402,33 +406,70 @@ class ButtonUpdateCheck(Entity):
         data.pop('device_class')
         return data
 
-    def handle_incoming(self, value: Any):
+    @cached_property
+    def update_sensor(self):
+        """
 
+        Get the sensor for displaying update messages
+
+        """
         from amniotic.mqtt.sensor import UpdateStatus
         update_status = self.loop.entities[UpdateStatus]
-        update_status.message = 'Checking for updates...'
-        package = JohnnyDist("amniotic")
+        return update_status
+
+    def get_pypi_latest(self) -> Optional[str]:
+        """
+
+        Check if newer version is available.
+
+        """
+        package = Package(NAME)
+        version = package.version_latest
         if __version__ == package.version_latest:
-            message = 'None available'
+            return None
         else:
-            message = f'Update available: {__version__}->{package.version_latest}'
+            return version
 
-        update_status.message = message
+    def check_update(self):
+        """
 
-class ButtonUpdate(Entity):
+        Report newer version, if one exists, using update sensor
+
+        """
+
+        try:
+            version = self.get_pypi_latest()
+        except Exception as exception:
+            self.update_sensor.message = f'Error checking for updates ({exception.__class__.__name__})'
+            return
+
+        if version:
+            message = f'Update available: {version}'
+        else:
+            message = 'None available'
+        self.update_sensor.message = message
+
+    def handle_incoming(self, value: Any):
+        """
+
+        When button is pressed, call update method without blocking.
+
+        """
+
+        self.update_sensor.message = 'Checking for updates...'
+        threading.Thread(target=self.check_update).start()
+
+
+class ButtonUpdate(ButtonUpdateCheck):
     """
 
     Home Assistant update button.
 
     """
+
     HA_PLATFORM = 'button'
     NAME = 'Update'
-
-    def get_value(self) -> Any:
-        pass
-
-    def set_value(self, value) -> Any:
-        pass
+    ICON_SUFFIX = None
 
     @property
     def data(self):
@@ -437,17 +478,35 @@ class ButtonUpdate(Entity):
         Home Assistant announce data for the entity.
 
         """
+
         data = super().data | {
             'device_class': 'update'
         }
 
         return data
 
-    def handle_incoming(self, value: Any):
+    def do_update(self):
         """
 
         Update from PyPI, then tell loop to exit.
 
         """
-        pip.main(['install', 'amniotic', '--upgrade'])
+
+        try:
+            pip.main(['install', NAME, '--upgrade'])
+        except:
+            self.update_sensor.message = 'Error updating'
+            return
+        self.update_sensor.message = 'Update complete. Restarting...'
+        sleep(self.loop.DELAY_FIRST)
         self.loop.exit_reason = f'Updating to latest version.'
+
+    def handle_incoming(self, value: Any):
+        """
+
+        When button is pressed, call update method without blocking.
+
+        """
+
+        self.update_sensor.message = 'Updating...'
+        threading.Thread(target=self.do_update).start()

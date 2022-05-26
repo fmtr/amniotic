@@ -8,7 +8,9 @@ import yaml
 from appdirs import AppDirs
 from getmac import getmac
 
-APP_DIRS = AppDirs('amniotic', 'frontmatter')
+NAME = 'amniotic'
+ORG = 'frontmatter'
+APP_DIRS = AppDirs(NAME, ORG)
 MAC_ADDRESS = getmac.get_mac_address().replace(':', '')
 HOSTNAME = gethostname()
 

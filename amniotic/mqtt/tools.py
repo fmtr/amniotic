@@ -1,12 +1,12 @@
 import json
 import logging
 import re
-
 from dataclasses import dataclass
 from time import sleep
 from typing import Callable, Any
 
 WHITESPACE = re.compile('[\s\-_]+')
+
 
 @dataclass
 class Message:
@@ -104,3 +104,5 @@ def sanitize(*strings, sep: str = '-') -> str:
     string = WHITESPACE.sub(sep, string).strip()
 
     return string
+
+
