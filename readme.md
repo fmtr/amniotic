@@ -37,7 +37,7 @@ audio equipment (amps, speakers, etc.), especially for lower-frequency themes.
 ### Platform
 
 Raspbian/Debian are best tested and covered here. But for other platforms etc., see
-the [Other Ways to Run](#Other Ways to Run) section.
+the [Other Ways to Run](#other-ways-to-run) section.
 
 ### Installing  on Raspberry Pi (Linux)
 
