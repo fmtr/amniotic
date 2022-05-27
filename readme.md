@@ -150,6 +150,13 @@ Since Amniotic uses the [Python VLC bindings](https://wiki.videolan.org/python_b
 support [any format VLC does](https://wiki.videolan.org/VLC_Features_Formats/#Audio_Codecs). But probably safest to
 stick to simple audio formats, MP3, M4A etc. I don't know what will happen if you use videos files, etc.!
 
+### Updating
+
+Amniotic also exposes its updater to Home Assistant, so newer versions can be installed from there. Updating will
+restart automatically and the device will reappear running the latest version, so all quite seamless.
+
+<figure><img src="ha_updater.png" width="280"/><figcaption>Update Controls</figcaption></figure>
+
 ## Other Ways to Run
 
 ### Docker Image
