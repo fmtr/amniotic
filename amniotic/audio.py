@@ -13,6 +13,7 @@ VLC_VERBOSITY = 0
 
 class Amniotic:
     VOLUME_DEFAULT = 50
+    THEME_NAME_DEFAULT = 'Default Theme'
 
     def __init__(self, path: Union[Path, str], device_names: Optional[dict[str, str]] = None):
         """
@@ -40,7 +41,7 @@ class Amniotic:
         self.themes = [Theme(path, device_names=self.device_names) for path in paths_themes]
         self.themes = {theme.name: theme for theme in self.themes}
         if not self.themes:
-            self.add_new_theme('First Theme')
+            self.add_new_theme(self.THEME_NAME_DEFAULT)
 
         self.theme_current = None
         self.set_theme(next(iter(self.themes.keys())))

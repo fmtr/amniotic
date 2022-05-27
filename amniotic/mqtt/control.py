@@ -511,9 +511,9 @@ class TextInput(Entity):
 
     """
     HA_PLATFORM = 'alarm_control_panel'
-    PENDING = 'pending'
+    DISARMED = 'disarmed'
     TRIGGERED = 'triggered'
-    status = PENDING
+    status = DISARMED
 
     @cached_property
     def update_sensor(self):
@@ -581,9 +581,9 @@ class Downloader(TextInput):
     """
     HA_PLATFORM = 'alarm_control_panel'
     ICON_SUFFIX = 'cloud-download-outline'
-    NAME = 'Download from YouTube URL'
+    NAME = 'Download YouTube Link'
 
-    IDLE = TextInput.PENDING
+    IDLE = TextInput.DISARMED
     DOWNLOADING = TextInput.TRIGGERED
     status = IDLE
 

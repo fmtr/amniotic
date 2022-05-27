@@ -122,12 +122,33 @@ class Loop:
 
         """
         from amniotic.mqtt import control, sensor
-        entity_classes = [
-            control.SelectTheme, control.VolumeMaster, control.VolumeTheme, control.ToggleTheme, control.DeviceTheme, control.ButtonUpdateCheck,
-            control.ButtonUpdate, control.Downloader, control.NewTheme,
-            sensor.Title, sensor.Album, sensor.TrackCount, sensor.Date, sensor.By, sensor.Duration, sensor.Elapsed, sensor.UpdateStatus, sensor.DownloaderStatus
+
+        controls = [
+            control.SelectTheme,
+            control.VolumeMaster,
+            control.VolumeTheme,
+            control.ToggleTheme,
+            control.DeviceTheme,
+            control.ButtonUpdateCheck,
+            control.ButtonUpdate,
+            control.Downloader,
+            control.NewTheme,
         ]
-        return entity_classes
+
+        sensors = [
+            sensor.Title,
+            sensor.Album,
+            sensor.TrackCount,
+            sensor.Date,
+            sensor.By,
+            sensor.Duration,
+            sensor.Elapsed,
+            sensor.UpdateStatus,
+            sensor.DownloaderStatus,
+            sensor.Version
+        ]
+
+        return controls + sensors
 
     def handle_outgoing(self, force_announce=False):
         """

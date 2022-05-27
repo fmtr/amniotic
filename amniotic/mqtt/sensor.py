@@ -2,6 +2,7 @@ from datetime import timedelta
 from typing import Optional, Union, Any
 
 from amniotic.mqtt import control
+from amniotic.version import __version__
 
 
 class Sensor(control.Entity):
@@ -193,3 +194,15 @@ class TrackCount(Sensor):
         """
         self.amniotic.theme_current.update_paths()
         return super().get_value(key)
+
+
+class Version(StaticMessageSensor):
+    """
+
+    Home Assistant version number sensor
+
+    """
+
+    NAME = 'Current Version'
+    ICON_SUFFIX = 'counter'
+    message = __version__
