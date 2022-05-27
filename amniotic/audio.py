@@ -1,19 +1,21 @@
 import getpass
 import logging
-import vlc
 from datetime import datetime
 from itertools import cycle
 from pathlib import Path
 from random import choice
 from typing import Union, Optional
 
+import vlc
+
 VLC_VERBOSITY = 0
 
 
 class Amniotic:
     VOLUME_DEFAULT = 50
+    THEME_NAME_DEFAULT = 'Default Theme'
 
-    def __init__(self, path_base: Union[Path, str], device_names: Optional[dict[str, str]] = None):
+    def __init__(self, path: Union[Path, str], device_names: Optional[dict[str, str]] = None):
         """
 
         Read audio directories and instantiate Theme objects
@@ -27,16 +29,23 @@ class Amniotic:
 
         self.device_names = device_names or {}
         self._enabled = True
-        path_base = Path(path_base).absolute()
-        paths_themes = sorted([path.absolute() for path in path_base.glob('*') if path.is_dir()])
+        path = Path(path).absolute()
+        paths_themes = sorted([path.absolute() for path in path.glob('*') if path.is_dir()])
 
         if not paths_themes:
-            msg = f'No audio directories found in "{path_base}"'
-            raise FileNotFoundError(msg)
+            msg = f'No audio directories found in "{path}". Default theme will be created.'
+            logging.warning(msg)
+
+        self.path = path
 
         self.themes = [Theme(path, device_names=self.device_names) for path in paths_themes]
-        self.theme_current = self.themes[0]
         self.themes = {theme.name: theme for theme in self.themes}
+        if not self.themes:
+            self.add_new_theme(self.THEME_NAME_DEFAULT)
+
+        self.theme_current = None
+        self.set_theme(next(iter(self.themes.keys())))
+
         self.volume = 0
         self.set_volume(self.VOLUME_DEFAULT)
 
@@ -82,6 +91,20 @@ class Amniotic:
             id = self.theme_current.get_device_id(id)
         self.theme_current = self.themes[id]
 
+    def add_new_theme(self, name: str, set_current: bool = False):
+        """
+
+        Add a new, empty theme by the specified name/ID.
+
+        """
+        if name not in self.themes:
+            path = self.path / name
+            path.mkdir()
+            theme = Theme(path, device_names=self.device_names)
+            self.themes[name] = theme
+            if set_current:
+                self.set_theme(name)
+
     def set_volume(self, value: int):
         """
 
@@ -124,10 +147,11 @@ class Theme:
         """
         self.path = path
         self.name = path.stem
-        self.paths = list(path.glob('*'))
+        self.paths = self.get_paths()
+
         if not self.paths:
-            msg = f'Audio themes directory is empty: "{path}"'
-            raise FileNotFoundError(msg)
+            msg = f'Theme "{self.name}" directory is empty: "{self.path}"'
+            logging.warning(msg)
 
         self.device_names = device_names or {}
         self._enabled = False
@@ -140,7 +164,30 @@ class Theme:
         self.volume = self.VOLUME_DEFAULT
         self.volume_scaled = self.volume
 
+    def update_paths(self):
+        """
+
+        Update file paths from disk.
+
+        """
+        self.paths = self.get_paths()
+
+    def get_paths(self) -> list[Path]:
+        """
+
+        Get file paths from disk.
+
+        """
+        paths = list(self.path.glob('*'))
+
+        return paths
+
     def get_player(self) -> vlc.MediaPlayer:
+        """
+
+        Instantiate a new player, and register callbacks
+
+        """
         instance = vlc.Instance(f'--verbose {VLC_VERBOSITY}')
         player = vlc.MediaPlayer(instance)
         player.event_manager().event_attach(vlc.EventType.MediaPlayerEndReached, self.cb_media_player_end_reached)
@@ -204,7 +251,7 @@ class Theme:
 
         return devices
 
-    def set_device(self, device: str):
+    def set_device(self, device: Optional[str]):
         """
 
         Set the output audio device from its ID. Also handle when that device had been unplugged, etc.
@@ -274,9 +321,14 @@ class Theme:
     def enabled(self, value: bool):
         """
 
-        Set whether Theme is enabled. If the input value if different from current, either start playing or toggle pause, depending on Theme state.
+        Set whether Theme is enabled. If the input value if different from current, either start playing or toggle pause, depending on Theme state. Themes
+        with no tracks (paths) cannot be enabled.
 
         """
+
+        if not self.paths:
+            return
+
         value = bool(value)
         if value == self._enabled:
             return
@@ -325,6 +377,7 @@ class Theme:
             'name': self.name,
             'device': {'id': self.device, 'name': self.devices[self.device]},
             'enabled': self.enabled,
+            'track_count': len(self.paths),
             'volume': {'theme': self.volume, 'scaled': self.volume_scaled},
             'position': position,
             'position_percentage': round(position * 100) if position else None,

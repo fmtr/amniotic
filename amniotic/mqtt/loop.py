@@ -3,6 +3,7 @@ import logging
 from functools import cached_property
 from json import JSONDecodeError
 from time import sleep
+from typing import Type
 
 from paho.mqtt import client as mqtt
 
@@ -114,14 +115,40 @@ class Loop:
         self.client.connect(host=host, port=port)
 
     @cached_property
-    def entity_classes(self):
+    def entity_classes(self) -> list[Type]:
+        """
+
+        Import all entity/sensor classes
+
+        """
         from amniotic.mqtt import control, sensor
-        entity_classes = [
-            control.SelectTheme, control.VolumeMaster, control.VolumeTheme, control.ToggleTheme, control.DeviceTheme, control.ButtonUpdateCheck,
+
+        controls = [
+            control.SelectTheme,
+            control.VolumeMaster,
+            control.VolumeTheme,
+            control.ToggleTheme,
+            control.DeviceTheme,
+            control.ButtonUpdateCheck,
             control.ButtonUpdate,
-            sensor.Title, sensor.Album, sensor.Date, sensor.By, sensor.Duration, sensor.Elapsed, sensor.UpdateStatus
+            control.Downloader,
+            control.NewTheme,
         ]
-        return entity_classes
+
+        sensors = [
+            sensor.Title,
+            sensor.Album,
+            sensor.TrackCount,
+            sensor.Date,
+            sensor.By,
+            sensor.Duration,
+            sensor.Elapsed,
+            sensor.UpdateStatus,
+            sensor.DownloaderStatus,
+            sensor.Version
+        ]
+
+        return controls + sensors
 
     def handle_outgoing(self, force_announce=False):
         """
@@ -203,7 +230,7 @@ def start():
         force=True
     )
 
-    amniotic = Amniotic(path_base=config.path_audio, device_names=config.device_names)
+    amniotic = Amniotic(path=config.path_audio, device_names=config.device_names)
     msg = f'Amniotic {__version__} has started.'
     logging.info(msg)
     msg = f'Amniotic {__version__} starting MQTT...'

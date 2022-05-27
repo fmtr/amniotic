@@ -1,7 +1,8 @@
 from datetime import timedelta
-from typing import Optional, Union
+from typing import Optional, Union, Any
 
 from amniotic.mqtt import control
+from amniotic.version import __version__
 
 
 class Sensor(control.Entity):
@@ -28,7 +29,12 @@ class Sensor(control.Entity):
             data['unit_of_measurement'] = self.UOM
         return data
 
-    def set_value(self, value):
+    def set_value(self, value: Any):
+        """
+
+        Dummy method.
+
+        """
         pass
 
     def get_value(self, key=None) -> Union[str, int, float]:
@@ -41,7 +47,9 @@ class Sensor(control.Entity):
         status = self.amniotic.theme_current.status
         if self.IS_SOURCE_META:
             status = status.get('meta_data') or {}
-        meta_value = status.get(key) or self.NA_VALUE
+        meta_value = status.get(key)
+        if meta_value is None:
+            meta_value = self.NA_VALUE
         return meta_value
 
 
@@ -126,18 +134,15 @@ class Elapsed(Duration):
     NAME = 'Elapsed'
     ICON_SUFFIX = 'clock-time-twelve-outline'
 
-class UpdateStatus(Sensor):
-    NAME = 'Update Status'
-    ICON_SUFFIX = 'semantic-web'
+
+class StaticMessageSensor(Sensor):
+    """
+
+    Base Home Assistant static message sensor. Just reports a static message. The message will be set by other controls.
+
+    """
+
     message = Sensor.NA_VALUE
-
-    def set_value(self, value):
-        """
-
-        Dummy method.
-
-        """
-        pass
 
     def get_value(self, key=None) -> Union[str, int, float]:
         """
@@ -146,3 +151,58 @@ class UpdateStatus(Sensor):
 
         """
         return self.message
+
+
+class UpdateStatus(StaticMessageSensor):
+    """
+
+    Home Assistant update status sensor. Messages set by Check Update button etc.
+
+    """
+    NAME = 'Update Status'
+    ICON_SUFFIX = 'semantic-web'
+    message = 'Never checked'
+
+
+class DownloaderStatus(StaticMessageSensor):
+    """
+
+    Home Assistant downloader status sensor. Messages set by downloader input etc.
+
+    """
+    NAME = 'Downloader Status'
+    ICON_SUFFIX = 'cloud-sync-outline'
+    message = 'Idle'
+
+
+class TrackCount(Sensor):
+    """
+
+    Home Assistant Track Count sensor
+
+    """
+    META_KEY = 'track_count'
+    NAME = 'Track Count'
+    IS_SOURCE_META = False
+    ICON_SUFFIX = 'pound-box'
+
+    def get_value(self, key=None) -> Union[str, int, float]:
+        """
+
+        Update theme from disk before reporting track count.
+
+        """
+        self.amniotic.theme_current.update_paths()
+        return super().get_value(key)
+
+
+class Version(StaticMessageSensor):
+    """
+
+    Home Assistant version number sensor
+
+    """
+
+    NAME = 'Current Version'
+    ICON_SUFFIX = 'counter'
+    message = __version__
