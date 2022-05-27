@@ -511,7 +511,7 @@ class TextInput(Entity):
 
     """
     HA_PLATFORM = 'alarm_control_panel'
-    DISARMED = 'disarmed'
+    DISARMED = 'pending'
     TRIGGERED = 'triggered'
     status = DISARMED
 
