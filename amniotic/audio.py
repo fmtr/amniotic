@@ -183,6 +183,11 @@ class Theme:
         return paths
 
     def get_player(self) -> vlc.MediaPlayer:
+        """
+
+        Instantiate a new player, and register callbacks
+
+        """
         instance = vlc.Instance(f'--verbose {VLC_VERBOSITY}')
         player = vlc.MediaPlayer(instance)
         player.event_manager().event_attach(vlc.EventType.MediaPlayerEndReached, self.cb_media_player_end_reached)
