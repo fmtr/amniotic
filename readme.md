@@ -86,6 +86,7 @@ with controls like this:
 
 <figure><img src="ha_controls.png" width="280"/><figcaption>Theme Controls</figcaption></figure>
 
+
 Since these controls and sensors are exposed as Home Assistant entities, you can also define and play custom mixes from
 scenes, scripts, automations, etc. - and anything else Home Assistant will allow.
 
@@ -112,6 +113,7 @@ When running for the first time, you'll have a single theme called **Default The
 the **New Theme** control, and entering a name.
 
 <figure><img src="ha_new_theme.png" width="280"/><figcaption>Creating a New Theme</figcaption></figure>
+
 
 > ℹ️ Home Assistant does not seem to provide a simple text box control.
 > So things that require text input (i.e. providing the name for a Theme, etc.) need
