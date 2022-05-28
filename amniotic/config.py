@@ -66,5 +66,8 @@ class Config:
                 msg = f'Unknown config format "{path_config.suffix}"'
                 raise ValueError(msg)
 
+            msg = f'Loaded config from "{path_config}": "{config_str}"'
+            logging.warning(msg)
+
         config = cls(**config)
         return config
