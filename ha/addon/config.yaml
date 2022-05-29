@@ -11,8 +11,7 @@ name: Amniotic
 options:
   audio_subdirectory: Amniotic
 schema:
-  mqtt_host: str
-  mqtt_password: str
+  audio_subdirectory: str
 services:
   - mqtt:need
 map:
