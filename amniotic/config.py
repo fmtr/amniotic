@@ -69,6 +69,11 @@ class Config:
             msg = f'Loaded config from "{path_config}": "{config_str}"'
             logging.warning(msg)
 
+        for key in config.keys():
+            key_env = f'{NAME}_{key}'.upper()
+            if (val_env := getenv(key_env)):
+                config[key] = val_env
+
         logging.warning(f'Got config: {config_str}')
         config = cls(**config)
         return config
