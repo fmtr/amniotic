@@ -66,7 +66,7 @@ class Loop:
 
         """
 
-        msg = f'Attempting to connect to MQTT "{client._host}:{client._port}": {self.CONNECTION_MESSAGES[code]}'
+        msg = f'Attempting to connect to MQTT "{client._username}@{client._host}:{client._port}": {self.CONNECTION_MESSAGES[code]}'
         if code:
             logging.error(msg)
         else:

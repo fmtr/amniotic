@@ -1,7 +1,7 @@
 import json
 import logging
 from _socket import gethostname
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from os import getenv
 from pathlib import Path
 
@@ -78,4 +78,5 @@ class Config:
 
         logging.warning(f'Got config: {config_str}')
         config = cls(**config)
+        logging.warning(f'Processed config: {asdict(config)}')
         return config
