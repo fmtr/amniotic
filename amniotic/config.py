@@ -36,6 +36,8 @@ class Config:
         if not path_audio.exists():
             logging.warning(f'Audio path not found: "{path_audio}"')
 
+        self.tele_period = round(self.tele_period)
+        self.port = int(self.port)
         self.logging = self.logging or logging.INFO
 
     @classmethod
