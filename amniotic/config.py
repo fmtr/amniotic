@@ -69,5 +69,6 @@ class Config:
             msg = f'Loaded config from "{path_config}": "{config_str}"'
             logging.warning(msg)
 
+        logging.warning(f'Got config: {config_str}')
         config = cls(**config)
         return config
