@@ -1,7 +1,7 @@
 import json
 import logging
 from _socket import gethostname
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, fields
 from os import getenv
 from pathlib import Path
 
@@ -60,6 +60,8 @@ class Config:
             logging.info(msg)
 
             config_str = Path(path_config).read_text()
+            logging.warning(f'Got config: {config_str}')
+
             if path_config.suffix in {'.yml', '.yaml'}:
                 config = yaml.safe_load(config_str)
             elif path_config.suffix in {'.json'}:
@@ -71,12 +73,12 @@ class Config:
             msg = f'Loaded config from "{path_config}": "{config_str}"'
             logging.warning(msg)
 
-        for key in config.keys():
+        field_names = [field.name for field in fields(Config)]
+        for key in field_names:
             key_env = f'{NAME}_{key}'.upper()
             if (val_env := getenv(key_env)):
                 config[key] = val_env
 
-        logging.warning(f'Got config: {config_str}')
         config = cls(**config)
         logging.warning(f'Processed config: {asdict(config)}')
         return config
