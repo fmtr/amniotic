@@ -37,7 +37,7 @@ class Config:
             logging.warning(f'Audio path not found: "{path_audio}"')
 
         self.tele_period = round(self.tele_period)
-        self.port = int(self.port)
+        self.mqtt_port = int(self.mqtt_port)
         self.logging = self.logging or logging.INFO
 
     @classmethod
