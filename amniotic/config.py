@@ -1,7 +1,8 @@
 import json
 import logging
 from _socket import gethostname
-from dataclasses import dataclass, asdict, fields
+from dataclasses import dataclass, fields
+from distutils.util import strtobool
 from os import getenv
 from pathlib import Path
 
@@ -14,6 +15,7 @@ ORG = 'frontmatter'
 APP_DIRS = AppDirs(NAME, ORG)
 MAC_ADDRESS = getmac.get_mac_address().replace(':', '')
 HOSTNAME = gethostname()
+IS_ADDON = bool(strtobool(getenv(f'{NAME}_IS_ADDON'.upper(), 'false')))
 
 
 @dataclass
@@ -70,7 +72,6 @@ class Config:
                 msg = f'Unknown config format "{path_config.suffix}"'
                 raise ValueError(msg)
 
-            msg = f'Loaded config from "{path_config}": "{config_str}"'
             logging.warning(msg)
 
         field_names = [field.name for field in fields(Config)]
@@ -80,5 +81,4 @@ class Config:
                 config[key] = val_env
 
         config = cls(**config)
-        logging.warning(f'Processed config: {asdict(config)}')
         return config
