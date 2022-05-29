@@ -10,6 +10,7 @@ init: false
 map:
   - media:rw
 name: Amniotic
+panel_icon: mdi:nature-people
 options:
   audio_subdirectory: Amniotic
   location: null
@@ -19,4 +20,5 @@ schema:
 services:
   - mqtt:need
 slug: amniotic
+url: https://github.com/fmtr/amniotic
 version:
