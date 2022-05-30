@@ -62,7 +62,6 @@ class Config:
             logging.info(msg)
 
             config_str = Path(path_config).read_text()
-            logging.warning(f'Got config: {config_str}')
 
             if path_config.suffix in {'.yml', '.yaml'}:
                 config = yaml.safe_load(config_str)
@@ -74,11 +73,16 @@ class Config:
 
             logging.warning(msg)
 
-        field_names = [field.name for field in fields(Config)]
+        field_names = {field.name for field in fields(Config)}
         for key in field_names:
             key_env = f'{NAME}_{key}'.upper()
             if (val_env := getenv(key_env)):
                 config[key] = val_env
+
+        for key in set(config.keys()) - field_names:
+            msg = f'Unknown config field "{key}". Will be ignored.'
+            logging.warning(msg)
+            config.pop(key)
 
         config = cls(**config)
         return config
