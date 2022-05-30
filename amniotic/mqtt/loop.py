@@ -8,7 +8,7 @@ from typing import Type
 from paho.mqtt import client as mqtt
 
 from amniotic.audio import Amniotic
-from amniotic.config import Config
+from amniotic.config import Config, IS_ADDON
 from amniotic.mqtt.device import Device
 from amniotic.mqtt.tools import Message
 from amniotic.version import __version__
@@ -118,7 +118,7 @@ class Loop:
     def entity_classes(self) -> list[Type]:
         """
 
-        Import all entity/sensor classes
+        Import all entity/sensor classes, excluding Update-related ones if we're running as an HA addon
 
         """
         from amniotic.mqtt import control, sensor
@@ -129,11 +129,16 @@ class Loop:
             control.VolumeTheme,
             control.ToggleTheme,
             control.DeviceTheme,
-            control.ButtonUpdateCheck,
-            control.ButtonUpdate,
+
             control.Downloader,
             control.NewTheme,
         ]
+
+        if not IS_ADDON:
+            controls += [
+                control.ButtonUpdateCheck,
+                control.ButtonUpdate,
+            ]
 
         sensors = [
             sensor.Title,
@@ -143,10 +148,14 @@ class Loop:
             sensor.By,
             sensor.Duration,
             sensor.Elapsed,
-            sensor.UpdateStatus,
             sensor.DownloaderStatus,
-            sensor.Version
         ]
+
+        if not IS_ADDON:
+            sensors += [
+                sensor.UpdateStatus,
+                sensor.Version
+            ]
 
         return controls + sensors
 
