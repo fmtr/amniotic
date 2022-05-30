@@ -1,6 +1,8 @@
+import json
 import logging
 from _socket import gethostname
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
+from distutils.util import strtobool
 from os import getenv
 from pathlib import Path
 
@@ -13,6 +15,7 @@ ORG = 'frontmatter'
 APP_DIRS = AppDirs(NAME, ORG)
 MAC_ADDRESS = getmac.get_mac_address().replace(':', '')
 HOSTNAME = gethostname()
+IS_ADDON = bool(strtobool(getenv(f'{NAME}_IS_ADDON'.upper(), 'false')))
 
 
 @dataclass
@@ -35,18 +38,20 @@ class Config:
         if not path_audio.exists():
             logging.warning(f'Audio path not found: "{path_audio}"')
 
+        self.tele_period = round(self.tele_period)
+        self.mqtt_port = int(self.mqtt_port)
         self.logging = self.logging or logging.INFO
 
     @classmethod
     def from_file(cls):
 
-        path_config_base = getenv('SC_CONFIG_BASE')
-        if not path_config_base:
-            path_config_base = APP_DIRS.user_config_dir
+        path_config = getenv('AMNIOTIC_CONFIG_PATH')
 
-        path_config_base = Path(path_config_base).absolute()
-        path_config_base.mkdir(parents=True, exist_ok=True)
-        path_config = path_config_base / 'config.yml'
+        if not path_config:
+            path_config = Path(APP_DIRS.user_config_dir) / 'config.yml'
+            path_config.parent.mkdir(parents=True, exist_ok=True)
+
+        path_config = Path(path_config).absolute()
 
         if not path_config.exists():
             msg = f'Config file not found at "{path_config}". Default values will be used.'
@@ -55,7 +60,29 @@ class Config:
         else:
             msg = f'Config file found at "{path_config}"'
             logging.info(msg)
-            config = yaml.safe_load(Path(path_config).read_text())
+
+            config_str = Path(path_config).read_text()
+
+            if path_config.suffix in {'.yml', '.yaml'}:
+                config = yaml.safe_load(config_str)
+            elif path_config.suffix in {'.json'}:
+                config = json.loads(config_str)
+            else:
+                msg = f'Unknown config format "{path_config.suffix}"'
+                raise ValueError(msg)
+
+            logging.warning(msg)
+
+        field_names = {field.name for field in fields(Config)}
+        for key in field_names:
+            key_env = f'{NAME}_{key}'.upper()
+            if (val_env := getenv(key_env)):
+                config[key] = val_env
+
+        for key in set(config.keys()) - field_names:
+            msg = f'Unknown config field "{key}". Will be ignored.'
+            logging.warning(msg)
+            config.pop(key)
 
         config = cls(**config)
         return config

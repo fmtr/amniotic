@@ -1,0 +1,24 @@
+arch:
+- aarch64
+- amd64
+- armhf
+- armv7
+- i386
+audio: true
+description: A multi-output ambient sound mixer for Home Assistant
+init: false
+map:
+- media:rw
+name: Amniotic
+options:
+  audio_subdirectory: Amniotic
+  location: null
+panel_icon: mdi:nature-people
+schema:
+  audio_subdirectory: str
+  location: str?
+services:
+- mqtt:need
+slug: amniotic
+url: https://github.com/fmtr/amniotic/tree/main/ha
+version: 0.3.5

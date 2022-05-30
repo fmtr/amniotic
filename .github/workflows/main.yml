@@ -20,9 +20,9 @@ jobs:
       - uses: actions/checkout@v2
 
 
-      - name: Install Twine
+      - name: Install Tools
         run: |
-          pip install twine
+          pip install twine pyyaml
 
       - name: Docker Login
         env:
@@ -35,8 +35,10 @@ jobs:
         run: |
           git config --global user.name 'Frontmatter Actions'
           git config --global user.email 'actions@frontmatter.ai'
-          echo -n ${VERSION} > ${NAME}/version          
+          echo -n ${VERSION} > ${NAME}/version
+          python ha/addon/update_version.py ${VERSION}
           git add ${NAME}/version
+          git add ha/addon/config.yaml
           git commit -am "Increment version number to ${VERSION} for release"
           git push
           git tag v${VERSION}

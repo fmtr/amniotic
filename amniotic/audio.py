@@ -99,7 +99,7 @@ class Amniotic:
         """
         if name not in self.themes:
             path = self.path / name
-            path.mkdir()
+            path.mkdir(parents=True)
             theme = Theme(path, device_names=self.device_names)
             self.themes[name] = theme
             if set_current:

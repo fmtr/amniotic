@@ -25,7 +25,18 @@ single account to play multiple streams, even _if_ multiple devices are used.
 
 Anyway, these it was these limitations that motivated me to create this library.
 
-## Installing
+There are two ways to install and run Amniotic:
+
+- On the Home Assistant machine itself, as an add-on.
+- Install manually, on a separate machine.
+
+## Home Assistant Addon
+
+To add as an Addon, click here:
+
+[![Open your Home Assistant instance and show the add add-on repository dialog with a specific repository URL pre-filled.](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Ffmtr%2Famniotic)
+
+## Installing Manually
 
 ### Hardware
 
@@ -80,12 +91,14 @@ that restarts, running on boot etc., are handled automatically.
 
 ## Home Assistant
 
-With MQTT connected, Amniotic will announce itself to Home Assistant, and in
-the [Devices section of the frontend](http://homeassistant.local:8123/config/devices/dashboard) you'll see a new device
-with controls like this:
+With MQTT connected, Amniotic will announce itself to Home Assistant, and in you'll see it in the Devices section of the
+frontend:
+
+[![Open your Home Assistant instance and show your devices.](https://my.home-assistant.io/badges/devices.svg)](https://my.home-assistant.io/redirect/devices/)
+
+The device will have controls like these:
 
 <figure><img src="ha_controls.png" width="280"/><figcaption>Theme Controls</figcaption></figure>
-
 
 Since these controls and sensors are exposed as Home Assistant entities, you can also define and play custom mixes from
 scenes, scripts, automations, etc. - and anything else Home Assistant will allow.
