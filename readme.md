@@ -98,7 +98,7 @@ frontend:
 
 The device will have controls like these:
 
-<figure><img src="ha_controls.png" width="280"/><figcaption>Theme Controls</figcaption></figure>
+<figure><img src="assets/ha_controls.png" width="280"/><figcaption>Theme Controls</figcaption></figure>
 
 Since these controls and sensors are exposed as Home Assistant entities, you can also define and play custom mixes from
 scenes, scripts, automations, etc. - and anything else Home Assistant will allow.
@@ -112,7 +112,7 @@ When that theme is enabled, via the controls above, the individual files will be
 mode. Switching between Themes with the Theme pull-down, you'll be able to enable/disable each one, set their relative
 volumes and their output devices etc., and the sensors will update to provide information about the current track.
 
-<figure><img src="ha_sensors.png" width="280"/><figcaption>Sensors Showing Track Information</figcaption></figure>
+<figure><img src="assets/ha_sensors.png" width="280"/><figcaption>Sensors Showing Track Information</figcaption></figure>
 
 
 There are two ways to add Themes:
@@ -125,7 +125,7 @@ There are two ways to add Themes:
 When running for the first time, you'll have a single theme called **Default Theme**. You can add new Themes by clicking
 the **New Theme** control, and entering a name.
 
-<figure><img src="ha_new_theme.png" width="280"/><figcaption>Creating a New Theme</figcaption></figure>
+<figure><img src="assets/ha_new_theme.png" width="280"/><figcaption>Creating a New Theme</figcaption></figure>
 
 
 > ℹ️ Home Assistant does not seem to provide a simple text box control.
@@ -136,7 +136,7 @@ the **New Theme** control, and entering a name.
 The Theme can then be populated by clicking Download YouTube Link, and entering the link to an ambient sound video.
 Amniotic with then split the audio channel from the video and download it into your Theme.
 
-<figure><img src="ha_download_link.png" width="280"/><figcaption>Populating a Theme from a YouTube Link</figcaption></figure>
+<figure><img src="assets/ha_download_link.png" width="280"/><figcaption>Populating a Theme from a YouTube Link</figcaption></figure>
 
 
 > ℹ️ Why YouTube?
@@ -174,7 +174,7 @@ stick to simple audio formats, MP3, M4A etc. I don't know what will happen if yo
 Amniotic also exposes its updater to Home Assistant, so newer versions can be installed from there. Updating will
 restart automatically and the device will reappear running the latest version, so all quite seamless.
 
-<figure><img src="ha_updater.png" width="280"/><figcaption>Update Controls</figcaption></figure>
+<figure><img src="assets/ha_updater.png" width="280"/><figcaption>Update Controls</figcaption></figure>
 
 ## Other Ways to Run
 
