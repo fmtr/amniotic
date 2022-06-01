@@ -21,4 +21,4 @@ services:
 - mqtt:need
 slug: amniotic
 url: https://github.com/fmtr/amniotic
-version: 0.3.6
+version: 0.3.7
