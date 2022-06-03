@@ -1,3 +1,1 @@
-## Documentation
-
 For general documentation, see **[the project wiki](https://link.frontmatter.ai/amniotic/doc)**.
