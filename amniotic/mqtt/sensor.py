@@ -24,7 +24,6 @@ class Sensor(control.Entity):
     @property
     def data(self):
         data = super().data
-        data.pop('device_class')
         if self.UOM:
             data['unit_of_measurement'] = self.UOM
         return data

@@ -1,13 +1,12 @@
 import logging
+import pip
 import threading
 from functools import cached_property
-from time import sleep
-from typing import Optional, Any
-
-import pip
 from johnnydep import JohnnyDist as Package
 from paho.mqtt import client as mqtt
 from pytube import YouTube, Stream
+from time import sleep
+from typing import Optional, Any
 
 from amniotic.audio import Amniotic
 from amniotic.config import NAME
@@ -127,7 +126,6 @@ class Entity:
             "unique_id": self.uid,
             "object_id": self.uid,
             "device": self.device.announce_data,
-            "device_class": self.HA_PLATFORM,
             "force_update": True,
             "payload_available": self.PAYLOAD_ONLINE,
             "payload_not_available": self.PAYLOAD_OFFLINE,
@@ -275,22 +273,8 @@ class VolumeMaster(Volume):
     Home Assistant master volume control.
 
     """
-    HA_PLATFORM = 'number'
     ICON_SUFFIX = 'volume-high'
     NAME = 'Master Volume'
-
-    @property
-    def data(self):
-        """
-
-        Home Assistant announce data for the entity.
-
-        """
-        data = super().data | {
-            'min': self.MIN,
-            'max': self.MAX
-        }
-        return data
 
     def get_value(self) -> Any:
         return self.amniotic.volume
@@ -385,17 +369,6 @@ class ButtonUpdateCheck(Entity):
 
     def set_value(self, value) -> Any:
         pass
-
-    @property
-    def data(self):
-        """
-
-        Home Assistant announce data for the entity.
-
-        """
-        data = super().data
-        data.pop('device_class')
-        return data
 
     @cached_property
     def update_sensor(self):
