@@ -1,11 +1,11 @@
+from json import JSONDecodeError
+
 import json
 import logging
 from functools import cached_property
-from json import JSONDecodeError
+from paho.mqtt import client as mqtt
 from time import sleep
 from typing import Type
-
-from paho.mqtt import client as mqtt
 
 from amniotic.audio import Amniotic
 from amniotic.config import Config, IS_ADDON
@@ -97,6 +97,7 @@ class Loop:
 
         self.queue = []
         self.tele_period = tele_period
+        self.force_announce_period = self.tele_period * 10
         self.has_reconnected = True
         self.topic_lwt = self.device.topic_lwt
 
@@ -147,7 +148,7 @@ class Loop:
             sensor.Date,
             sensor.By,
             sensor.Duration,
-            sensor.Elapsed,
+            # sensor.Elapsed,
             sensor.DownloaderStatus,
         ]
 
@@ -208,8 +209,9 @@ class Loop:
                 continue
 
             is_telem_loop = loop_count % self.tele_period == 0
+            is_force_announce_loop = loop_count % self.force_announce_period == 0
 
-            self.handle_outgoing(force_announce=self.has_reconnected)
+            self.handle_outgoing(force_announce=self.has_reconnected or is_force_announce_loop)
             self.has_reconnected = False
 
             Message.send_many(self.queue, delay=delay)
