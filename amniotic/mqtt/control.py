@@ -1,12 +1,13 @@
 import logging
-import pip
 import threading
 from functools import cached_property
+from time import sleep
+from typing import Optional, Any
+
+import pip
 from johnnydep import JohnnyDist as Package
 from paho.mqtt import client as mqtt
 from pytube import YouTube, Stream
-from time import sleep
-from typing import Optional, Any
 
 from amniotic.audio import Amniotic
 from amniotic.config import NAME
@@ -483,10 +484,8 @@ class TextInput(Entity):
     arbitrary text (e.g. a URL) from a Home Assistant control.
 
     """
-    HA_PLATFORM = 'alarm_control_panel'
-    DISARMED = 'pending'
-    TRIGGERED = 'triggered'
-    status = DISARMED
+    HA_PLATFORM = 'text'
+    status = ""
 
     @cached_property
     def update_sensor(self):
@@ -521,8 +520,7 @@ class TextInput(Entity):
 
         """
         data = super().data | {
-            'code': 'REMOTE_CODE_TEXT',
-            'command_template': "{{ code }}"
+            'mode': 'text',
         }
         return data
 
@@ -533,7 +531,6 @@ class NewTheme(TextInput):
     Home Assistant text input box for creating a new Theme
 
     """
-    HA_PLATFORM = 'alarm_control_panel'
     ICON_SUFFIX = 'folder-plus-outline'
     NAME = 'Create New Theme'
 
@@ -552,13 +549,10 @@ class Downloader(TextInput):
     Home Assistant track downloader URL input.
 
     """
-    HA_PLATFORM = 'alarm_control_panel'
     ICON_SUFFIX = 'cloud-download-outline'
     NAME = 'Download YouTube Link'
-
-    IDLE = TextInput.DISARMED
-    DOWNLOADING = TextInput.TRIGGERED
-    status = IDLE
+    DOWNLOADING = 'Starting...'
+    IDLE = ''
 
     @cached_property
     def update_sensor(self):
@@ -642,5 +636,3 @@ class Downloader(TextInput):
         if self.status == self.DOWNLOADING:
             return
         threading.Thread(target=self.do_download, args=[value]).start()
-
-
