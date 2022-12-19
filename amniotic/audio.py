@@ -11,6 +11,64 @@ import vlc
 VLC_VERBOSITY = 0
 
 
+def load_new_player() -> vlc.MediaPlayer:
+    """
+
+    Instantiate a new player.
+
+    """
+    instance = vlc.Instance(f'--verbose {VLC_VERBOSITY}')
+    player = vlc.MediaPlayer(instance)
+    return player
+
+
+def unload_player(player: vlc.MediaPlayer):
+    """
+
+    Close player (and its instance) properly.
+
+    """
+
+    player.stop()
+    instance: vlc.Instance = player.get_instance()
+    instance.release()
+    player.release()
+
+
+def get_devices(player: Optional[vlc.MediaPlayer] = None, device_names: dict[str, str] = None) -> dict[str, str]:
+    """
+
+    Create a mapping from audio output device IDs to their friendly names from VLC's peculiar enum format. If no
+    player was passed in, temporarily instantiate a new one for the purpose.
+
+    """
+
+    if not player:
+        player = load_new_player()
+        devices = get_devices(player, device_names)
+        unload_player(player)
+        return devices
+
+    devices_raw = player.audio_output_device_enum()
+    devices = {}
+    device_names = device_names or {}
+    if devices_raw:
+        device_raw = devices_raw
+        count = 0
+        while device_raw:
+            count += 1
+            device_raw = device_raw.contents
+            description = device_raw.description.decode()
+            device = device_raw.device.decode()
+            count = len([key for key in devices.keys() if key == description])
+            if count:
+                description = f'{description} ({count + 1})'
+            devices[device] = device_names.get(description, description)
+            device_raw = device_raw.next
+
+    return devices
+
+
 class Amniotic:
     VOLUME_DEFAULT = 50
     THEME_NAME_DEFAULT = 'Default Theme'
@@ -155,14 +213,22 @@ class Theme:
 
         self.device_names = device_names or {}
         self._enabled = False
-        self.ever_started = False
 
-        self.players = cycle([self.get_player(), self.get_player()])
-        self.player = self.device = None
-        self.switch_player()
+        self.players = None
+        self.players_cycle = None
+        self.player = None
+        self.device = None
+
         self.set_device(device=None)
         self.volume = self.VOLUME_DEFAULT
         self.volume_scaled = self.volume
+
+    def load_players(self):
+        if self.players:
+            return
+        self.players = [self.load_player(), self.load_player()]
+        self.players_cycle = cycle(self.players)
+        self.switch_player()
 
     def update_paths(self):
         """
@@ -182,15 +248,16 @@ class Theme:
 
         return paths
 
-    def get_player(self) -> vlc.MediaPlayer:
+    def load_player(self) -> vlc.MediaPlayer:
         """
 
         Instantiate a new player, and register callbacks
 
         """
-        instance = vlc.Instance(f'--verbose {VLC_VERBOSITY}')
-        player = vlc.MediaPlayer(instance)
+        player = load_new_player()
         player.event_manager().event_attach(vlc.EventType.MediaPlayerEndReached, self.cb_media_player_end_reached)
+        msg = f'Theme "{self.name}" loaded new player: {player}'
+        logging.debug(msg)
         return player
 
     def cb_media_player_end_reached(self, event: vlc.Event):
@@ -199,7 +266,8 @@ class Theme:
         Method to register as a VLC callback. Once a file finishes playing, start playing the next file in the other player.
 
         """
-        logging.debug(f'Theme "{self.name}" hit media end callback with event: {event.type=} {event.obj=} {event.meta_type=}')
+        msg = f'Theme "{self.name}" hit media end callback with event: {event.type=} {event.obj=} {event.meta_type=}'
+        logging.debug(msg)
         self.switch_player()
         self.play()
 
@@ -233,23 +301,7 @@ class Theme:
 
         """
 
-        devices_raw = self.player.audio_output_device_enum()
-        devices = {}
-        if devices_raw:
-            device_raw = devices_raw
-            count = 0
-            while device_raw:
-                count += 1
-                device_raw = device_raw.contents
-                description = device_raw.description.decode()
-                device = device_raw.device.decode()
-                count = len([key for key in devices.keys() if key == description])
-                if count:
-                    description = f'{description} ({count + 1})'
-                devices[device] = self.device_names.get(description, description)
-                device_raw = device_raw.next
-
-        return devices
+        return get_devices(self.player, self.device_names)
 
     def set_device(self, device: Optional[str]):
         """
@@ -289,7 +341,8 @@ class Theme:
         Alternate the current player.
 
         """
-        self.player = next(self.players)
+
+        self.player = next(self.players_cycle)
         logging.debug(f'Theme "{self.name}" switched player to: {self.player}')
 
     def play(self):
@@ -299,7 +352,8 @@ class Theme:
         so this all needs specifying each time.
 
         """
-        self.ever_started = True
+
+        self.load_players()
         path = choice(self.paths)
         media = self.instance.media_new(str(path))
         self.player.set_media(media)
@@ -307,6 +361,21 @@ class Theme:
         self.player.audio_set_volume(self.volume_scaled)
         logging.info(f'Theme "{self.name}" playing file {path}')
         self.player.play()
+
+    def stop(self):
+        """
+
+        When Theme is stopped, unload its players
+
+        """
+
+        for player in self.players or []:
+            unload_player(player)
+            msg = f'Theme "{self.name}" unloaded player: {player}'
+            logging.debug(msg)
+        self.players = None
+        self.players_cycle = None
+        self.player = None
 
     @property
     def enabled(self) -> bool:
@@ -335,10 +404,10 @@ class Theme:
 
         self._enabled = value
 
-        if not self.ever_started and self._enabled:
+        if self._enabled:
             self.play()
         else:
-            self.player.pause()
+            self.stop()
 
     def set_volume(self, volume_master: int, volume: Optional[int] = None):
         """
@@ -354,7 +423,8 @@ class Theme:
         volume_scaled = round(self.volume * (volume_master / 100))
         logging.info(f'Changing scaled volume for theme "{self.name}": from {volume_old} to {volume_scaled}')
         self.volume_scaled = volume_scaled
-        self.player.audio_set_volume(volume_scaled)
+        if self.enabled:
+            self.player.audio_set_volume(volume_scaled)
 
     @property
     def status(self):
@@ -363,9 +433,14 @@ class Theme:
         General Theme status information
 
         """
-        media = self.player.get_media()
 
-        position = self.player.get_position()
+        if self.player:
+            media = self.player.get_media()
+            state = str(self.player.get_state())
+            position = self.player.get_position()
+        else:
+            media = state = position = None
+
         duration = media.get_duration() if media else None
 
         if position and duration:
@@ -375,14 +450,14 @@ class Theme:
 
         data = {
             'name': self.name,
-            'device': {'id': self.device, 'name': self.devices[self.device]},
+            'device': {'id': self.device, 'name': self.devices.get(self.device)},
             'enabled': self.enabled,
             'track_count': len(self.paths),
             'volume': {'theme': self.volume, 'scaled': self.volume_scaled},
             'position': position,
             'position_percentage': round(position * 100) if position else None,
             'elapsed': elapsed,
-            'state': str(self.player.get_state()),
+            'state': state,
             'duration': media.get_duration() if media else None,
             'meta_data': {
                 value: datum
