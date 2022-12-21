@@ -1,6 +1,7 @@
 import getpass
 import logging
 import vlc
+from cachetools.func import ttl_cache
 from datetime import datetime
 from itertools import cycle
 from pathlib import Path
@@ -8,7 +9,7 @@ from random import choice
 from typing import Union, Optional
 
 VLC_VERBOSITY = 0
-
+DEVICES_POLL_PERIOD_SECONDS = 10
 
 def load_new_player() -> vlc.MediaPlayer:
     """
@@ -27,28 +28,39 @@ def unload_player(player: vlc.MediaPlayer):
     Close player (and its instance) properly.
 
     """
-
     player.stop()
     instance: vlc.Instance = player.get_instance()
     instance.release()
     player.release()
 
 
+@ttl_cache(ttl=DEVICES_POLL_PERIOD_SECONDS)
+def get_devices_raw() -> vlc.AudioOutputDevice:
+    """
+
+    When a player is not yet open, we need to open one temporarily to fetch the audio devices. Since this is somewhat
+    expensive, here we cache the devices with a limited lifespan, so that this is only done so often.
+
+    """
+    logging.info(f'Loaded temporary player to get devices...')
+    player = load_new_player()
+    devices_raw = player.audio_output_device_enum()
+    unload_player(player)
+    logging.info(f'Unloading temporary player.')
+    return devices_raw
+
 def get_devices(player: Optional[vlc.MediaPlayer] = None, device_names: dict[str, str] = None) -> dict[str, str]:
     """
 
-    Create a mapping from audio output device IDs to their friendly names from VLC's peculiar enum format. If no
-    player was passed in, temporarily instantiate a new one for the purpose.
+    Create a mapping from audio output device IDs to their friendly names from VLC's peculiar enum format.
 
     """
 
-    if not player:
-        player = load_new_player()
-        devices = get_devices(player, device_names)
-        unload_player(player)
-        return devices
+    if player:
+        devices_raw = player.audio_output_device_enum()
+    else:
+        devices_raw = get_devices_raw()
 
-    devices_raw = player.audio_output_device_enum()
     devices = {}
     device_names = device_names or {}
     if devices_raw:

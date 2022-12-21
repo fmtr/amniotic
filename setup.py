@@ -29,7 +29,8 @@ setup(
         'pyyaml',
         'appdirs',
         'johnnydep',
-        'pytube'
+        'pytube',
+        'cachetools'
     ],
     extras_require={},
     entry_points={
