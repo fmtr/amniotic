@@ -1,13 +1,12 @@
 import logging
+import pip
 import threading
 from functools import cached_property
-from time import sleep
-from typing import Optional, Any
-
-import pip
 from johnnydep import JohnnyDist as Package
 from paho.mqtt import client as mqtt
 from pytube import YouTube, Stream
+from time import sleep
+from typing import Optional, Any
 
 from amniotic.audio import Amniotic
 from amniotic.config import NAME
@@ -284,6 +283,24 @@ class VolumeMaster(Volume):
         self.amniotic.set_volume(value)
 
 
+class VolumeAdjustThreshold(Volume):
+    """
+
+    Home Assistant volume adjust threshold control.
+
+    """
+    ICON_SUFFIX = 'volume-equal'
+    NAME = 'Master Volume Adjust Threshold'
+    MIN = 1
+    MAX = 10
+
+    def get_value(self) -> Any:
+        return self.amniotic.volume_adjust_threshold
+
+    def set_value(self, value) -> Any:
+        self.amniotic.set_volume_adjust_threshold(value)
+
+
 class VolumeTheme(Volume):
     """
 
@@ -355,21 +372,56 @@ class ToggleTheme(Entity):
         return data
 
 
-class ButtonUpdateCheck(Entity):
+class Button(Entity):
     """
 
-    Home Assistant update button.
+    Home Assistant button.
 
     """
     HA_PLATFORM = 'button'
-    ICON_SUFFIX = 'source-branch-sync'
-    NAME = 'Update Check'
 
     def get_value(self) -> Any:
         pass
 
     def set_value(self, value) -> Any:
         pass
+
+
+class ButtonVolumeDown(Button):
+    NAME = 'Master Volume Down'
+    ICON_SUFFIX = 'volume-low'
+
+    def handle_incoming(self, value: Any):
+        """
+
+        Decrement volume
+
+        """
+        self.amniotic.set_volume_down()
+
+
+class ButtonVolumeUp(Button):
+    NAME = 'Master Volume Up'
+    ICON_SUFFIX = 'volume-high'
+
+    def handle_incoming(self, value: Any):
+        """
+
+        Increment volume
+
+        """
+        self.amniotic.set_volume_up()
+
+
+class ButtonUpdateCheck(Button):
+    """
+
+    Home Assistant update button.
+
+    """
+
+    ICON_SUFFIX = 'source-branch-sync'
+    NAME = 'Update Check'
 
     @cached_property
     def update_sensor(self):

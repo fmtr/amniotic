@@ -1,12 +1,11 @@
 import getpass
 import logging
+import vlc
 from datetime import datetime
 from itertools import cycle
 from pathlib import Path
 from random import choice
 from typing import Union, Optional
-
-import vlc
 
 VLC_VERBOSITY = 0
 
@@ -80,6 +79,7 @@ class Amniotic:
 
         """
 
+
         user = getpass.getuser()
         if user == 'root':
             msg = f'You are running as root. This could cause issues with PulseAudio, unless it is configured in system-wide mode.'
@@ -104,6 +104,7 @@ class Amniotic:
         self.theme_current = None
         self.set_theme(next(iter(self.themes.keys())))
 
+        self.volume_adjust_threshold = 2
         self.volume = 0
         self.set_volume(self.VOLUME_DEFAULT)
 
@@ -169,9 +170,20 @@ class Amniotic:
         Set Master Volume, and propagate to all Themes.
 
         """
+        value = min(value, 100)
+        value = max(value, 0)
         self.volume = value
         for theme in self.themes.values():
             theme.set_volume(self.volume)
+
+    def set_volume_adjust_threshold(self, value: int):
+        self.volume_adjust_threshold = value
+
+    def set_volume_down(self):
+        self.set_volume(self.volume - self.volume_adjust_threshold)
+
+    def set_volume_up(self):
+        self.set_volume(self.volume + self.volume_adjust_threshold)
 
     def set_volume_theme(self, value):
         """
@@ -199,8 +211,7 @@ class Theme:
     def __init__(self, path: Path, device_names: Optional[dict[str, str]] = None):
         """
 
-        Fetch paths from Theme audio directory, set up two alternating players (so they can call each other without thread deadlocks) and set a default
-        audio output device.
+        Fetch paths from Theme audio directory,and set a default audio output device.
 
         """
         self.path = path
@@ -224,6 +235,11 @@ class Theme:
         self.volume_scaled = self.volume
 
     def load_players(self):
+        """
+
+        Set up two alternating players (so they can call each other without thread deadlocks)
+
+        """
         if self.players:
             return
         self.players = [self.load_player(), self.load_player()]
