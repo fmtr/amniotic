@@ -389,7 +389,7 @@ class Button(Entity):
 
 class ButtonVolumeDown(Button):
     NAME = 'Master Volume Down'
-    ICON_SUFFIX = 'volume-low'
+    ICON_SUFFIX = 'volume-minus'
 
     def handle_incoming(self, value: Any):
         """
@@ -402,7 +402,7 @@ class ButtonVolumeDown(Button):
 
 class ButtonVolumeUp(Button):
     NAME = 'Master Volume Up'
-    ICON_SUFFIX = 'volume-high'
+    ICON_SUFFIX = 'volume-plus'
 
     def handle_incoming(self, value: Any):
         """
