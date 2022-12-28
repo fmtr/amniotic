@@ -375,7 +375,7 @@ class ToggleTheme(Entity):
 class Button(Entity):
     """
 
-    Home Assistant button.
+    Home Assistant button
 
     """
     HA_PLATFORM = 'button'
@@ -386,6 +386,23 @@ class Button(Entity):
     def set_value(self, value) -> Any:
         pass
 
+
+class ButtonDisableAllThemes(Button):
+    """
+
+    Home Assistant button to disable all Themes
+
+    """
+    NAME = 'Disable All Themes'
+    ICON_SUFFIX = 'stop-circle'
+
+    def handle_incoming(self, value: Any):
+        """
+
+        Disable all themes
+
+        """
+        self.amniotic.enabled = False
 
 class ButtonVolumeDown(Button):
     NAME = 'Master Volume Down'

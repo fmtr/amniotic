@@ -125,11 +125,13 @@ class Loop:
         from amniotic.mqtt import control, sensor
 
         controls = [
-            control.SelectTheme,
             control.VolumeMaster,
             control.VolumeAdjustThreshold,
             control.ButtonVolumeDown,
             control.ButtonVolumeUp,
+            control.ButtonDisableAllThemes,
+
+            control.SelectTheme,
             control.VolumeTheme,
             control.ToggleTheme,
             control.DeviceTheme,
