@@ -127,14 +127,16 @@ class Loop:
         controls = [
             control.VolumeMaster,
             control.VolumeAdjustThreshold,
-            control.ButtonVolumeDown,
-            control.ButtonVolumeUp,
+            control.ButtonVolumeDownMaster,
+            control.ButtonVolumeUpMaster,
             control.ButtonDisableAllThemes,
 
             control.SelectTheme,
             control.VolumeTheme,
             control.ToggleTheme,
             control.DeviceTheme,
+            control.ButtonVolumeDownTheme,
+            control.ButtonVolumeUpTheme,
 
             control.Downloader,
             control.NewTheme,

@@ -4,6 +4,7 @@ import vlc
 from cachetools.func import ttl_cache
 from datetime import datetime
 from itertools import cycle
+from numbers import Number
 from pathlib import Path
 from random import choice
 from typing import Union, Optional, List, Dict
@@ -78,6 +79,18 @@ def get_devices(player: Optional[vlc.MediaPlayer] = None, device_names: dict[str
             device_raw = device_raw.next
 
     return devices
+
+
+def sanitize_volume(value: Number) -> int:
+    """
+
+    Ensure a volume is an `int` between 0 and 100
+
+    """
+    value = round(value)
+    value = min(value, 100)
+    value = max(value, 0)
+    return value
 
 
 class Amniotic:
@@ -182,14 +195,16 @@ class Amniotic:
         Set Master Volume, and propagate to all Themes.
 
         """
-        value = min(value, 100)
-        value = max(value, 0)
+        value = sanitize_volume(value)
         self.volume = value
         for theme in self.themes.values():
-            theme.set_volume(self.volume)
+            theme.volume_master = self.volume
+            theme.set_volume()
 
     def set_volume_adjust_threshold(self, value: int):
         self.volume_adjust_threshold = value
+        for theme in self.themes.values():
+            theme.volume_adjust_threshold = value
 
     def set_volume_down(self):
         self.set_volume(self.volume - self.volume_adjust_threshold)
@@ -203,7 +218,7 @@ class Amniotic:
         Set the current Theme Volume.
 
         """
-        self.theme_current.set_volume(self.volume, value)
+        self.theme_current.set_volume(value)
 
     @property
     def status(self) -> dict:
@@ -240,6 +255,7 @@ class Theme:
         Fetch paths from Theme audio directory,and set a default audio output device.
 
         """
+
         self.path = path
         self.name = path.stem
         self.paths = self.get_paths()
@@ -257,8 +273,12 @@ class Theme:
         self.device = None
 
         self.set_device(device=None)
+
+        self.volume_master = 0
         self.volume = self.VOLUME_DEFAULT
-        self.volume_scaled = self.volume
+        self.volume_scaled = 0
+        self.volume_adjust_threshold = 2
+        self.set_volume(self.VOLUME_DEFAULT)
 
     def load_players(self):
         """
@@ -451,19 +471,32 @@ class Theme:
         else:
             self.stop()
 
-    def set_volume(self, volume_master: int, volume: Optional[int] = None):
+    def set_volume(self, value: Optional[int] = None):
         """
 
         Set the scaled volume by multiplying the master volume with the theme volume.
 
         """
 
-        if volume is not None:
-            self.volume = volume
+        if value is not None:
+            value = sanitize_volume(value)
+            self.volume = value
 
-        volume_old = self.volume_scaled
-        volume_scaled = round(self.volume * (volume_master / 100))
-        logging.info(f'Changing scaled volume for theme "{self.name}": from {volume_old} to {volume_scaled}')
+        volume_scaled_old = self.volume_scaled
+        volume_scaled = round(self.volume * (self.volume_master / 100))
+        logging.info(f'Changing scaled volume for theme "{self.name}": from {volume_scaled_old} to {volume_scaled}')
+        self.set_volume_scaled(volume_scaled)
+
+    def set_volume_down(self):
+        self.set_volume(self.volume - self.volume_adjust_threshold)
+
+    def set_volume_up(self):
+        self.set_volume(self.volume + self.volume_adjust_threshold)
+
+    def set_volume_scaled(self, volume_scaled):
+
+        logging.info(f'Changing scaled volume for theme "{self.name}": to {volume_scaled}')
+
         self.volume_scaled = volume_scaled
         if self.enabled:
             self.player.audio_set_volume(volume_scaled)
@@ -495,7 +528,8 @@ class Theme:
             'device': {'id': self.device, 'name': self.devices.get(self.device)},
             'enabled': self.enabled,
             'track_count': len(self.paths),
-            'volume': {'theme': self.volume, 'scaled': self.volume_scaled},
+            'volume': {'theme': self.volume, 'scaled': self.volume_scaled,
+                       'adjust_threshold': self.volume_adjust_threshold},
             'position': position,
             'position_percentage': round(position * 100) if position else None,
             'elapsed': elapsed,
@@ -518,3 +552,6 @@ class Theme:
 
         """
         return f'{self.name} @ {self.volume}%'
+
+    def set_volume_adjust_threshold(self, value):
+        pass

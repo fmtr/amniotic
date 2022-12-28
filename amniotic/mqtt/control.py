@@ -404,7 +404,7 @@ class ButtonDisableAllThemes(Button):
         """
         self.amniotic.enabled = False
 
-class ButtonVolumeDown(Button):
+class ButtonVolumeDownMaster(Button):
     NAME = 'Master Volume Down'
     ICON_SUFFIX = 'volume-minus'
 
@@ -417,7 +417,7 @@ class ButtonVolumeDown(Button):
         self.amniotic.set_volume_down()
 
 
-class ButtonVolumeUp(Button):
+class ButtonVolumeUpMaster(Button):
     NAME = 'Master Volume Up'
     ICON_SUFFIX = 'volume-plus'
 
@@ -428,6 +428,32 @@ class ButtonVolumeUp(Button):
 
         """
         self.amniotic.set_volume_up()
+
+
+class ButtonVolumeDownTheme(Button):
+    NAME = 'Theme Volume Down'
+    ICON_SUFFIX = 'volume-minus'
+
+    def handle_incoming(self, value: Any):
+        """
+
+        Decrement volume
+
+        """
+        self.amniotic.theme_current.set_volume_down()
+
+
+class ButtonVolumeUpTheme(Button):
+    NAME = 'Theme Volume Up'
+    ICON_SUFFIX = 'volume-plus'
+
+    def handle_incoming(self, value: Any):
+        """
+
+        Increment volume
+
+        """
+        self.amniotic.theme_current.set_volume_up()
 
 
 class ButtonUpdateCheck(Button):
