@@ -6,7 +6,7 @@ from datetime import datetime
 from itertools import cycle
 from pathlib import Path
 from random import choice
-from typing import Union, Optional
+from typing import Union, Optional, List, Dict
 
 VLC_VERBOSITY = 0
 DEVICES_POLL_PERIOD_SECONDS = 10
@@ -108,8 +108,8 @@ class Amniotic:
 
         self.path = path
 
-        self.themes = [Theme(path, device_names=self.device_names) for path in paths_themes]
-        self.themes = {theme.name: theme for theme in self.themes}
+        self.themes: List[Theme] = [Theme(path, device_names=self.device_names) for path in paths_themes]
+        self.themes: Dict[str, Theme] = {theme.name: theme for theme in self.themes}
         if not self.themes:
             self.add_new_theme(self.THEME_NAME_DEFAULT)
 
@@ -216,6 +216,20 @@ class Amniotic:
         data = {'datetime': datetime.now().isoformat(), 'volume': self.volume, 'themes': themes}
         return data
 
+    @property
+    def status_text(self) -> str:
+        """
+
+        Brief status overview from all Themes
+
+        """
+
+        statuses_themes = [
+            theme.status_text for theme in self.themes.values()
+            if theme.enabled
+        ]
+        status_text = ', '.join(statuses_themes) or None
+        return status_text
 
 class Theme:
     VOLUME_DEFAULT = 40
@@ -495,3 +509,12 @@ class Theme:
         }
 
         return data
+
+    @property
+    def status_text(self):
+        """
+
+        Brief Theme status overview
+
+        """
+        return f'{self.name} @ {self.volume}%'

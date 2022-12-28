@@ -51,6 +51,25 @@ class Sensor(control.Entity):
             meta_value = self.NA_VALUE
         return meta_value
 
+class ThemesStatus(Sensor):
+    """
+
+    Home Assistant Themes status sensor, showing overview of which Themes are enabled
+
+    """
+    META_KEY = None
+    NAME = 'Themes Status'
+    IS_SOURCE_META = False
+    ICON_SUFFIX = 'list-status'
+    NA_VALUE = 'None enabled'
+
+    def get_value(self, key: Optional[str] = None):
+        """
+
+        Get the Themes status text.
+
+        """
+        return self.amniotic.status_text or self.NA_VALUE
 
 class Title(Sensor):
     """

@@ -145,6 +145,7 @@ class Loop:
             ]
 
         sensors = [
+            sensor.ThemesStatus,
             sensor.Title,
             sensor.Album,
             sensor.TrackCount,
