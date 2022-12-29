@@ -30,6 +30,8 @@ class Entity:
     ICON_SUFFIX = None
     value = None
 
+    TEST_ALWAYS_UPDATE = False
+
     def __init__(self, loop: Loop):
         self.loop = loop
 
@@ -405,6 +407,7 @@ class ButtonDisableAllThemes(Button):
         """
         self.amniotic.enabled = False
 
+
 class ButtonVolumeDownMaster(Button):
     NAME = 'Master Volume Down'
     ICON_SUFFIX = 'volume-minus'
@@ -455,6 +458,19 @@ class ButtonVolumeUpTheme(Button):
 
         """
         self.amniotic.theme_current.set_volume_up()
+
+
+class ButtonRestart(Button):
+    NAME = 'Restart'
+    ICON_SUFFIX = 'restart-alert'
+
+    def handle_incoming(self, value: Any):
+        """
+
+        Tell Loop to end
+
+        """
+        self.loop.exit_reason = 'Restart requested'
 
 
 class ButtonUpdateCheck(Button):

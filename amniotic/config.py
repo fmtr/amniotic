@@ -1,14 +1,15 @@
+from os import getenv
+
 import json
 import logging
+import tempfile
+import yaml
 from _socket import gethostname
+from appdirs import AppDirs
 from dataclasses import dataclass, fields
 from distutils.util import strtobool
-from os import getenv
-from pathlib import Path
-
-import yaml
-from appdirs import AppDirs
 from getmac import getmac
+from pathlib import Path
 
 NAME = 'amniotic'
 ORG = 'frontmatter'
@@ -16,6 +17,8 @@ APP_DIRS = AppDirs(NAME, ORG)
 MAC_ADDRESS = getmac.get_mac_address().replace(':', '')
 HOSTNAME = gethostname()
 IS_ADDON = bool(strtobool(getenv(f'{NAME}_IS_ADDON'.upper(), 'false')))
+PATH_TEMP_DIR = Path(tempfile.gettempdir())
+PATH_LAST_PRESET = PATH_TEMP_DIR / 'amniotic_last_preset.json'
 
 
 @dataclass

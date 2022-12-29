@@ -8,7 +8,7 @@ from time import sleep
 from typing import Type
 
 from amniotic.audio import Amniotic
-from amniotic.config import Config, IS_ADDON
+from amniotic.config import Config, IS_ADDON, PATH_LAST_PRESET
 from amniotic.mqtt.device import Device
 from amniotic.mqtt.tools import Message
 from amniotic.version import __version__
@@ -131,6 +131,7 @@ class Loop:
             control.ButtonVolumeUpMaster,
             control.ButtonDisableAllThemes,
             control.Preset,
+            control.ButtonRestart,
 
             control.SelectTheme,
             control.VolumeTheme,
@@ -233,8 +234,18 @@ class Loop:
             sleep(self.LOOP_PERIOD)
             loop_count += 1
 
-        msg = f'Event loop exiting gracefully for: {self.exit_reason}'
+        msg = f'Event loop exiting gracefully for the following reason: {self.exit_reason}'
         logging.info(msg)
+
+        msg = f'Writing current preset to {PATH_LAST_PRESET}'
+        logging.info(msg)
+        preset = self.amniotic.get_preset()
+        preset_json = json.dumps(preset)
+        PATH_LAST_PRESET.write_text(preset_json)
+
+        msg = f'Amniotic {__version__} closing...'
+        logging.info(msg)
+        self.amniotic.close()
 
 
 def start():
@@ -254,6 +265,14 @@ def start():
     amniotic = Amniotic(path=config.path_audio, device_names=config.device_names)
     msg = f'Amniotic {__version__} has started.'
     logging.info(msg)
+
+    if PATH_LAST_PRESET.exists():
+        preset_json = PATH_LAST_PRESET.read_text()
+        preset = json.loads(preset_json)
+        msg = f'Amniotic {__version__} is applying last run preset.'
+        logging.info(msg)
+        amniotic.apply_preset(preset)
+
     msg = f'Amniotic {__version__} starting MQTT...'
     logging.info(msg)
 

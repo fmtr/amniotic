@@ -291,6 +291,14 @@ class Amniotic:
             theme = self.themes[name]
             theme.enabled = False
 
+    def close(self):
+        """
+
+        Disable all Themes (and hence close any open Players/Instances on close
+
+        """
+        self.enabled = False
+
 
 class Theme:
     VOLUME_DEFAULT = 40
