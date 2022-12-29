@@ -1,3 +1,4 @@
+import json
 import logging
 import pip
 import threading
@@ -575,8 +576,7 @@ class ButtonUpdate(ButtonUpdateCheck):
 class TextInput(Entity):
     """
 
-    Base Home Assistant text input box. Note: this control abuses an alarm panel code entry box, as it seems to be the only way to allow a user to send
-    arbitrary text (e.g. a URL) from a Home Assistant control.
+    Base Home Assistant text input box.
 
     """
     HA_PLATFORM = 'text'
@@ -602,7 +602,7 @@ class TextInput(Entity):
     def get_value(self) -> Any:
         """
 
-        The current state of this control. Pending means Idle, and Triggered means Downloading.
+        The current state of this control.
 
         """
         return self.status
@@ -688,7 +688,6 @@ class Downloader(TextInput):
         """
 
         try:
-
             self.status = self.DOWNLOADING
             theme = self.amniotic.theme_current
             self.update_sensor.message = 'Fetching video metadata...'
@@ -731,3 +730,34 @@ class Downloader(TextInput):
         if self.status == self.DOWNLOADING:
             return
         threading.Thread(target=self.do_download, args=[value]).start()
+
+
+class Preset(TextInput):
+    """
+
+    Home Assistant text input box for io of Presets
+
+    """
+    ICON_SUFFIX = 'cog-play'
+    NAME = 'Preset'
+
+    def update_sensor(self):
+        pass
+
+    def set_value(self, value) -> Any:
+        """
+
+        Apply preset
+
+        """
+        self.amniotic.apply_preset(value)
+
+    def get_value(self) -> str:
+        """
+
+        Current settings as Preset data
+
+        """
+        preset = self.amniotic.get_preset()
+        preset_json = json.dumps(preset)
+        return preset_json

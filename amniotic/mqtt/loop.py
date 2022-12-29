@@ -130,6 +130,7 @@ class Loop:
             control.ButtonVolumeDownMaster,
             control.ButtonVolumeUpMaster,
             control.ButtonDisableAllThemes,
+            control.Preset,
 
             control.SelectTheme,
             control.VolumeTheme,
@@ -140,6 +141,7 @@ class Loop:
 
             control.Downloader,
             control.NewTheme,
+
         ]
 
         if not IS_ADDON:

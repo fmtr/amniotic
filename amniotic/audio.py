@@ -104,7 +104,6 @@ class Amniotic:
 
         """
 
-
         user = getpass.getuser()
         if user == 'root':
             msg = f'You are running as root. This could cause issues with PulseAudio, unless it is configured in system-wide mode.'
@@ -245,6 +244,53 @@ class Amniotic:
         ]
         status_text = ', '.join(statuses_themes) or None
         return status_text
+
+    def get_preset(self) -> Dict:
+        """
+
+        Get Preset representing current settings, namely, Master and Theme volumes
+
+        """
+        preset = {
+            'volume': self.volume,
+            'themes': {
+                name: theme.get_preset() for name, theme in self.themes.items()
+                if theme.enabled
+            }
+        }
+        return preset
+
+    def apply_preset(self, preset: Dict):
+        """
+
+        Apply a preset. Themes that appear in the Preset are implicitly enabled. Non-existent Themes need to be
+        ignored, etc.
+
+        """
+        if type(preset) not in {dict, type(None)}:
+            msg = f'Received invalid preset. Skipping. {repr(preset)}'
+            logging.warning(msg)
+            return
+
+        preset = preset or {}
+        if (volume := preset.get('volume')) is not None:
+            self.set_volume(volume)
+
+        presets_themes = preset.get('themes', {})
+        for name, preset in presets_themes.items():
+            if name not in self.themes.keys():
+                msg = f'Theme "{name}" in has preset but does not exist. Skipping.'
+                logging.warning(msg)
+                continue
+            theme = self.themes[name]
+            theme.apply_preset(preset)
+
+        for name, theme in self.themes.items():
+            if name in presets_themes.keys():
+                continue
+            theme = self.themes[name]
+            theme.enabled = False
+
 
 class Theme:
     VOLUME_DEFAULT = 40
@@ -553,5 +599,23 @@ class Theme:
         """
         return f'{self.name} @ {self.volume}%'
 
-    def set_volume_adjust_threshold(self, value):
-        pass
+    def get_preset(self) -> Dict:
+        """
+
+        Get preset data
+
+        """
+        return {'volume': self.volume}
+
+    def apply_preset(self, preset: Dict):
+        """
+
+        Apply preset data. Only enabled Themes are mentioned in Presets, so always enable
+
+        """
+
+        logging.info(f'Theme "{self.name}" applying preset: {repr(preset)}')
+        if (volume := preset.get('volume')) is not None:
+            self.set_volume(volume)
+
+        self.enabled = True
