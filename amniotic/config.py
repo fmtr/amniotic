@@ -5,8 +5,10 @@ import tempfile
 import yaml
 from _socket import gethostname
 from appdirs import AppDirs
-from dataclasses import dataclass, fields
+from copy import deepcopy
+from dataclasses import dataclass, fields, field
 from distutils.util import strtobool
+from functools import lru_cache
 from getmac import getmac
 from pathlib import Path
 
@@ -34,6 +36,7 @@ class Config:
     device_names: dict = None
     logging: str = None
     tele_period: int = 300
+    config_raw: dict = field(default_factory=dict)
 
     def __post_init__(self):
         path_audio = Path(self.path_audio).absolute()
@@ -45,6 +48,7 @@ class Config:
         self.logging = self.logging or logging.INFO
 
     @classmethod
+    @lru_cache
     def get_path_config(cls) -> Path:
         """
 
@@ -76,6 +80,8 @@ class Config:
             config_str = Path(path_config).read_text()
             config = yaml.safe_load(config_str)
 
+        config['config_raw'] = deepcopy(config)
+
         field_names = {field.name for field in fields(Config)}
         for key in field_names:
             key_env = f'{NAME}_{key}'.upper()
@@ -89,3 +95,13 @@ class Config:
 
         config = cls(**config)
         return config
+
+    def write(self):
+        """
+
+        Write out current config to same path from where it was read
+
+        """
+        config_str = yaml.dump(self.config_raw)
+        path = self.get_path_config()
+        return path.write_text(config_str)
