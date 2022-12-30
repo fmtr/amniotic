@@ -175,8 +175,7 @@ class Entity:
 
         value = self.get_value()
         if value != self.value or force_announce:
-            self.set_value(value)
-            self.value = self.get_value()
+            self.value = value
             message = Message(self.client.publish, self.topic_state, self.value)
             self.queue.append(message)
 

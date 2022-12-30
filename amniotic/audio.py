@@ -548,9 +548,11 @@ class Theme:
         self.set_volume(self.volume + self.volume_adjust_threshold)
 
     def set_volume_scaled(self, volume_scaled):
+        """
 
-        logging.info(f'Changing scaled volume for theme "{self.name}": to {volume_scaled}')
+        Set the scaled volume and propagate to player, if enabled
 
+        """
         self.volume_scaled = volume_scaled
         if self.enabled:
             self.player.audio_set_volume(volume_scaled)
