@@ -2,6 +2,7 @@ import getpass
 import logging
 import vlc
 from cachetools.func import ttl_cache
+from copy import deepcopy
 from datetime import datetime
 from itertools import cycle
 from numbers import Number
@@ -97,7 +98,7 @@ class Amniotic:
     VOLUME_DEFAULT = 50
     THEME_NAME_DEFAULT = 'Default Theme'
 
-    def __init__(self, path: Union[Path, str], device_names: Optional[dict[str, str]] = None):
+    def __init__(self, path: Union[Path, str], device_names: Optional[dict[str, str]] = None, presets: Dict = None):
         """
 
         Read audio directories and instantiate Theme objects
@@ -131,6 +132,9 @@ class Amniotic:
         self.volume_adjust_threshold = 2
         self.volume = 0
         self.set_volume(self.VOLUME_DEFAULT)
+
+        self.presets = deepcopy(presets) or {}  # Ensure changes to Presets don't also affect config.presets
+        self.preset_current = None
 
     @property
     def devices(self) -> dict[str, str]:
@@ -245,7 +249,19 @@ class Amniotic:
         status_text = ', '.join(statuses_themes) or None
         return status_text
 
-    def get_preset(self) -> Dict:
+    def get_preset(self) -> Optional[str]:
+        """
+
+        Get the currently applied preset name, if it still matches the current settings
+
+        """
+        preset_data_current = self.get_preset_data()
+        preset_data = self.presets.get(self.preset_current)
+        if preset_data != preset_data_current:
+            self.preset_current = None
+        return self.preset_current
+
+    def get_preset_data(self) -> Dict:
         """
 
         Get Preset representing current settings, namely, Master and Theme volumes
@@ -260,7 +276,20 @@ class Amniotic:
         }
         return preset
 
-    def apply_preset(self, preset: Dict):
+    def apply_preset(self, name: str):
+        """
+
+        Apply the Preset matching the specified name, if it exists
+
+        """
+        if name not in self.presets:
+            msg = f'Preset "{name}" does not exist'
+            logging.warning(msg)
+            return
+        self.preset_current = name
+        self.apply_preset_data(self.presets[name])
+
+    def apply_preset_data(self, preset: Dict):
         """
 
         Apply a preset. Themes that appear in the Preset are implicitly enabled. Non-existent Themes need to be
@@ -290,6 +319,15 @@ class Amniotic:
                 continue
             theme = self.themes[name]
             theme.enabled = False
+
+    def add_preset(self, name: str):
+        """
+
+        Add a new Preset, under the specified name, consisting of the current state
+
+        """
+        self.presets[name] = self.get_preset_data()
+        self.apply_preset(name)
 
     def close(self):
         """
@@ -425,6 +463,7 @@ class Theme:
         Set the output audio device from its ID. Also handle when that device had been unplugged, etc.
 
         """
+        device_old = device
         devices = self.devices
 
         if device not in devices:
@@ -433,7 +472,7 @@ class Theme:
         if device not in devices:
             self.enabled = False
             device = next(iter(devices or {None}))
-            msg = f'Current device "{self.device}" no longer available for theme "{self.name}". ' \
+            msg = f'Current device "{device_old}" no longer available for theme "{self.name}". ' \
                   f'Defaulting to "{device}". Theme will be disabled.'
             logging.warning(msg)
 
@@ -484,7 +523,6 @@ class Theme:
         When Theme is stopped, unload its players
 
         """
-
         for player in self.players or []:
             unload_player(player)
             msg = f'Theme "{self.name}" unloaded player: {player}'
@@ -557,6 +595,31 @@ class Theme:
         if self.enabled:
             self.player.audio_set_volume(volume_scaled)
 
+    def get_preset(self) -> Dict:
+        """
+
+        Get preset data
+
+        """
+        return {'volume': self.volume, 'device': self.device}
+
+    def apply_preset(self, preset: Dict):
+        """
+
+        Apply preset data. Only enabled Themes are mentioned in Presets, so always enable
+
+        """
+
+        logging.info(f'Theme "{self.name}" applying preset: {repr(preset)}')
+        if (volume := preset.get('volume')) is not None:
+            self.set_volume(volume)
+
+        device = preset.get('device')
+        self.set_device(device)
+
+        if device in self.devices:
+            self.enabled = True
+
     @property
     def status(self):
         """
@@ -609,23 +672,4 @@ class Theme:
         """
         return f'{self.name} @ {self.volume}%'
 
-    def get_preset(self) -> Dict:
-        """
 
-        Get preset data
-
-        """
-        return {'volume': self.volume}
-
-    def apply_preset(self, preset: Dict):
-        """
-
-        Apply preset data. Only enabled Themes are mentioned in Presets, so always enable
-
-        """
-
-        logging.info(f'Theme "{self.name}" applying preset: {repr(preset)}')
-        if (volume := preset.get('volume')) is not None:
-            self.set_volume(volume)
-
-        self.enabled = True

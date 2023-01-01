@@ -1,7 +1,6 @@
 from os import getenv
 
 import logging
-import tempfile
 import yaml
 from _socket import gethostname
 from appdirs import AppDirs
@@ -18,9 +17,7 @@ APP_DIRS = AppDirs(NAME, ORG)
 MAC_ADDRESS = getmac.get_mac_address().replace(':', '')
 HOSTNAME = gethostname()
 IS_ADDON = bool(strtobool(getenv(f'{NAME}_IS_ADDON'.upper(), 'false')))
-PATH_TEMP_DIR = Path(tempfile.gettempdir())
-PATH_LAST_PRESET = PATH_TEMP_DIR / 'amniotic_last_preset.json'
-
+PRESET_LAST_KEY = '.LAST'
 
 @dataclass
 class Config:
@@ -36,7 +33,9 @@ class Config:
     device_names: dict = None
     logging: str = None
     tele_period: int = 300
+    presets: dict = field(default_factory=dict)
     config_raw: dict = field(default_factory=dict)
+
 
     def __post_init__(self):
         path_audio = Path(self.path_audio).absolute()
@@ -104,4 +103,6 @@ class Config:
         """
         config_str = yaml.dump(self.config_raw)
         path = self.get_path_config()
+        logging.info(f'Wrote out config file to: {path}')
+
         return path.write_text(config_str)

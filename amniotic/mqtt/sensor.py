@@ -12,7 +12,6 @@ class Sensor(control.Entity):
 
     """
     HA_PLATFORM = 'sensor'
-    NA_VALUE = '-'
     META_KEY = None
     IS_SOURCE_META = True
     UOM = None
@@ -51,14 +50,14 @@ class Sensor(control.Entity):
             meta_value = self.NA_VALUE
         return meta_value
 
-class ThemesStatus(Sensor):
+class Overview(Sensor):
     """
 
-    Home Assistant Themes status sensor, showing overview of which Themes are enabled
+    Home Assistant sensor showing overview of which Themes are enabled, etc.
 
     """
     META_KEY = None
-    NAME = 'Themes Status'
+    NAME = 'Overview'
     IS_SOURCE_META = False
     ICON_SUFFIX = 'list-status'
     NA_VALUE = 'None enabled'
@@ -182,13 +181,13 @@ class UpdateStatus(StaticMessageSensor):
     message = 'Never checked'
 
 
-class DownloaderStatus(StaticMessageSensor):
+class DownloadStatus(StaticMessageSensor):
     """
 
-    Home Assistant downloader status sensor. Messages set by downloader input etc.
+    Home Assistant download status sensor. Messages set by downloader input etc.
 
     """
-    NAME = 'Downloader Status'
+    NAME = 'Download Status'
     ICON_SUFFIX = 'cloud-sync-outline'
     message = 'Idle'
 

@@ -2,13 +2,14 @@ from json import JSONDecodeError
 
 import json
 import logging
+from copy import deepcopy
 from functools import cached_property
 from paho.mqtt import client as mqtt
 from time import sleep
 from typing import Type
 
 from amniotic.audio import Amniotic
-from amniotic.config import Config, IS_ADDON, PATH_LAST_PRESET
+from amniotic.config import Config, IS_ADDON, PRESET_LAST_KEY
 from amniotic.mqtt.device import Device
 from amniotic.mqtt.tools import Message
 from amniotic.version import __version__
@@ -32,6 +33,46 @@ class Loop:
     LOOP_PERIOD = 1
     DELAY = 0.5
     DELAY_FIRST = 3
+
+    def __init__(self, config: Config, device: Device, amniotic: Amniotic):
+        """
+
+        Setup and connect MQTT Client.
+
+        """
+
+        self.config = config
+        self.device = device
+
+        self.exit_reason = False
+
+        self.entities = {
+            entity_class: entity_class(self)
+            for entity_class in self.entity_classes
+        }
+        self.callback_map = {
+            entity.topic_command: entity.handle_incoming
+            for entity in self.entities.values()
+        }
+
+        self.queue = []
+        self.force_announce_period = self.config.tele_period * 10
+        self.has_reconnected = True
+        self.topic_lwt = self.device.topic_lwt
+
+        self.amniotic = amniotic
+        self.client = mqtt.Client()
+
+        self.client.on_connect = self.on_connect
+        self.client.on_message = self.on_message
+        self.client.on_connect_fail = self.on_connect_fail
+        self.client.user_data_set(amniotic)
+        self.client.will_set(self.topic_lwt, payload='Offline', qos=1, retain=False, properties=None)
+
+        if config.mqtt_username is not None and config.mqtt_password is not None:
+            self.client.username_pw_set(username=config.mqtt_username, password=config.mqtt_password)
+
+        self.client.connect(host=config.mqtt_host, port=config.mqtt_port)
 
     def on_message(self, client: mqtt.Client, amniotic: Amniotic, mqtt_message: mqtt.MQTTMessage):
         """
@@ -74,47 +115,6 @@ class Loop:
 
         self.has_reconnected = True
 
-    def __init__(self, host, port, device: Device, amniotic: Amniotic, username: str = None, password: str = None,
-                 tele_period: int = 300):
-        """
-
-        Setup and connect MQTT Client.
-
-        """
-
-        self.device = device
-
-        self.exit_reason = False
-
-        self.entities = {
-            entity_class: entity_class(self)
-            for entity_class in self.entity_classes
-        }
-        self.callback_map = {
-            entity.topic_command: entity.handle_incoming
-            for entity in self.entities.values()
-        }
-
-        self.queue = []
-        self.tele_period = tele_period
-        self.force_announce_period = self.tele_period * 10
-        self.has_reconnected = True
-        self.topic_lwt = self.device.topic_lwt
-
-        self.amniotic = amniotic
-        self.client = mqtt.Client()
-
-        self.client.on_connect = self.on_connect
-        self.client.on_message = self.on_message
-        self.client.on_connect_fail = self.on_connect_fail
-        self.client.user_data_set(amniotic)
-        self.client.will_set(self.topic_lwt, payload='Offline', qos=1, retain=False, properties=None)
-
-        if username is not None and password is not None:
-            self.client.username_pw_set(username=username, password=password)
-
-        self.client.connect(host=host, port=port)
-
     @cached_property
     def entity_classes(self) -> list[Type]:
         """
@@ -130,7 +130,7 @@ class Loop:
             control.ButtonVolumeDownMaster,
             control.ButtonVolumeUpMaster,
             control.ButtonDisableAllThemes,
-            control.Preset,
+
             control.ButtonRestart,
 
             control.SelectTheme,
@@ -139,6 +139,10 @@ class Loop:
             control.DeviceTheme,
             control.ButtonVolumeDownTheme,
             control.ButtonVolumeUpTheme,
+
+            control.PresetData,
+            control.Preset,
+            control.SavePreset,
 
             control.Downloader,
             control.NewTheme,
@@ -152,7 +156,7 @@ class Loop:
             ]
 
         sensors = [
-            sensor.ThemesStatus,
+            sensor.Overview,
             sensor.Title,
             sensor.Album,
             sensor.TrackCount,
@@ -160,7 +164,7 @@ class Loop:
             sensor.By,
             sensor.Duration,
             # sensor.Elapsed,
-            sensor.DownloaderStatus,
+            sensor.DownloadStatus,
         ]
 
         if not IS_ADDON:
@@ -192,7 +196,6 @@ class Loop:
         logging.debug(f'Status: {status}')
         # self.client.publish(TOPIC_STATUS, status)
         self.client.publish(self.topic_lwt, "Online", qos=1)
-        self
 
     def loop_start(self):
         """
@@ -219,7 +222,7 @@ class Loop:
                 sleep(self.LOOP_PERIOD)
                 continue
 
-            is_telem_loop = loop_count % self.tele_period == 0
+            is_telem_loop = loop_count % self.config.tele_period == 0
             is_force_announce_loop = loop_count % self.force_announce_period == 0
 
             self.handle_outgoing(force_announce=self.has_reconnected or is_force_announce_loop)
@@ -234,14 +237,24 @@ class Loop:
             sleep(self.LOOP_PERIOD)
             loop_count += 1
 
+        self.close()
+
+    def close(self):
+        """
+
+        Close Amniotic gracefully, save current config, etc.
+
+        """
         msg = f'Event loop exiting gracefully for the following reason: {self.exit_reason}'
         logging.info(msg)
 
-        msg = f'Writing current preset to {PATH_LAST_PRESET}'
+        msg = f'Adding current preset to config'
         logging.info(msg)
-        preset = self.amniotic.get_preset()
-        preset_json = json.dumps(preset)
-        PATH_LAST_PRESET.write_text(preset_json)
+
+        presets = deepcopy(self.amniotic.presets)
+        presets[PRESET_LAST_KEY] = self.amniotic.get_preset_data()
+        self.config.config_raw['presets'] = presets
+        self.config.write()
 
         msg = f'Amniotic {__version__} closing...'
         logging.info(msg)
@@ -262,28 +275,20 @@ def start():
         force=True
     )
 
-    amniotic = Amniotic(path=config.path_audio, device_names=config.device_names)
+    preset_last = config.presets.pop(PRESET_LAST_KEY, None)
+    amniotic = Amniotic(path=config.path_audio, device_names=config.device_names, presets=config.presets)
+    if preset_last:
+        amniotic.apply_preset_data(preset_last)
+
     msg = f'Amniotic {__version__} has started.'
     logging.info(msg)
-
-    if PATH_LAST_PRESET.exists():
-        preset_json = PATH_LAST_PRESET.read_text()
-        preset = json.loads(preset_json)
-        msg = f'Amniotic {__version__} is applying last run preset.'
-        logging.info(msg)
-        amniotic.apply_preset(preset)
-
     msg = f'Amniotic {__version__} starting MQTT...'
     logging.info(msg)
 
     loop = Loop(
+        config,
         device=Device(location=config.location),
         amniotic=amniotic,
-        host=config.mqtt_host,
-        port=config.mqtt_port,
-        username=config.mqtt_username,
-        password=config.mqtt_password,
-        tele_period=config.tele_period
     )
 
     loop.loop_start()

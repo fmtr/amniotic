@@ -28,6 +28,7 @@ class Entity:
     HA_PLATFORM = None
     NAME = None
     ICON_SUFFIX = None
+    NA_VALUE = '-'
     value = None
 
     TEST_ALWAYS_UPDATE = False
@@ -671,8 +672,8 @@ class Downloader(TextInput):
         Get the sensor for displaying update messages
 
         """
-        from amniotic.mqtt.sensor import DownloaderStatus
-        update_status = self.loop.entities[DownloaderStatus]
+        from amniotic.mqtt.sensor import DownloadStatus
+        update_status = self.loop.entities[DownloadStatus]
         return update_status
 
     def progress_callback(self, stream: Stream, chunk: bytes, bytes_remaining: int):
@@ -747,14 +748,14 @@ class Downloader(TextInput):
         threading.Thread(target=self.do_download, args=[value]).start()
 
 
-class Preset(TextInput):
+class PresetData(TextInput):
     """
 
-    Home Assistant text input box for io of Presets
+    Home Assistant text input box for I/O of Presets
 
     """
     ICON_SUFFIX = 'cog-play'
-    NAME = 'Preset'
+    NAME = 'Preset Data'
 
     def update_sensor(self):
         pass
@@ -762,10 +763,10 @@ class Preset(TextInput):
     def set_value(self, value) -> Any:
         """
 
-        Apply preset
+        Apply preset data
 
         """
-        self.amniotic.apply_preset(value)
+        self.amniotic.apply_preset_data(value)
 
     def get_value(self) -> str:
         """
@@ -773,6 +774,90 @@ class Preset(TextInput):
         Current settings as Preset data
 
         """
-        preset = self.amniotic.get_preset()
+        preset = self.amniotic.get_preset_data()
         preset_json = json.dumps(preset)
         return preset_json
+
+
+class SavePreset(TextInput):
+    """
+
+    Home Assistant text input box for naming/saving a new Preset
+
+    """
+    ICON_SUFFIX = 'content-save-plus'
+    NAME = 'Save Preset As'
+    PATTERN = '^[^\.].*$'
+
+    def update_sensor(self):
+        pass
+
+    @property
+    def data(self):
+        """
+
+        Home Assistant announce data for the entity. Don't allow Preset names to start with a '.' because these will be
+        used internally as special cases (e.g. last-used Preset)
+
+        """
+        data = super().data | {
+            # 'pattern': self.PATTERN TODO: Fix this
+        }
+        return data
+
+    def set_value(self, value):
+        """
+
+        Add a new Preset
+
+        """
+        self.amniotic.add_preset(value)
+        config = self.loop.config
+        config.config_raw['presets'] = self.amniotic.presets
+        config.write()
+
+    def get_value(self) -> Optional[str]:
+        """
+
+        We can leave the text as the last value the user entered, so no need to return anything here
+
+        """
+        return None
+
+
+class Preset(Select):
+    """
+
+    Home Assistant Presets selector.
+
+    """
+    ICON_SUFFIX = 'window-shutter-cog'
+    NAME = 'Preset'
+    NA_VALUE = ""
+
+    def get_value(self) -> str:
+        """
+
+        Get the currently selected Preset, if there is one
+
+        """
+        return self.amniotic.get_preset() or self.NA_VALUE
+
+    def set_value(self, value) -> str:
+        """
+
+        If selector isn't empty, apply the selected Preset
+
+        """
+        if value == self.NA_VALUE:
+            return
+        self.amniotic.apply_preset(value)
+
+    def get_options(self, amniotic: Amniotic) -> list[str]:
+        """
+
+        Get state of the entity, i.e. the list of options and the currently selected option. Also allow no entry to
+        be selected
+
+        """
+        return [self.NA_VALUE] + sorted(amniotic.presets.keys())
