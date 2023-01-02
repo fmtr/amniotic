@@ -377,9 +377,9 @@ class Theme:
         self.players = None
         self.players_cycle = None
         self.player = None
-        self.device = None
+        self.device_id = None
 
-        self.set_device(device=None)
+        self.set_device(device_id=None)
 
         self.volume_master = 0
         self.volume = self.VOLUME_DEFAULT
@@ -457,10 +457,10 @@ class Theme:
 
         """
 
-        if self.device not in self.devices:
-            self.set_device(self.device)
+        if self.device_id not in self.devices:
+            self.set_device(self.device_id)
 
-        return self.devices.get(self.device)
+        return self.devices.get(self.device_id)
 
     @property
     def devices(self) -> dict[str, str]:
@@ -472,38 +472,41 @@ class Theme:
 
         return get_devices(self.player, self.device_names)
 
-    def set_device(self, device: Optional[str]):
+    def set_device(self, device_id: Optional[str]):
         """
 
         Set the output audio device from its ID. Also handle when that device had been unplugged, etc.
 
         """
-        device_old = device
+        device_id_old = device_id
         devices = self.devices
 
-        if device not in devices:
-            device = self.get_device_id(device)
+        device_id = self.get_device_id(device_id)
 
-        if device not in devices:
+        if device_id not in devices:
             self.enabled = False
-            device = next(iter(devices or {None}))
-            msg = f'Current device "{device_old}" no longer available for theme "{self.name}". ' \
-                  f'Defaulting to "{device}". Theme will be disabled.'
+            device_id = next(iter(devices or {None}))
+            msg = f'Current device "{device_id_old}" no longer available for theme "{self.name}". ' \
+                  f'Defaulting to "{device_id}". Theme will be disabled.'
             logging.warning(msg)
 
-        self.device = device
+        self.device_id = device_id
 
         if self.enabled:
-            self.player.audio_output_device_set(None, device)
+            self.player.audio_output_device_set(None, device_id)
 
-    def get_device_id(self, name: str) -> Optional[str]:
+    def get_device_id(self, name_or_id: str) -> Optional[str]:
         """
 
-        Get a device ID from its friendly name.
+        Get a device ID from its ID (itself) or its friendly name.
 
         """
-        device_id = {name: id for id, name in self.devices.items()}.get(name)
-        return device_id
+
+        if name_or_id in self.devices:
+            return name_or_id
+
+        names_to_ids = {name: id for id, name in self.devices.items()}
+        return names_to_ids.get(name_or_id)
 
     def switch_player(self):
         """
@@ -527,7 +530,7 @@ class Theme:
         path = choice(self.paths)
         media = self.instance.media_new(str(path))
         self.player.set_media(media)
-        self.set_device(self.device)
+        self.set_device(self.device_id)
         self.player.audio_set_volume(self.volume_scaled)
         logging.info(f'Theme "{self.name}" playing file {path}')
         self.player.play()
@@ -616,7 +619,7 @@ class Theme:
         Get preset data
 
         """
-        return {'volume': self.volume, 'device': self.device}
+        return {'volume': self.volume, 'device': self.device_name}
 
     def apply_preset(self, preset: Dict):
         """
@@ -632,7 +635,7 @@ class Theme:
         device = preset.get('device')
         self.set_device(device)
 
-        if device in self.devices:
+        if self.get_device_id(device):
             self.enabled = True
 
     @property
@@ -659,7 +662,7 @@ class Theme:
 
         data = {
             'name': self.name,
-            'device': {'id': self.device, 'name': self.devices.get(self.device)},
+            'device': {'id': self.device_id, 'name': self.devices.get(self.device_id)},
             'enabled': self.enabled,
             'track_count': len(self.paths),
             'volume': {'theme': self.volume, 'scaled': self.volume_scaled,
