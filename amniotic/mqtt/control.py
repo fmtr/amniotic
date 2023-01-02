@@ -245,10 +245,11 @@ class SelectTheme(Select):
     def get_options(self, amniotic: Amniotic) -> list[str]:
         """
 
-        Get state of the entity, i.e. the list of options and the currently selected option.
+        Ensure Themes are up-to-date with what's on disk, and return a list of their names
 
         """
-        return list(amniotic.themes.keys())
+        self.amniotic.load_themes()
+        return sorted(amniotic.themes.keys())
 
 
 class Volume(Entity):

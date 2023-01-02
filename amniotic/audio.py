@@ -8,7 +8,7 @@ from itertools import cycle
 from numbers import Number
 from pathlib import Path
 from random import choice
-from typing import Union, Optional, List, Dict
+from typing import Union, Optional, Dict
 
 VLC_VERBOSITY = 0
 DEVICES_POLL_PERIOD_SECONDS = 10
@@ -112,18 +112,13 @@ class Amniotic:
 
         self.device_names = device_names or {}
         self._enabled = True
-        path = Path(path).absolute()
-        paths_themes = sorted([path.absolute() for path in path.glob('*') if path.is_dir()])
+        self.path = Path(path).absolute()
 
-        if not paths_themes:
-            msg = f'No audio directories found in "{path}". Default theme will be created.'
-            logging.warning(msg)
-
-        self.path = path
-
-        self.themes: List[Theme] = [Theme(path, device_names=self.device_names) for path in paths_themes]
-        self.themes: Dict[str, Theme] = {theme.name: theme for theme in self.themes}
+        self.themes: Dict[str, Theme] = {}
+        self.load_themes()
         if not self.themes:
+            msg = f'No audio directories found in "{self.path}". Default theme will be created.'
+            logging.warning(msg)
             self.add_new_theme(self.THEME_NAME_DEFAULT)
 
         self.theme_current = None
@@ -135,6 +130,40 @@ class Amniotic:
 
         self.presets = deepcopy(presets) or {}  # Ensure changes to Presets don't also affect config.presets
         self.preset_current = None
+
+    def load_themes(self):
+        """
+
+        Ensure all (and only) Themes in the Themes path are loaded in
+
+        """
+        paths_themes = sorted([path.absolute() for path in self.path.glob('*') if path.is_dir()])
+        paths_themes = {path.stem: path for path in paths_themes}
+
+        for name, path in paths_themes.items():
+
+            if name in self.themes.keys():
+                continue
+
+            msg = f'Loading new Theme "{name}"'
+            logging.info(msg)
+            theme = Theme(path, device_names=self.device_names)
+            self.themes[name] = theme
+
+        for name in set(self.themes.keys()):
+
+            if name in paths_themes:
+                continue
+
+            msg = f'Removing Theme "{name}" as it no longer exists on disk'
+            logging.info(msg)
+            theme = self.themes.pop(name)
+
+            if theme.enabled:
+                msg = f"""Theme "{name}" is enabled (playing) but does not exist on disk, which shouldn't happen"""
+                logging.warning(msg)
+
+            theme.enabled = False
 
     @property
     def devices(self) -> dict[str, str]:
