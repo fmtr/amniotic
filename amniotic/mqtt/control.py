@@ -779,14 +779,12 @@ class PresetData(TextInput):
         return preset_json
 
 
-class SavePreset(TextInput):
+class SaveDeletePreset(TextInput):
     """
 
-    Home Assistant text input box for naming/saving a new Preset
+    Home Assistant base text input box for saving/deleting Presets
 
     """
-    ICON_SUFFIX = 'content-save-plus'
-    NAME = 'Save Preset As'
     PATTERN = '^[^\.].*$'
 
     def update_sensor(self):
@@ -805,17 +803,6 @@ class SavePreset(TextInput):
         }
         return data
 
-    def set_value(self, value):
-        """
-
-        Add a new Preset
-
-        """
-        self.amniotic.add_preset(value)
-        config = self.loop.config
-        config.config_raw['presets'] = self.amniotic.presets
-        config.write()
-
     def get_value(self) -> Optional[str]:
         """
 
@@ -823,6 +810,59 @@ class SavePreset(TextInput):
 
         """
         return None
+
+    def write_presets(self) -> int:
+        """
+
+        Write out presets after change
+
+        """
+        return self.loop.config.write_presets(
+            presets=self.amniotic.presets,
+            preset_last=self.amniotic.get_preset_data()
+        )
+
+
+class SavePreset(SaveDeletePreset):
+    """
+
+    Home Assistant text input box for naming/saving a new Preset
+
+    """
+    ICON_SUFFIX = 'content-save-plus'
+    NAME = 'Save Preset As'
+
+    def set_value(self, value):
+        """
+
+        Add a new Preset
+
+        """
+        self.amniotic.add_preset(value)
+        self.write_presets()
+
+
+class DeletePreset(SaveDeletePreset):
+    """
+
+    Home Assistant text input box for deleting Preset
+
+    """
+    ICON_SUFFIX = 'trash-can'
+    NAME = 'Delete Preset'
+    PATTERN = '^[^\.].*$'  # TODO: Inherit this (and data/update_sensor) from common "PresetIO".
+
+    def update_sensor(self):
+        pass
+
+    def set_value(self, value):
+        """
+
+        Remove a Preset
+
+        """
+        self.amniotic.remove_preset(value)
+        self.write_presets()
 
 
 class Preset(Select):

@@ -329,6 +329,19 @@ class Amniotic:
         self.presets[name] = self.get_preset_data()
         self.apply_preset(name)
 
+    def remove_preset(self, name: str):
+        """
+
+        Remove the Preset with the specified name.
+
+        """
+        if name not in self.presets:
+            logging.warning(f'Cannot remove preset "{name}" as it does not exist.')
+            return
+
+        self.presets.pop(name)
+        logging.warning(f'Removed preset "{name}".')
+
     def close(self):
         """
 
@@ -336,6 +349,8 @@ class Amniotic:
 
         """
         self.enabled = False
+
+
 
 
 class Theme:

@@ -10,6 +10,7 @@ from distutils.util import strtobool
 from functools import lru_cache
 from getmac import getmac
 from pathlib import Path
+from typing import Dict, Optional
 
 NAME = 'amniotic'
 ORG = 'frontmatter'
@@ -95,7 +96,7 @@ class Config:
         config = cls(**config)
         return config
 
-    def write(self):
+    def write(self) -> int:
         """
 
         Write out current config to same path from where it was read
@@ -106,3 +107,18 @@ class Config:
         logging.info(f'Wrote out config file to: {path}')
 
         return path.write_text(config_str)
+
+    def write_presets(self, presets: Dict, preset_last: Optional[Dict] = None) -> int:
+        """
+
+        Write out current config to same path from where it was read
+
+        """
+
+        presets = deepcopy(presets)  # Don't modify the original dictionary
+        if preset_last:
+            presets[PRESET_LAST_KEY] = preset_last
+
+        self.config_raw['presets'] = presets
+
+        return self.write()

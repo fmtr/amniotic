@@ -143,6 +143,7 @@ class Loop:
             control.PresetData,
             control.Preset,
             control.SavePreset,
+            control.DeletePreset,
 
             control.Downloader,
             control.NewTheme,
