@@ -297,7 +297,7 @@ class Amniotic:
 
         """
         preset = {
-            'volume': self.volume,
+            # 'volume': self.volume,
             'themes': {
                 name: theme.get_preset() for name, theme in self.themes.items()
                 if theme.enabled
