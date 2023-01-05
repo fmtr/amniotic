@@ -130,6 +130,7 @@ class Amniotic:
 
         self.presets = deepcopy(presets) or {}  # Ensure changes to Presets don't also affect config.presets
         self.preset_current = None
+        self.merge_presets = False
 
     def load_themes(self):
         """
@@ -321,8 +322,9 @@ class Amniotic:
     def apply_preset_data(self, preset: Dict):
         """
 
-        Apply a preset. Themes that appear in the Preset are implicitly enabled. Non-existent Themes need to be
-        ignored, etc.
+        Apply a Preset from data. Themes that appear in the Preset are implicitly enabled. Non-existent Themes need
+        to be ignored, etc. If presets are set to merge, then they merge into the existing configuration,
+        hence we don't disable those which aren't preset.
 
         """
         if type(preset) not in {dict, type(None)}:
@@ -342,6 +344,9 @@ class Amniotic:
                 continue
             theme = self.themes[name]
             theme.apply_preset(preset)
+
+        if self.merge_presets:
+            return
 
         for name, theme in self.themes.items():
             if name in presets_themes.keys():

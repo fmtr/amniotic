@@ -136,6 +136,7 @@ class Loop:
             control.SelectTheme,
             control.VolumeTheme,
             control.ToggleTheme,
+            control.ToggleMergePresets,
             control.DeviceTheme,
             control.ButtonVolumeDownTheme,
             control.ButtonVolumeUpTheme,

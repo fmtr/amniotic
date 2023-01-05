@@ -28,6 +28,7 @@ class Entity:
     HA_PLATFORM = None
     NAME = None
     ICON_SUFFIX = None
+    VALUE_MAP_ON_OFF = [(OFF := 'OFF'), (ON := 'ON')]
     NA_VALUE = '-'
     value = None
 
@@ -346,34 +347,51 @@ class DeviceTheme(Select):
         return list(amniotic.devices.values())
 
 
-class ToggleTheme(Entity):
+class Toggle(Entity):
     """
 
-    Base Home Assistant Theme enabled/disabled entity (switch/toggle).
+    Base Home Assistant toggle entity.
 
     """
     HA_PLATFORM = 'switch'
-    ICON_SUFFIX = 'play-circle'
-    VALUE_MAP = [(OFF := 'OFF'), (ON := 'ON')]
-    NAME = 'Theme Enabled'
 
     def get_value(self) -> Any:
-        return self.VALUE_MAP[self.amniotic.theme_current.enabled]
+        return self.VALUE_MAP_ON_OFF[self.amniotic.theme_current.enabled]
 
     def set_value(self, value) -> Any:
         self.amniotic.theme_current.enabled = value == self.ON
 
-    @property
-    def data(self):
-        """
 
-        Home Assistant announce data for the entity.
+class ToggleTheme(Toggle):
+    """
 
-        """
-        data = super().data | {
-            'device_class': 'outlet',
-        }
-        return data
+    Home Assistant Theme enabled/disabled entity (switch/toggle).
+
+    """
+    ICON_SUFFIX = 'play-circle'
+    NAME = 'Theme Enabled'
+
+    def get_value(self) -> Any:
+        return self.VALUE_MAP_ON_OFF[self.amniotic.theme_current.enabled]
+
+    def set_value(self, value) -> Any:
+        self.amniotic.theme_current.enabled = value == self.ON
+
+
+class ToggleMergePresets(Toggle):
+    """
+
+    Base Home Assistant Presets Merge enabled/disabled entity.
+
+    """
+    ICON_SUFFIX = 'set-merge'
+    NAME = 'Merge Presets'
+
+    def get_value(self) -> Any:
+        return self.VALUE_MAP_ON_OFF[self.amniotic.merge_presets]
+
+    def set_value(self, value) -> Any:
+        self.amniotic.merge_presets = value == self.ON
 
 
 class Button(Entity):
