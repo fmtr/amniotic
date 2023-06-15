@@ -1,10 +1,11 @@
+from itertools import cycle
+
 import getpass
 import logging
 import vlc
 from cachetools.func import ttl_cache
 from copy import deepcopy
 from datetime import datetime
-from itertools import cycle
 from numbers import Number
 from pathlib import Path
 from random import choice
@@ -95,7 +96,7 @@ def sanitize_volume(value: Number) -> int:
 
 
 class Amniotic:
-    VOLUME_DEFAULT = 50
+    VOLUME_DEFAULT = 10
     THEME_NAME_DEFAULT = 'Default Theme'
 
     def __init__(self, path: Union[Path, str], device_names: Optional[dict[str, str]] = None, presets: Dict = None):
