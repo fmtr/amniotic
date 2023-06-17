@@ -1,8 +1,8 @@
+from _socket import gethostname
 from os import getenv
 
 import logging
 import yaml
-from _socket import gethostname
 from appdirs import AppDirs
 from copy import deepcopy
 from dataclasses import dataclass, fields, field
@@ -33,6 +33,7 @@ class Config:
     path_audio: str = APP_DIRS.user_data_dir
     device_names: dict = None
     logging: str = None
+    debug: bool = False
     tele_period: int = 300
     presets: dict = field(default_factory=dict)
     config_raw: dict = field(default_factory=dict)

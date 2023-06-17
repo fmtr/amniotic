@@ -1,3 +1,5 @@
+from time import sleep
+
 import json
 import logging
 import pip
@@ -6,7 +8,6 @@ from functools import cached_property
 from johnnydep import JohnnyDist as Package
 from paho.mqtt import client as mqtt
 from pytube import YouTube, Stream
-from time import sleep
 from typing import Optional, Any
 
 from amniotic.audio import Amniotic
@@ -26,6 +27,7 @@ class Entity:
     PAYLOAD_ONLINE = "Online"
     PAYLOAD_OFFLINE = "Offline"
     HA_PLATFORM = None
+    IS_TELE = False
     NAME = None
     ICON_SUFFIX = None
     VALUE_MAP_ON_OFF = [(OFF := 'OFF'), (ON := 'ON')]
@@ -176,7 +178,11 @@ class Entity:
             self.handle_announce()
 
         value = self.get_value()
-        if value != self.value or force_announce:
+
+        is_tele = (not self.IS_TELE) or self.loop.is_telem_loop
+        has_value_changed = value != self.value and is_tele
+
+        if has_value_changed or force_announce:
             self.value = value
             message = Message(self.client.publish, self.topic_state, self.value)
             self.queue.append(message)

@@ -1,3 +1,4 @@
+import psutil as psutil
 from datetime import timedelta
 from typing import Optional, Union, Any
 
@@ -223,3 +224,49 @@ class Version(StaticMessageSensor):
     NAME = 'Current Version'
     ICON_SUFFIX = 'counter'
     message = __version__
+
+
+class CPU(Sensor):
+    """
+
+    Home Assistant sensor showing overview of which Themes are enabled, etc.
+
+    """
+    META_KEY = None
+    NAME = 'CPU Usage'
+    IS_SOURCE_META = False
+    ICON_SUFFIX = 'cpu-64-bit'
+    UOM = '%'
+
+    IS_TELE = True
+
+    def get_value(self, key: Optional[str] = None):
+        """
+
+        Get CPU usage.
+
+        """
+        return psutil.cpu_percent(interval=1)
+
+
+class Memory(Sensor):
+    """
+
+    Home Assistant sensor showing overview of which Themes are enabled, etc.
+
+    """
+    META_KEY = None
+    NAME = 'Memory Usage'
+    IS_SOURCE_META = False
+    ICON_SUFFIX = 'memory'
+    UOM = '%'
+
+    IS_TELE = True
+
+    def get_value(self, key: Optional[str] = None):
+        """
+
+        Get memory usage.
+
+        """
+        return psutil.virtual_memory().percent

@@ -30,7 +30,8 @@ setup(
         'appdirs',
         'johnnydep',
         'pytube',
-        'cachetools'
+        'cachetools',
+        'psutil'
     ],
     extras_require={},
     entry_points={
