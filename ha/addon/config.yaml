@@ -21,4 +21,4 @@ services:
 - mqtt:need
 slug: amniotic
 url: https://link.frontmatter.ai/amniotic
-version: 0.5.6
+version: 0.5.7
