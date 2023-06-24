@@ -30,10 +30,13 @@ setup(
         'appdirs',
         'johnnydep',
         'pytube',
-        'cachetools',
-        'psutil'
+        'cachetools'
     ],
-    extras_require={},
+    extras_require={
+        'debug': [
+            'psutil'
+        ]
+    },
     entry_points={
         'console_scripts': [
             'amniotic = amniotic.mqtt.loop:start',

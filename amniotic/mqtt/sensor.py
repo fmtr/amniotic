@@ -1,4 +1,3 @@
-import psutil as psutil
 from datetime import timedelta
 from typing import Optional, Union, Any
 
@@ -246,6 +245,7 @@ class CPU(Sensor):
         Get CPU usage.
 
         """
+        import psutil as psutil
         return psutil.cpu_percent(interval=1)
 
 
@@ -269,4 +269,5 @@ class Memory(Sensor):
         Get memory usage.
 
         """
+        import psutil as psutil
         return psutil.virtual_memory().percent
