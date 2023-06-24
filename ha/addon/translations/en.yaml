@@ -1,0 +1,10 @@
+---
+configuration:
+  audio_subdirectory:
+    name: Audio subdirectory
+    description: >-
+      Subpath to use for Themes audio files, under the /media directory.
+  location:
+    name: Location
+    description: >-
+      Physical location of device (e.g. "Living Room" or "Bedroom"). Used in device names/IDs. Only useful to differentiate if you have more than one Amniotic device running.

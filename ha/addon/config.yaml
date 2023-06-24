@@ -12,7 +12,6 @@ map:
 name: Amniotic
 options:
   audio_subdirectory: Amniotic
-  location: null
 panel_icon: mdi:nature-people
 schema:
   audio_subdirectory: str
