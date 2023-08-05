@@ -89,7 +89,7 @@ def get_devices(player: Optional[vlc.MediaPlayer] = None, device_names: dict[str
         count = len([value for value in devices.values() if value == description])
         if count:
             description = f'{description} ({count + 1})'
-        devices[device_id] = device_names.get(description, description)
+        devices[device_id] = device_names.get(description, device_names.get(device_id, description))
 
     log_devices(devices)
 

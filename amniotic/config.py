@@ -20,6 +20,12 @@ HOSTNAME = gethostname()
 IS_ADDON = bool(strtobool(getenv(f'{NAME}_IS_ADDON'.upper(), 'false')))
 PRESET_LAST_KEY = '.LAST'
 
+DEVICE_NAMES_DEFAULT = {
+    'alsa_output.platform-bcm2835_audio.stereo-fallback': 'Broadcom BCM2835 HDMI',
+    'alsa_output.platform-bcm2835_audio.stereo-fallback.2': 'Broadcom BCM2835 Headphones/Line-Out',
+}
+
+
 @dataclass
 class Config:
     """
@@ -47,6 +53,7 @@ class Config:
         self.tele_period = round(self.tele_period)
         self.mqtt_port = int(self.mqtt_port)
         self.logging = self.logging or logging.INFO
+        self.device_names = DEVICE_NAMES_DEFAULT | (self.device_names or {})
 
     @classmethod
     @lru_cache
