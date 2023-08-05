@@ -152,7 +152,7 @@ class Amniotic:
         Ensure all (and only) Themes in the Themes path are loaded in
 
         """
-        paths_themes = sorted([path.absolute() for path in self.path.glob('*') if path.is_dir()])
+        paths_themes = sorted([path.absolute() for path in self.path.glob('*')])
         paths_themes = {path.stem: path for path in paths_themes}
 
         for name, path in paths_themes.items():
@@ -461,9 +461,11 @@ class Theme:
         Get file paths from disk.
 
         """
-        paths = list(self.path.glob('*'))
 
-        return paths
+        if self.path.is_dir():
+            return list(self.path.glob('*'))
+        else:
+            return [self.path]
 
     def load_player(self) -> vlc.MediaPlayer:
         """
