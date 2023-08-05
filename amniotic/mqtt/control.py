@@ -752,7 +752,7 @@ class Downloader(TextInput):
                 return
 
             self.update_sensor.message = 'Starting download...'
-            stream.download(output_path=str(theme.path))
+            stream.download(output_path=str(theme.get_dir()))
 
         except Exception as exception:
 

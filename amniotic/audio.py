@@ -455,6 +455,18 @@ class Theme:
         """
         self.paths = self.get_paths()
 
+    def get_dir(self) -> Path:
+        """
+
+        Get Theme directory.
+
+        """
+
+        if self.path.is_dir():
+            return self.path
+        else:
+            return self.path.parent
+
     def get_paths(self) -> list[Path]:
         """
 
