@@ -13,6 +13,7 @@ from typing import Union, Optional, Dict
 
 VLC_VERBOSITY = 0
 DEVICES_POLL_PERIOD_SECONDS = 10
+STARTUP_DEVICES_LOGGED = False
 
 def load_new_player() -> vlc.MediaPlayer:
     """
@@ -52,6 +53,14 @@ def get_devices_raw() -> vlc.AudioOutputDevice:
     unload_player(player)
     return devices_raw
 
+
+def log_devices(devices):
+    global STARTUP_DEVICES_LOGGED
+    if not STARTUP_DEVICES_LOGGED:
+        logging.info(f'Found devices on startup: {devices}')
+        STARTUP_DEVICES_LOGGED = True
+
+
 def get_devices(player: Optional[vlc.MediaPlayer] = None, device_names: dict[str, str] = None) -> dict[str, str]:
     """
 
@@ -59,12 +68,10 @@ def get_devices(player: Optional[vlc.MediaPlayer] = None, device_names: dict[str
 
     """
 
-    log_devices = False
     if player:
         devices_raw = player.audio_output_device_enum()
     else:
         devices_raw = get_devices_raw()
-        log_devices = True
 
     devices_pairs = []
     if devices_raw:
@@ -84,8 +91,7 @@ def get_devices(player: Optional[vlc.MediaPlayer] = None, device_names: dict[str
             description = f'{description} ({count + 1})'
         devices[device_id] = device_names.get(description, description)
 
-    if log_devices:
-        logging.info(f'Found devices: {devices}')
+    log_devices(devices)
 
     return devices
 
