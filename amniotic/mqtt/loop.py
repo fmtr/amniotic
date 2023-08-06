@@ -202,7 +202,7 @@ class Loop:
         """
         status = json.dumps(self.amniotic.status)
         logging.info(f'Telemetry: LWT')
-        logging.debug(f'Status: {status}')
+        logging.info(f'Status: {status}')
         # self.client.publish(TOPIC_STATUS, status)
         self.client.publish(self.topic_lwt, "Online", qos=1)
 
