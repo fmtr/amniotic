@@ -289,7 +289,7 @@ def start():
     if preset_last:
         amniotic.apply_preset_data(preset_last)
 
-    msg = f'Amniotic {__version__} has started.'
+    msg = f'Amniotic {__version__} (libvlc {amniotic.VLC_VERSION}) has started.'
     logging.info(msg)
     msg = f'Amniotic {__version__} starting MQTT...'
     logging.info(msg)

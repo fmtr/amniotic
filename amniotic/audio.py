@@ -115,6 +115,7 @@ def sanitize_volume(value: Number) -> int:
 class Amniotic:
     VOLUME_DEFAULT = 10
     THEME_NAME_DEFAULT = 'Default Theme'
+    VLC_VERSION = vlc.__libvlc_version__
 
     def __init__(self, path: Union[Path, str], device_names: Optional[dict[str, str]] = None, presets: Dict = None):
         """
@@ -501,7 +502,7 @@ class Theme:
         Method to register as a VLC callback. Once a file finishes playing, start playing the next file in the other player.
 
         """
-        msg = f'Theme "{self.name}" hit media end callback with event: {event.type=} {event.obj=} {event.meta_type=}'
+        msg = f'Theme "{self.name}" hit media end callback with event: {event.type=}'
         logging.debug(msg)
         self.switch_player()
         self.play()
