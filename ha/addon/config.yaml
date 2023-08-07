@@ -8,8 +8,8 @@ audio: true
 description: A multi-output ambient sound mixer for Home Assistant
 init: false
 map:
-  - media:rw
-  - config:rw
+- media:rw
+- config:rw
 name: Amniotic
 options:
   audio_subdirectory: Amniotic
@@ -21,4 +21,4 @@ services:
 - mqtt:need
 slug: amniotic
 url: https://link.frontmatter.ai/amniotic
-version: 0.5.16
+version: 0.5.17
