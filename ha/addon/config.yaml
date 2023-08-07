@@ -9,7 +9,7 @@ description: A multi-output ambient sound mixer for Home Assistant
 init: false
 map:
   - media:rw
-- config:rw
+  - config:rw
 name: Amniotic
 options:
   audio_subdirectory: Amniotic
