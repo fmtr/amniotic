@@ -39,7 +39,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'amniotic = amniotic.mqtt.loop:start',
+            'amniotic = amniotic.mqtt.start:start',
         ],
     }
 )

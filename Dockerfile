@@ -3,8 +3,13 @@ ARG TYPE=development
 
 FROM edwardbrown/python as base
 ENV DEBIAN_FRONTEND=noninteractive
+
+RUN useradd --uid 1000 --create-home amniotic
+
 RUN apt -qq update -y
-RUN apt -qq install -y pulseaudio vlc
+RUN apt -qq install -y pulseaudio vlc alsa-utils
+
+COPY amniotic.client.conf /amniotic.client.conf
 
 FROM base AS development
 WORKDIR /usr/src

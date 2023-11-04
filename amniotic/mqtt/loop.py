@@ -1,4 +1,5 @@
 from json import JSONDecodeError
+from pathlib import Path
 from time import sleep
 
 import json
@@ -73,7 +74,15 @@ class Loop:
         if config.mqtt_username is not None and config.mqtt_password is not None:
             self.client.username_pw_set(username=config.mqtt_username, password=config.mqtt_password)
 
-        self.client.connect(host=config.mqtt_host, port=config.mqtt_port)
+        msg = f'Attempting to connect to MQTT "{config.mqtt_host}:{config.mqtt_port}"...'
+        logging.info(msg)
+
+        try:
+            self.client.connect(host=config.mqtt_host, port=config.mqtt_port)
+        except Exception as exception:
+            msg = f'Error connecting. This usually means your MQTT host is not available.'
+            raise ConnectionError(msg) from exception
+
 
     def on_message(self, client: mqtt.Client, amniotic: Amniotic, mqtt_message: mqtt.MQTTMessage):
         """
@@ -301,7 +310,3 @@ def start():
     )
 
     loop.loop_start()
-
-
-if __name__ == '__main__':
-    start()
