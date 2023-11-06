@@ -1,7 +1,7 @@
 ARG VERSION
 ARG TYPE=development
 
-FROM fmtr/python:v3.12 as base
+FROM fmtr/python as base
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN useradd --uid 1000 --create-home amniotic
