@@ -7,7 +7,6 @@ on:
         description: 'Version'
         required: true
 
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -32,13 +31,6 @@ jobs:
           DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
         run: |
           echo $DOCKER_TOKEN | docker login --username $DOCKER_USER --password-stdin
-
-      - name: Buildx test
-        run: |
-          docker buildx build . --build-arg TYPE=release --build-arg VERSION=${VERSION} --tag fmtr/${NAME}:v${VERSION} --push --platform linux/386,linux/amd64,linux/arm/v5,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x
-          docker pull fmtr/${NAME}:v${VERSION}
-          docker tag fmtr/${NAME}:v${VERSION} fmtr/${NAME}:latest
-          docker push fmtr/${NAME}:latest  
 
       - name: Increment Version
         run: |
@@ -70,8 +62,7 @@ jobs:
         run: |
           twine upload dist/*
 
+      - name: Build and Push Docker
+        run: |
+          docker buildx build . --build-arg TYPE=release --build-arg VERSION=${VERSION} --tag fmtr/${NAME}:v${VERSION} --tag fmtr/${NAME}:latest --push --platform linux/386,linux/amd64,linux/arm/v5,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x
 
-
-#      - name: Push Docker
-#        run: |
-#          docker push --all-tags fmtr/${NAME}
