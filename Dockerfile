@@ -9,7 +9,7 @@ RUN useradd --uid 1000 --create-home amniotic
 RUN apt -qq update -y
 RUN apt -qq install -y pulseaudio vlc alsa-utils
 
-COPY amniotic.client.conf /amniotic.client.conf
+COPY amniotic.client.conf.template /amniotic.client.conf.template
 
 FROM base AS development
 WORKDIR /usr/src

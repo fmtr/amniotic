@@ -1,4 +1,4 @@
-default-server = unix:/amniotic.socket
+default-server = unix:{path}
 # Prevent a server running in the container
 autospawn = no
 daemon-binary = /bin/true
