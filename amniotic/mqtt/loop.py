@@ -1,13 +1,12 @@
-from json import JSONDecodeError
-from pathlib import Path
-from time import sleep
-
 import json
 import logging
 from copy import deepcopy
 from functools import cached_property
-from paho.mqtt import client as mqtt
+from json import JSONDecodeError
+from time import sleep
 from typing import Type
+
+from paho.mqtt import client as mqtt
 
 from amniotic.audio import Amniotic
 from amniotic.config import Config, IS_ADDON, PRESET_LAST_KEY
@@ -63,7 +62,7 @@ class Loop:
         self.topic_lwt = self.device.topic_lwt
 
         self.amniotic = amniotic
-        self.client = mqtt.Client()
+        self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
 
         self.client.on_connect = self.on_connect
         self.client.on_message = self.on_message
