@@ -34,8 +34,8 @@ There are two ways to install and run Amniotic:
 
 To add as an Addon, click here:
 
-[![Open your Home Assistant instance and show the add add-on repository dialog with a specific repository URL pre-filled.](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://link.frontmatter.ai/amniotic/addon-install)
+[![Open your Home Assistant instance and show the add add-on repository dialog with a specific repository URL pre-filled.](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://fmtr.link/amniotic/addon-install)
 
 ## Documentation
 
-For non-addon installs, and general documentation, see **[the project wiki](https://link.frontmatter.ai/amniotic/doc)**.
+For non-addon installs, and general documentation, see **[the project wiki](https://fmtr.link/amniotic/doc)**.

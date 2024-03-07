@@ -1,1 +1,1 @@
-For the latest changes, see **[the project releases page](https://link.frontmatter.ai/amniotic/changes)**.
+For the latest changes, see **[the project releases page](https://fmtr.link/amniotic/changes)**.
