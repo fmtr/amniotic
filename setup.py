@@ -1,12 +1,16 @@
 from pathlib import Path
-
 from setuptools import find_packages, setup
 
-packages = find_packages()
-name = next(iter(packages))
+import requirements
+
+name = 'amniotic'
+
 path_base = Path(__file__).absolute().parent
 path = path_base / name / 'version'
 __version__ = path.read_text().strip()
+
+packages = find_packages(where=path_base)
+packages = [name] + [f'{name}.{nsp}' for nsp in packages]
 
 setup(
     long_description=(path_base / 'readme.md').read_text(),
@@ -19,27 +23,16 @@ setup(
     description='A multi-output ambient sound mixer for Home Assistant',
     keywords='ambient sound audio white noise masking sleep',
     packages=packages,
+    package_dir={'': '.'},
     package_data={
         name: [f'version'],
     },
-    install_requires=[
-        'paho-mqtt',
-        'python-vlc',
-        'getmac',
-        'pyyaml',
-        'appdirs',
-        'johnnydep',
-        'pytube',
-        'cachetools'
-    ],
-    extras_require={
-        'debug': [
-            'psutil'
-        ]
-    },
+    install_requires=requirements.INSTALL,
+    extras_require=requirements.EXTRAS,
     entry_points={
         'console_scripts': [
             'amniotic = amniotic.mqtt.start:start',
         ],
     }
 )
+
