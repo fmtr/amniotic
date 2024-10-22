@@ -3,8 +3,7 @@ import time
 import av
 import numpy as np
 
-
-# from fmtr.tools import logger
+from fmtr.tools import logger
 
 
 class Recording:
@@ -44,7 +43,8 @@ class Recording:
                     while buffer.shape[1] >= self.CHUNK_SIZE:
                         data = buffer[:, :self.CHUNK_SIZE]
                         buffer = buffer[:, self.CHUNK_SIZE:]  # Remove the yielded part from the buffer
-                        print(f'Yielding {i=} {data_resamp.shape=} {data.shape=}, {buffer.shape=}, {self.path}')
+                        logger.debug(
+                            f'{self.__class__.__name__} Yielding {i=} {data_resamp.shape=} {data.shape=}, {buffer.shape=}, {self.path}')
                         yield data
 
             container.close()
