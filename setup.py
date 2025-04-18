@@ -29,7 +29,7 @@ setup(
         'pyyaml',
         'appdirs',
         'johnnydep',
-        'pytube',
+        'pytubefix',
         'cachetools'
     ],
     extras_require={

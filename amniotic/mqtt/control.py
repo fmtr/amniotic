@@ -1,14 +1,14 @@
-from time import sleep
-
 import json
 import logging
-import pip
 import threading
 from functools import cached_property
+from time import sleep
+from typing import Optional, Any
+
+import pip
 from johnnydep import JohnnyDist as Package
 from paho.mqtt import client as mqtt
-from pytube import YouTube, Stream
-from typing import Optional, Any
+from pytubefix import YouTube, Stream
 
 from amniotic.audio import Amniotic
 from amniotic.config import NAME
