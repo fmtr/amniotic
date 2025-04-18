@@ -4,7 +4,7 @@ ARG TYPE=development
 FROM fmtr/python as base
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN useradd --uid 1000 --create-home amniotic
+#RUN useradd --uid 1000 --create-home amniotic
 
 RUN apt -qq update -y
 RUN apt -qq install -y pulseaudio vlc alsa-utils
