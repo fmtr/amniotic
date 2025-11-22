@@ -2,8 +2,9 @@ import time
 
 import av
 import numpy as np
+from fmtr.tools import Path
 
-from fmtr.tools import logger
+from amniotic.obs import logger
 
 
 class Recording:
@@ -12,6 +13,7 @@ class Recording:
     def __init__(self, path, volume):
 
         self.path = path
+        assert Path(path).exists()
         self.volume = volume
         self.process = None
         self.resampler = av.AudioResampler(format='s16', layout='mono', rate=44100)
@@ -77,7 +79,7 @@ class Theme:
     def __iter__(self):
         output = av.open(file='.mp3', mode="w")
         bitrate = 128_000
-        out_stream = output.add_stream(codec_name='mp3', rate=44100, channels=1, bit_rate=bitrate)
+        out_stream = output.add_stream(codec_name='mp3', rate=44100, bit_rate=bitrate)
         gen_dec = self.iter_chunks()
 
         try:
