@@ -1,59 +1,13 @@
-import logging
-
-from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
+from fmtr.tools import api
 
 from amniotic.paths import paths
 from amniotic.v2.sandbox_ffmpy import Recording, Theme
 
 
-class ApiBase:
-    TITLE = 'Base API'
-    HOST = '0.0.0.0'
-    PORT = 8080
-
-    def add_endpoint(self, method, path, tags=None, method_http=None):
-
-        method_http = method_http or self.app.post
-
-        if type(tags) is str:
-            tags = [tags]
-
-        doc = (method.__doc__ or '').strip() or None
-
-        method_http(
-            path,
-            tags=tags,
-            description=doc,
-            summary=doc
-
-        )(method)
-
-    def __init__(self):
-
-        self.app = FastAPI(title=self.TITLE)
-
-        for config in self.get_endpoints():
-            self.add_endpoint(**config)
-
-    def get_endpoints(self):
-
-        endpoints = [
-
-        ]
-
-        return endpoints
-
-    @classmethod
-    def launch(cls):
-        self = cls()
-        import uvicorn
-        logging.info(f'Launching API {cls.TITLE}...')
-        uvicorn.run(self.app, host=self.HOST, port=self.PORT)
-
-
-class ApiAm(ApiBase):
+class ApiAm(api.Base):
     TITLE = 'Amniotic Test API'
+    URL_DOCS = '/'
 
     def __init__(self):
         super().__init__()
@@ -61,9 +15,9 @@ class ApiAm(ApiBase):
 
     def get_endpoints(self):
         endpoints = [
-            dict(method_http=self.app.get, path='/stream', method=self.stream),
-            dict(path='/vol', method=self.vol),
-            dict(path='/add', method=self.add)
+            api.Endpoint(method_http=self.app.get, path='/stream', method=self.stream),
+            api.Endpoint(path='/vol', method=self.vol),
+            api.Endpoint(path='/add', method=self.add)
         ]
 
         return endpoints
