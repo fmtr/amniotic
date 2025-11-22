@@ -1,0 +1,3 @@
+[build-system]
+requires = ["fmtr.tools[setup,debug]"]
+build-backend = "setuptools.build_meta" #

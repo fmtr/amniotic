@@ -1,7 +1,9 @@
 import logging
+
 from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
 
+from amniotic.paths import paths
 from amniotic.v2.sandbox_ffmpy import Recording, Theme
 
 
@@ -76,7 +78,7 @@ class ApiAm(ApiBase):
 
     async def stream(self):
         recs = [
-            Recording('/artifacts/audio/file_example_MP3_700KB.mp3', volume=.3),
+            Recording(paths.example_700KB, volume=.3),
 
         ]
 
