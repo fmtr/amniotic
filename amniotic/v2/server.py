@@ -1,7 +1,6 @@
 from fastapi.responses import StreamingResponse
 
-from amniotic.paths import paths
-from amniotic.v2.sandbox_ffmpy import Recording, Theme
+from amniotic.v2.recording import ThemeDefinition
 from fmtr.tools import api
 
 
@@ -11,36 +10,38 @@ class ApiAm(api.Base):
 
     def __init__(self):
         super().__init__()
-        self.themes = []
+
+        self.theme_test = ThemeDefinition('test')
+        self.theme_defs = [self.theme_test]
 
     def get_endpoints(self):
         endpoints = [
             api.Endpoint(method_http=self.app.get, path='/stream', method=self.stream),
             api.Endpoint(path='/vol', method=self.vol),
-            api.Endpoint(path='/add', method=self.add)
+            api.Endpoint(path='/enable', method=self.enable),
+            api.Endpoint(path='/disable', method=self.disable)
         ]
 
         return endpoints
 
     async def vol(self, rec_id: int, volume: float):
-        self.themes[0].recordings[rec_id].volume = volume
+        self.theme_defs[0].recordings[rec_id].volume = volume
         volume
 
-    async def add(self, name: str):
-        rec = Recording(paths.gambling, volume=.9)
-        self.themes[0].recordings.append(rec)
+    async def enable(self):
+        defin = ThemeDefinition.DEFINITIONS[1]
+        self.theme_test.enable(defin)
+
+    async def disable(self):
+        defin = ThemeDefinition.DEFINITIONS[1]
+        self.theme_test.disable(defin)
 
     async def stream(self):
-        recs = [
-            Recording(paths.example_700KB, volume=.3),
+        defin = ThemeDefinition.DEFINITIONS[0]
+        self.theme_test.enable(defin)
+        stream = self.theme_test.get_stream()
 
-        ]
-
-        theme = Theme(recs)
-
-        self.themes.append(theme)
-
-        response = StreamingResponse(theme, media_type="audio/mpeg")
+        response = StreamingResponse(stream, media_type="audio/mpeg")
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
         response.headers["Pragma"] = "no-cache"
         response.headers["Expires"] = "0"

@@ -3,21 +3,38 @@ import time
 import numpy as np
 
 from amniotic.obs import logger
-from fmtr.tools import Path, av
+from amniotic.paths import paths
+from fmtr.tools import av
 
 
 # av=av.av
 
 
-class Recording:
+class RecordingDefinition:
+
+    def __init__(self, path):
+        self.path = path
+
+    def get_stream(self):
+        return RecordingStream(self)
+
+
+class RecordingStream:
+    """
+
+    Should be split into two:
+
+    RecordingDefinition: Represents file, metadata, etc. The non-state stuff, on disk.
+    RecordingStream: An open stream on that file, ready to decode. Many instances, one-per-client.
+
+
+    """
     CHUNK_SIZE = 1_024
 
-    def __init__(self, path, volume):
+    def __init__(self, definition: RecordingDefinition):
 
-        self.path = path
-        assert Path(path).exists()
-        self.volume = volume
-        self.process = None
+        self.definition = definition
+        self.volume = 0.5
         self.resampler = av.AudioResampler(format='s16', layout='mono', rate=44100)
 
         self.gen = self._gen()
@@ -26,7 +43,7 @@ class Recording:
 
         while True:
 
-            container = av.open(self.path)
+            container = av.open(self.definition.path)
 
             if len(container.streams.audio) == 0:
                 raise ValueError('No audio stream')
@@ -64,15 +81,77 @@ class Recording:
         return next(self.gen)
 
 
-class Theme:
+class ThemeDefinition:
+    """
 
-    def __init__(self, recordings):
-        self.recordings = recordings
+    Run-time only. A ephemeral mix defined by the user.
+
+    ThemeDefinition: What recordings are involved, volumes. User defines these via the UI, then selects a media player entity to stream from it.
+    ThemeStream: One instance per client/connection. Has a RecordingStream for each recording in the ThemeDefinition.
+
+    When a user selectes a media player for this theme, then clicks play, HA tells the player to play URL /theme/name.
+     - On the API side, the ThemeDefinition with ID "name" is selected, and a new ThemeStream initialized.
+
+    When a user modifies a themeDefinition, like change recording volume, all live ThemeStreams are updated.
+
+    """
+
+    DEFINITIONS = [RecordingDefinition(paths.example_700KB), RecordingDefinition(paths.gambling)]  # All those on disk.
+
+    def __init__(self, name):
+        self.name = name
+
+        self.definitions = []
+        self.streams = []
+
+    def get_stream(self):
+        theme = ThemeStream(self)
+        self.streams.append(theme)
+        return theme
+
+    def enable(self, definition: RecordingDefinition):
+        self.definitions.append(definition)
+        for stream in self.streams:
+            stream.enable(definition)
+
+    def disable(self, definition: RecordingDefinition):
+        self.definitions.remove(definition)
+        for stream in self.streams:
+            stream.disable(definition)
+
+
+class ThemeStream:
+    """
+
+    Run-time only. A ephemeral mix defined by the user.
+
+    ThemeDefinition: What recordings are involved, volumes. User defines these via the UI, then selects a media player entity to stream from it.
+    ThemeStream: One instance per client/connection. Has a RecordingStream for each recording in the ThemeDefinition.
+
+    When a user selectes a media player for this theme, then clicks play, HA tells the player to play URL /theme/name.
+     - On the API side, the ThemeDefinition with ID "name" is selected, and a new ThemeStream initialized.
+
+    When a user modifies a themeDefinition, like change recording volume, all live ThemeStreams are updated.
+
+    """
+
+    def enable(self, definition: RecordingDefinition):
+        self.streams.append(definition.get_stream())
+        self
+
+    def disable(self, definition: RecordingDefinition):
+        self.streams = [stream for stream in self.streams if stream.definition is not definition]
+
+    def __init__(self, definition: ThemeDefinition):
+        self.definition = definition
+        self.streams = []
+        for definition in self.definition.definitions:
+            self.enable(definition)
 
     def iter_chunks(self):
 
         while True:
-            data_recs = [next(rec) for rec in self.recordings]
+            data_recs = [next(rec) for rec in self.streams]
             data = np.vstack(data_recs)
             data = data.mean(axis=0).astype(data.dtype).reshape(1, -1)  # Mix recordings
             yield data
