@@ -1,7 +1,10 @@
+import asyncio
+
+import uvicorn
 from fastapi.responses import StreamingResponse
 
 from amniotic.v2.recording import ThemeDefinition
-from fmtr.tools import api
+from fmtr.tools import api, mqtt
 
 
 class ApiAm(api.Base):
@@ -49,6 +52,18 @@ class ApiAm(api.Base):
 
         return response
 
+    async def launch(self):
+        config = uvicorn.Config(self.app, host=self.HOST, port=self.PORT)
+        api = uvicorn.Server(config)
+        await api.serve()
+
+    @classmethod
+    async def start(cls, client: mqtt.Client):
+        self = cls()
+        await asyncio.gather(
+            self.launch(),
+            client.start(),
+        )
 
 if __name__ == '__main__':
     ApiAm.launch()
