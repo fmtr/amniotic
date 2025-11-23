@@ -11,8 +11,15 @@ class PackagePaths(PackagePaths):
     """
 
     @cached_property
-    def example_700KB(self):
-        return self.data / 'audio' / 'file_example_MP3_700KB.mp3'
+    def audio(self):
+        return self.data / 'audio'
 
+    @cached_property
+    def example_700KB(self):
+        return self.audio / 'file_example_MP3_700KB.mp3'
+
+    @cached_property
+    def gambling(self):
+        return self.audio / 'A Good Bass for Gambling.mp3'
 
 paths = PackagePaths(org_singleton='fmtr')

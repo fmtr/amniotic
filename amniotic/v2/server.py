@@ -1,8 +1,8 @@
 from fastapi.responses import StreamingResponse
-from fmtr.tools import api
 
 from amniotic.paths import paths
 from amniotic.v2.sandbox_ffmpy import Recording, Theme
+from fmtr.tools import api
 
 
 class ApiAm(api.Base):
@@ -27,7 +27,7 @@ class ApiAm(api.Base):
         volume
 
     async def add(self, name: str):
-        rec = Recording(f'/artifacts/audio/{name}', volume=.9)
+        rec = Recording(paths.gambling, volume=.9)
         self.themes[0].recordings.append(rec)
 
     async def stream(self):

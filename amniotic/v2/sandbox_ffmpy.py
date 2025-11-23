@@ -1,10 +1,12 @@
 import time
 
-import av
 import numpy as np
-from fmtr.tools import Path
 
 from amniotic.obs import logger
+from fmtr.tools import Path, av
+
+
+# av=av.av
 
 
 class Recording:
@@ -45,8 +47,7 @@ class Recording:
                     while buffer.shape[1] >= self.CHUNK_SIZE:
                         data = buffer[:, :self.CHUNK_SIZE]
                         buffer = buffer[:, self.CHUNK_SIZE:]  # Remove the yielded part from the buffer
-                        logger.debug(
-                            f'{self.__class__.__name__} Yielding {i=} {data_resamp.shape=} {data.shape=}, {buffer.shape=}, {self.path}')
+                        #logger.debug(f'{self.__class__.__name__} Yielding {i=} {data_resamp.shape=} {data.shape=}, {buffer.shape=}, {self.path}')
                         yield data
 
             container.close()
@@ -82,28 +83,28 @@ class Theme:
         out_stream = output.add_stream(codec_name='mp3', rate=44100, bit_rate=bitrate)
         gen_dec = self.iter_chunks()
 
+        start_time = time.time()
+        audio_time = 0.0  # total audio duration sent
+
         try:
-
             while True:
-
                 for i, data in enumerate(gen_dec):
                     frame = av.AudioFrame.from_ndarray(data, format='s16', layout='mono')
                     frame.rate = 44100
 
+                    frame_duration = frame.samples / frame.rate
+                    audio_time += frame_duration
+
                     for packet in out_stream.encode(frame):
-
                         pbytes = bytes(packet)
-
                         yield pbytes
 
-                        if i > 100:
-                            chunk_size = len(pbytes)  # Example chunk size (4 KB)
-                            bytes_per_second = bitrate / 8
-                            chunk_duration = chunk_size / bytes_per_second  # Duration of each chunk in seconds
-
-                            time.sleep(chunk_duration)
-
-
+                    # Only sleep if we are ahead of real-time
+                    now = time.time()
+                    ahead = audio_time - (now - start_time)
+                    if ahead > 0:
+                        logger.debug(f'Waiting {ahead:.5f} seconds to maintain real-time pacing {audio_time=} {abs(data).mean()=}...')
+                        time.sleep(ahead)
 
         finally:
             print('Closing transcoder...')
