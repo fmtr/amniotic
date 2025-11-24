@@ -6,9 +6,7 @@ from amniotic.obs import logger
 from amniotic.paths import paths
 from fmtr.tools import av
 
-
-# av=av.av
-
+LOG_THRESHOLD = 500
 
 class RecordingDefinition:
 
@@ -31,6 +29,7 @@ class RecordingStream:
     """
     CHUNK_SIZE = 1_024
 
+
     def __init__(self, definition: RecordingDefinition):
 
         self.definition = definition
@@ -51,7 +50,8 @@ class RecordingStream:
 
             buffer = np.empty((1, 0), dtype=np.int16)
 
-            for i, frame_orig in enumerate(container.decode(stream)):
+            i = 0
+            for frame_orig in container.decode(stream):
 
                 for frame_resamp in self.resampler.resample(frame_orig):
                     data_resamp = frame_resamp.to_ndarray()
@@ -64,8 +64,12 @@ class RecordingStream:
                     while buffer.shape[1] >= self.CHUNK_SIZE:
                         data = buffer[:, :self.CHUNK_SIZE]
                         buffer = buffer[:, self.CHUNK_SIZE:]  # Remove the yielded part from the buffer
-                        #logger.debug(f'{self.__class__.__name__} Yielding {i=} {data_resamp.shape=} {data.shape=}, {buffer.shape=}, {self.path}')
+
                         yield data
+
+                        if i % LOG_THRESHOLD == 0:
+                            logger.debug(f'{self.__class__.__name__} Yielding {i=} {data_resamp.shape=} {data.shape=}, {buffer.shape=}, {self.definition.path=}')
+                        i += 1
 
             container.close()
 
@@ -182,8 +186,11 @@ class ThemeStream:
                     now = time.time()
                     ahead = audio_time - (now - start_time)
                     if ahead > 0:
-                        logger.debug(f'Waiting {ahead:.5f} seconds to maintain real-time pacing {audio_time=} {abs(data).mean()=}...')
                         time.sleep(ahead)
+
+                    if i % LOG_THRESHOLD == 0:
+                        logger.debug(f'Waiting {ahead:.5f} seconds to maintain real-time pacing {audio_time=} {abs(data).mean()=}...')
+
 
         finally:
             print('Closing transcoder...')
