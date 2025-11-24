@@ -1,18 +1,24 @@
-import asyncio
+import logging
 
-import uvicorn
 from fastapi.responses import StreamingResponse
 
 from amniotic.v2.recording import ThemeDefinition
 from fmtr.tools import api, mqtt
 
+for name in ["uvicorn.access", "uvicorn.error", "uvicorn"]:
+    logger = logging.getLogger(name)
+    logger.handlers.clear()
+    logger.propagate = False
 
-class ApiAm(api.Base):
+
+class ApiAmniotic(api.Base):
     TITLE = 'Amniotic Test API'
     URL_DOCS = '/'
 
-    def __init__(self):
+    def __init__(self, client: mqtt.Client):
         super().__init__()
+
+        self.client = client
 
         self.theme_test = ThemeDefinition('test')
         self.theme_defs = [self.theme_test]
@@ -52,18 +58,7 @@ class ApiAm(api.Base):
 
         return response
 
-    async def launch(self):
-        config = uvicorn.Config(self.app, host=self.HOST, port=self.PORT)
-        api = uvicorn.Server(config)
-        await api.serve()
 
-    @classmethod
-    async def start(cls, client: mqtt.Client):
-        self = cls()
-        await asyncio.gather(
-            self.launch(),
-            client.start(),
-        )
 
 if __name__ == '__main__':
-    ApiAm.launch()
+    ApiAmniotic.launch()
