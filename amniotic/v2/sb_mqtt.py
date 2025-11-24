@@ -1,7 +1,8 @@
 import asyncio
-import logging
 from dataclasses import dataclass
 from functools import cached_property
+
+from haco.pulldown import Select
 
 from amniotic.paths import paths
 from amniotic.v2.api import ApiAmniotic
@@ -11,11 +12,6 @@ from haco.button import Button
 from haco.client import ClientHaco
 from haco.constants import MQTT_HOST
 from haco.device import Device
-from haco.obs import logger
-from haco.pulldown import Select
-
-handler = logger.LogfireLoggingHandler()
-logging.basicConfig(handlers=[handler], level=logging.DEBUG)
 
 
 @dataclass(kw_only=True)
@@ -71,8 +67,7 @@ class ClientAmniotic(ClientHaco):
 
 async def main():
     device = Amniotic(name=f"{Constants.DEVELOPMENT} Amniotic")
-
-    client = ClientAmniotic(hostname=MQTT_HOST, device=device, logger=logging.getLogger(__name__))
+    client = ClientAmniotic(hostname=MQTT_HOST, device=device)
     await client.start()
 
 
