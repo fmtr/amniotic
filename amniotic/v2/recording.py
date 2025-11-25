@@ -16,6 +16,9 @@ class RecordingDefinition:
     def get_stream(self):
         return RecordingStream(self)
 
+    @property
+    def name(self):
+        return self.path.stem
 
 class RecordingStream:
     """
@@ -98,14 +101,22 @@ class ThemeDefinition:
 
     When a user modifies a themeDefinition, like change recording volume, all live ThemeStreams are updated.
 
+    Every ThemeDefinition needs an inited RecordingStream for each recording. That way we can have per-theme, per-recording state (volume, playing, etc).
+    Not really. Cos each connection needs its own Stream.
+
+
+    recording (immutable, one per-path) -> recording_instance (mutable, contains addition vol, is_enabled, etc) -> recording_stream (one per-connection)
+
     """
 
     DEFINITIONS = [RecordingDefinition(paths.example_700KB), RecordingDefinition(paths.gambling)]  # All those on disk.
 
-    def __init__(self, name):
+    def __init__(self, amniotic, name):
+        self.amniotic = amniotic
         self.name = name
 
         self.definitions = []
+        self.defin_current = None
         self.streams = []
 
     def get_stream(self):
@@ -113,6 +124,7 @@ class ThemeDefinition:
         self.streams.append(theme)
         return theme
 
+    @logger.instrument('Theme "{self.name}" enabling recording {definition.name}...')
     def enable(self, definition: RecordingDefinition):
         self.definitions.append(definition)
         for stream in self.streams:

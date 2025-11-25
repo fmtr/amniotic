@@ -1,51 +1,91 @@
 import asyncio
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import cached_property
 
-from haco.pulldown import Select
-
+from amniotic.obs import logger
 from amniotic.paths import paths
 from amniotic.v2.api import ApiAmniotic
-from amniotic.v2.recording import RecordingDefinition
+from amniotic.v2.recording import RecordingDefinition, ThemeDefinition
 from fmtr.tools import Constants
-from haco.button import Button
 from haco.client import ClientHaco
 from haco.constants import MQTT_HOST
 from haco.device import Device
+from haco.select import Select
+from haco.switch import Switch
+
+
+@dataclass(kw_only=True)
+class Amniotic(Device):
+    themes: list[ThemeDefinition] = field(default_factory=list, metadata=dict(exclude=True))
+    theme_current: ThemeDefinition = field(default=None, metadata=dict(exclude=True))
+
+    DEFINITIONS = [RecordingDefinition(paths.example_700KB), RecordingDefinition(paths.gambling)]  # All those on disk.
+
+    def __post_init__(self):
+        theme = ThemeDefinition(amniotic=self, name='theme A')
+        self.themes.append(theme)
+        self.theme_current = theme
+
+        self.recording_current = self.DEFINITIONS[0]
+
+        self.controls = [self.select_recording, self.select_theme, self.swt_play]
+
+    @cached_property
+    def select_theme(self):
+        return SelectTheme(name="Themes", options=[str(defin.name) for defin in self.themes])
+
+    @cached_property
+    def select_recording(self):
+        return SelectRecording(name="Recordings", options=[str(defin.path.stem) for defin in self.DEFINITIONS])
+
+    @cached_property
+    def swt_play(self):
+        return PlayRecording(name="Play")
+
+    @property
+    def theme_lookup(self):
+        return {theme.name: theme for theme in self.themes}
+
+    @property
+    def recording_lookup(self):
+        return {defin.name: defin for defin in self.DEFINITIONS}
+
+    @logger.instrument('Setting current recording to {name}...')
+    def set_recording(self, name):
+        defin = self.recording_lookup[name]
+        self.recording_current = defin
+
+    def set_theme(self, name):
+        theme = self.theme_lookup[name]
+        self.theme_current = theme
 
 
 @dataclass(kw_only=True)
 class SelectRecording(Select):
 
     def command(self, value):
-        value
+        self.device.set_recording(value)
+        return value
 
 
 @dataclass(kw_only=True)
-class ButtonChangeTheme(Button):
+class SelectTheme(Select):
 
     async def command(self, value):
-        self.device.select_recording.options = ['a', 'b', 'c']
-        await self.device.select_recording.announce()
-        value
+        self.device.set_theme(value)
+        return value
 
 
 @dataclass(kw_only=True)
-class Amniotic(Device):
-    DEFINITIONS = [RecordingDefinition(paths.example_700KB), RecordingDefinition(paths.gambling)]  # All those on disk.
+class PlayRecording(Switch):
 
-    def __post_init__(self):
-        # super().__post_init__()
-        self.controls = [self.select_recording, self.btn_change_theme]
+    async def command(self, value):
+        defin = self.device.recording_current
+        self.device.theme_current.enable(defin)
+        return value
 
-    @cached_property
-    def select_recording(self):
-        return SelectRecording(name="Recordings", options=[str(defin.path) for defin in self.DEFINITIONS])
-
-    @cached_property
-    def btn_change_theme(self):
-        return ButtonChangeTheme(name="Change Theme")
-
+    async def state(self, value):
+        return value
 
 
 class ClientAmniotic(ClientHaco):
