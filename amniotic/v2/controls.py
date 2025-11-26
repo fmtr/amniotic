@@ -6,19 +6,6 @@ from haco.switch import Switch
 
 
 @dataclass(kw_only=True)
-class SelectRecording(Select):
-
-    async def command(self, value):
-        self.device.set_recording(value)
-        await self.device.swt_play.state()
-        return value
-
-    async def state(self, value):
-        name = self.device.recording_current.name
-        return name
-
-
-@dataclass(kw_only=True)
 class SelectTheme(Select):
 
     async def command(self, value):
@@ -27,24 +14,33 @@ class SelectTheme(Select):
 
     async def state(self, value=None):
         name = self.device.theme_current.name
+        await self.device.select_recording.state()
         return name
+
+@dataclass(kw_only=True)
+class SelectRecording(Select):
+
+    async def command(self, value):
+        self.device.theme_current.set_instance(value)
+
+        return value
+
+    async def state(self, value):
+        await self.device.swt_play.state()
+        await self.device.nbr_volume.state()
+        return self.device.theme_current.instance_current.name
+
+
 
 
 @dataclass(kw_only=True)
 class PlayRecording(Switch):
 
     async def command(self, value):
-        defin = self.device.recording_current
-
-        if value:
-            self.device.theme_current.enable(defin)
-        else:
-            self.device.theme_current.disable(defin)
-        return value
+        self.device.theme_current.instance_current.is_enabled = value
 
     async def state(self, value=None):
-
-        is_enabled = self.device.recording_current in self.device.theme_current.definitions
+        is_enabled = self.device.theme_current.instance_current.is_enabled
         return is_enabled
 
 
@@ -52,9 +48,8 @@ class PlayRecording(Switch):
 class NumberVolume(Number):
 
     async def command(self, value):
-        self.device.set_theme(value)
-        return value
+        self.device.theme_current.instance_current.volume = value / 100
+
 
     async def state(self, value=None):
-        name = self.device.theme_current.name
-        return name
+        return int(self.device.theme_current.instance_current.volume * 100)

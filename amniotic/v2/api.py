@@ -32,7 +32,7 @@ class ApiAmniotic(api.Base):
     async def stream(self):
         theme_def = self.client.device.theme_current
 
-        stream = theme_def.get_stream()
+        stream = theme_def.get_instance()
 
         response = StreamingResponse(stream, media_type="audio/mpeg")
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
