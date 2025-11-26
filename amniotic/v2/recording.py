@@ -1,42 +1,65 @@
-import time
-
 import numpy as np
 
 from amniotic.obs import logger
-from amniotic.paths import paths
 from fmtr.tools import av
 
 LOG_THRESHOLD = 500
 
-class RecordingDefinition:
+
+class RecordingMetadata:
+    """
+
+    Represents file, metadata, etc. The non-state stuff, on disk. One per file. Immutable
+
+    """
 
     def __init__(self, path):
         self.path = path
 
-    def get_stream(self):
-        return RecordingStream(self)
+    def get_instance(self):
+        return RecordingThemeInstance(self)
 
     @property
     def name(self):
         return self.path.stem
 
-class RecordingStream:
+
+class RecordingThemeInstance:
     """
 
-    Should be split into two:
+    Wraps the metadata, but with some extra state, to represent how that recording is set up within a given theme.
+    Every theme gets one of these for each recording.
 
-    RecordingDefinition: Represents file, metadata, etc. The non-state stuff, on disk.
-    RecordingStream: An open stream on that file, ready to decode. Many instances, one-per-client.
+    ThemeDef.recording_current=RecordingThemeInstance
+    This needs methods like setting volume that apply to all children streams.
 
+    """
+
+    def __init__(self, meta: RecordingMetadata):
+        self.meta = meta
+        # self.streams: list['RecordingThemeStream'] = []
+        self.volume = 0.5
+        self.is_enabled = False
+
+    def get_stream(self):
+        return RecordingThemeStream(self)
+
+    @property
+    def name(self):
+        return self.meta.name
+
+
+class RecordingThemeStream:
+    """
+
+    Representation of the audio stream, per-theme, per-connection. So multiple mediaplays can play the one theme, but each needs its own stream.
 
     """
     CHUNK_SIZE = 1_024
 
+    def __init__(self, instance: RecordingThemeInstance):
+        self.instance = instance
 
-    def __init__(self, definition: RecordingDefinition):
-
-        self.definition = definition
-        self.volume = 0.5
         self.resampler = av.AudioResampler(format='s16', layout='mono', rate=44100)
 
         self.gen = self._gen()
@@ -45,7 +68,7 @@ class RecordingStream:
 
         while True:
 
-            container = av.open(self.definition.path)
+            container = av.open(self.instance.meta.path)
 
             if len(container.streams.audio) == 0:
                 raise ValueError('No audio stream')
@@ -58,9 +81,8 @@ class RecordingStream:
 
                 for frame_resamp in self.resampler.resample(frame_orig):
                     data_resamp = frame_resamp.to_ndarray()
-                    data_resamp = data_resamp.mean(axis=0).astype(data_resamp.dtype).reshape(
-                        data_resamp.shape)  # Downmix to mono
-                    data_resamp = (data_resamp * self.volume).astype(data_resamp.dtype)  # Apply relative volume
+                    data_resamp = data_resamp.mean(axis=0).astype(data_resamp.dtype).reshape(data_resamp.shape)  # Downmix to mono
+                    data_resamp = (data_resamp * self.instance.volume).astype(data_resamp.dtype)  # Apply relative volume
 
                     buffer = np.hstack((buffer, data_resamp))  # Accumulate the array in the buffer
 
@@ -71,7 +93,7 @@ class RecordingStream:
                         yield data
 
                         if i % LOG_THRESHOLD == 0:
-                            logger.debug(f'{self.__class__.__name__} Yielding {i=} {data_resamp.shape=} {data.shape=}, {buffer.shape=}, {self.definition.path=}')
+                            logger.debug(f'{self.__class__.__name__} Yielding {i=} {data_resamp.shape=} {data.shape=}, {buffer.shape=}, {self.instance.meta.path=}')
                         i += 1
 
             container.close()
@@ -88,123 +110,3 @@ class RecordingStream:
         return next(self.gen)
 
 
-class ThemeDefinition:
-    """
-
-    Run-time only. A ephemeral mix defined by the user.
-
-    ThemeDefinition: What recordings are involved, volumes. User defines these via the UI, then selects a media player entity to stream from it.
-    ThemeStream: One instance per client/connection. Has a RecordingStream for each recording in the ThemeDefinition.
-
-    When a user selectes a media player for this theme, then clicks play, HA tells the player to play URL /theme/name.
-     - On the API side, the ThemeDefinition with ID "name" is selected, and a new ThemeStream initialized.
-
-    When a user modifies a themeDefinition, like change recording volume, all live ThemeStreams are updated.
-
-    Every ThemeDefinition needs an inited RecordingStream for each recording. That way we can have per-theme, per-recording state (volume, playing, etc).
-    Not really. Cos each connection needs its own Stream.
-
-
-    recording (immutable, one per-path) -> recording_instance (mutable, contains addition vol, is_enabled, etc) -> recording_stream (one per-connection)
-
-    """
-
-    DEFINITIONS = [RecordingDefinition(paths.example_700KB), RecordingDefinition(paths.gambling)]  # All those on disk.
-
-    def __init__(self, amniotic, name):
-        self.amniotic = amniotic
-        self.name = name
-
-        self.definitions = []
-        self.defin_current = None
-        self.streams = []
-
-    def get_stream(self):
-        theme = ThemeStream(self)
-        self.streams.append(theme)
-        return theme
-
-    @logger.instrument('Theme "{self.name}" enabling recording {definition.name}...')
-    def enable(self, definition: RecordingDefinition):
-        self.definitions.append(definition)
-        for stream in self.streams:
-            stream.enable(definition)
-
-    def disable(self, definition: RecordingDefinition):
-        self.definitions.remove(definition)
-        for stream in self.streams:
-            stream.disable(definition)
-
-
-class ThemeStream:
-    """
-
-    Run-time only. A ephemeral mix defined by the user.
-
-    ThemeDefinition: What recordings are involved, volumes. User defines these via the UI, then selects a media player entity to stream from it.
-    ThemeStream: One instance per client/connection. Has a RecordingStream for each recording in the ThemeDefinition.
-
-    When a user selectes a media player for this theme, then clicks play, HA tells the player to play URL /theme/name.
-     - On the API side, the ThemeDefinition with ID "name" is selected, and a new ThemeStream initialized.
-
-    When a user modifies a themeDefinition, like change recording volume, all live ThemeStreams are updated.
-
-    """
-
-    def enable(self, definition: RecordingDefinition):
-        self.streams.append(definition.get_stream())
-        self
-
-    def disable(self, definition: RecordingDefinition):
-        self.streams = [stream for stream in self.streams if stream.definition is not definition]
-
-    def __init__(self, definition: ThemeDefinition):
-        self.definition = definition
-        self.streams = []
-        for definition in self.definition.definitions:
-            self.enable(definition)
-
-    def iter_chunks(self):
-
-        while True:
-            data_recs = [next(rec) for rec in self.streams]
-            data = np.vstack(data_recs)
-            data = data.mean(axis=0).astype(data.dtype).reshape(1, -1)  # Mix recordings
-            yield data
-
-    def __iter__(self):
-        output = av.open(file='.mp3', mode="w")
-        bitrate = 128_000
-        out_stream = output.add_stream(codec_name='mp3', rate=44100, bit_rate=bitrate)
-        gen_dec = self.iter_chunks()
-
-        start_time = time.time()
-        audio_time = 0.0  # total audio duration sent
-
-        try:
-            while True:
-                for i, data in enumerate(gen_dec):
-                    frame = av.AudioFrame.from_ndarray(data, format='s16', layout='mono')
-                    frame.rate = 44100
-
-                    frame_duration = frame.samples / frame.rate
-                    audio_time += frame_duration
-
-                    for packet in out_stream.encode(frame):
-                        pbytes = bytes(packet)
-                        yield pbytes
-
-                    # Only sleep if we are ahead of real-time
-                    now = time.time()
-                    ahead = audio_time - (now - start_time)
-                    if ahead > 0:
-                        time.sleep(ahead)
-
-                    if i % LOG_THRESHOLD == 0:
-                        logger.debug(f'Waiting {ahead:.5f} seconds to maintain real-time pacing {audio_time=} {abs(data).mean()=}...')
-
-
-        finally:
-            print('Closing transcoder...')
-            gen_dec.close()
-            output.close()
