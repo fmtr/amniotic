@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from haco.button import Button
 from haco.number import Number
 from haco.select import Select
 from haco.switch import Switch
@@ -53,3 +54,25 @@ class NumberVolume(Number):
 
     async def state(self, value=None):
         return int(self.device.theme_current.instance_current.volume * 100)
+
+
+@dataclass(kw_only=True)
+class SelectMediaPlayer(Select):
+    async def command(self, value):
+        state = self.device.media_player_lookup[value]
+        self.device.media_player_current = state
+        return value
+
+    async def state(self, value):
+        return self.device.media_player_current.entity_id
+
+
+@dataclass(kw_only=True)
+class PlayStreamButton(Button):
+    def command(self, value):
+        media_player = self.device.client_ha.get_domain("media_player")
+        media_player.play_media(
+            entity_id=self.device.media_player_current.entity_id,
+            media_content_id=f'https://amniotic.ws.gex.fmtr.dev/stream/{self.device.theme_current.id}',
+            media_content_type="music",
+        )

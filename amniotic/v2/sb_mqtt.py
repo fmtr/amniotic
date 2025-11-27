@@ -1,13 +1,21 @@
 import asyncio
 
+import homeassistant_api
+
 from amniotic.v2.client import ClientAmniotic
 from amniotic.v2.device import Amniotic
-from fmtr.tools import Constants
+from fmtr.tools import Constants, env
 from haco.constants import MQTT_HOST
 
 
 async def main():
-    device = Amniotic(name=f"{Constants.DEVELOPMENT.capitalize()} Amniotic")
+    HA_URL = env.get("HOME_ASSISTANT_URL")
+    HA_TOKEN = env.get("HASSIO_TOKEN")
+
+    client_ha = homeassistant_api.Client(HA_URL, HA_TOKEN)
+
+    device = Amniotic(name=f"{Constants.DEVELOPMENT.capitalize()} Amniotic", client_ha=client_ha)
+
     client = ClientAmniotic(hostname=MQTT_HOST, device=device)
     await client.start()
 
