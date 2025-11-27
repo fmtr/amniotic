@@ -2,6 +2,7 @@ import logging
 
 from fastapi.responses import StreamingResponse
 
+from amniotic.v2.theme import ThemeDefinition
 from fmtr.tools import api, mqtt
 
 for name in ["uvicorn.access", "uvicorn.error", "uvicorn"]:
@@ -21,24 +22,17 @@ class ApiAmniotic(api.Base):
 
     def get_endpoints(self):
         endpoints = [
-            api.Endpoint(method_http=self.app.get, path='/stream', method=self.stream),
+            api.Endpoint(method_http=self.app.get, path='/stream/{id}', method=self.stream),
 
         ]
 
         return endpoints
 
-
-
-    async def stream(self):
-        theme_def = self.client.device.theme_current
-
-        stream = theme_def.get_instance()
+    async def stream(self, id: str):
+        theme_def: ThemeDefinition = self.client.device.theme_lookup_id[id]
+        stream = theme_def.get_stream()
 
         response = StreamingResponse(stream, media_type="audio/mpeg")
-        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-        response.headers["Pragma"] = "no-cache"
-        response.headers["Expires"] = "0"
-        response.headers["Connection"] = "close"  # Close the connection when done
 
         return response
 

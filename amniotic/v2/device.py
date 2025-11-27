@@ -52,6 +52,10 @@ class Amniotic(Device):
     def theme_lookup(self):
         return {theme.name: theme for theme in self.themes}
 
+    @property
+    def theme_lookup_id(self):
+        return {theme.id: theme for theme in self.themes}
+
     @logger.instrument('Setting current Theme to "{name}"...')
     def set_theme(self, name):
         theme = self.theme_lookup[name]

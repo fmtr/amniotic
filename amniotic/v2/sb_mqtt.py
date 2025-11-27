@@ -7,7 +7,7 @@ from haco.constants import MQTT_HOST
 
 
 async def main():
-    device = Amniotic(name=f"{Constants.DEVELOPMENT} Amniotic")
+    device = Amniotic(name=f"{Constants.DEVELOPMENT.capitalize()} Amniotic")
     client = ClientAmniotic(hostname=MQTT_HOST, device=device)
     await client.start()
 
