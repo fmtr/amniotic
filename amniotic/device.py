@@ -3,11 +3,11 @@ from functools import cached_property
 
 import homeassistant_api
 
+from amniotic.controls import SelectTheme, SelectRecording, PlayRecording, NumberVolume, SelectMediaPlayer, PlayStreamButton
 from amniotic.obs import logger
 from amniotic.paths import paths
-from amniotic.v2.controls import SelectTheme, SelectRecording, PlayRecording, NumberVolume, SelectMediaPlayer, PlayStreamButton
-from amniotic.v2.recording import RecordingMetadata
-from amniotic.v2.theme import ThemeDefinition
+from amniotic.recording import RecordingMetadata
+from amniotic.theme import ThemeDefinition
 from haco.device import Device
 
 

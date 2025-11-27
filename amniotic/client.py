@@ -1,7 +1,7 @@
 import asyncio
 
-from amniotic.v2.api import ApiAmniotic
-from amniotic.v2.device import Amniotic
+from amniotic.api import ApiAmniotic
+from amniotic.device import Amniotic
 from haco.client import ClientHaco
 
 

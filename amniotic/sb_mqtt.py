@@ -2,8 +2,8 @@ import asyncio
 
 import homeassistant_api
 
-from amniotic.v2.client import ClientAmniotic
-from amniotic.v2.device import Amniotic
+from amniotic.client import ClientAmniotic
+from amniotic.device import Amniotic
 from fmtr.tools import Constants, env
 from haco.constants import MQTT_HOST
 

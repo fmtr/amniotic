@@ -1,8 +1,8 @@
 import logging
 
-from amniotic.v2.theme import ThemeDefinition
 from fastapi.responses import StreamingResponse
 
+from amniotic.theme import ThemeDefinition
 from fmtr.tools import api, mqtt
 
 for name in ["uvicorn.access", "uvicorn.error", "uvicorn"]:

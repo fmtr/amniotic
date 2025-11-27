@@ -4,7 +4,7 @@ from functools import cached_property
 import numpy as np
 
 from amniotic.obs import logger
-from amniotic.v2.recording import LOG_THRESHOLD, RecordingThemeInstance
+from amniotic.recording import LOG_THRESHOLD, RecordingThemeInstance
 from fmtr.tools import av
 from fmtr.tools.string_tools import sanitize
 
@@ -79,7 +79,7 @@ class ThemeStream:
 
     @cached_property
     def chunk_silence(self):
-        from amniotic.v2.recording import RecordingThemeStream
+        from amniotic.recording import RecordingThemeStream
         data = np.zeros((1, RecordingThemeStream.CHUNK_SIZE), np.int16)
         return data
 
