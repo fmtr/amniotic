@@ -1,15 +1,15 @@
-from itertools import cycle
-
 import getpass
 import logging
-import vlc
-from cachetools.func import ttl_cache
 from copy import deepcopy
 from datetime import datetime
+from itertools import cycle
 from numbers import Number
 from pathlib import Path
 from random import choice
 from typing import Union, Optional, Dict
+
+import vlc
+from cachetools.func import ttl_cache
 
 VLC_VERBOSITY = 0
 DEVICES_POLL_PERIOD_SECONDS = 10

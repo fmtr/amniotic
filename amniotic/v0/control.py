@@ -1,7 +1,12 @@
+from time import sleep
+
 import json
 import logging
+import pip
 import threading
 from functools import cached_property
+from time import sleep
+from typing import Optional, Any
 from time import sleep
 from typing import Optional, Any
 
@@ -10,11 +15,16 @@ from johnnydep import JohnnyDist as Package
 from paho.mqtt import client as mqtt
 from pytubefix import YouTube, Stream
 
+import pip
 from amniotic.audio import Amniotic
 from amniotic.config import NAME
-from amniotic.mqtt.device import Device
-from amniotic.mqtt.loop import Loop
-from amniotic.mqtt.tools import Message, sanitize
+from johnnydep import JohnnyDist as Package
+from paho.mqtt import client as mqtt
+from pytube import YouTube, Stream
+
+from amniotic.v0.device import Device
+from amniotic.v0.loop import Loop
+from amniotic.v0.tools import Message, sanitize
 from amniotic.version import __version__
 
 

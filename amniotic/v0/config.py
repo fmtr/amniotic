@@ -1,16 +1,16 @@
-from _socket import gethostname
-from os import getenv
-
 import logging
-import yaml
-from appdirs import AppDirs
 from copy import deepcopy
 from dataclasses import dataclass, fields, field
-from distutils.util import strtobool
 from functools import lru_cache
-from getmac import getmac
+from os import getenv
 from pathlib import Path
 from typing import Dict, Optional
+
+import yaml
+from _socket import gethostname
+from appdirs import AppDirs
+from distutils.util import strtobool
+from getmac import getmac
 
 NAME = 'amniotic'
 ORG = 'frontmatter'

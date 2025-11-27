@@ -30,7 +30,7 @@ def start():
         msg = f'No Pulse socket found at "{path_pulse}". Using dedicated audio.'
         logging.warning(msg)
 
-    from amniotic.mqtt import loop
+    from amniotic.v0 import loop
     loop.start()
 
 if __name__ == '__main__':

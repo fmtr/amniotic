@@ -6,12 +6,12 @@ from json import JSONDecodeError
 from time import sleep
 from typing import Type
 
-from paho.mqtt import client as mqtt
-
 from amniotic.audio import Amniotic
 from amniotic.config import Config, IS_ADDON, PRESET_LAST_KEY
-from amniotic.mqtt.device import Device
-from amniotic.mqtt.tools import Message
+from paho.mqtt import client as mqtt
+
+from amniotic.v0.device import Device
+from amniotic.v0.tools import Message
 from amniotic.version import __version__
 
 
@@ -131,7 +131,7 @@ class Loop:
         Import all entity/sensor classes, excluding Update-related ones if we're running as an HA addon
 
         """
-        from amniotic.mqtt import control, sensor
+        from amniotic.v0 import control, sensor
 
         controls = [
             control.VolumeMaster,

@@ -1,7 +1,8 @@
 from typing import Optional
 
 from amniotic.config import MAC_ADDRESS
-from amniotic.mqtt.tools import sanitize
+
+from amniotic.v0.tools import sanitize
 from amniotic.version import __version__
 
 
