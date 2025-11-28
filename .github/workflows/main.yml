@@ -48,20 +48,6 @@ jobs:
           GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
         run: |
           git config --global user.name 'Frontmatter Actions'
-          git config --global user.email "$GIT_EMAIL"
-          echo -n ${VERSION} > ${NAME}/version
-          python ha/addon/update_version.py ${VERSION}
-          git add ${NAME}/version
-          git add ha/addon/config.yaml
-          git commit -am "Increment version number to ${VERSION} for release"
-          git push
-          git tag v${VERSION}
-          git push --tags
-      - name: Increment Version
-        env:
-          GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
-        run: |
-          git config --global user.name 'Frontmatter Actions'
           git config --global user.email "$GIT_EMAIL"       
           VERSION=${{ env.VERSION }}   
           git tag -a v${VERSION} -m "Release version ${VERSION}"
