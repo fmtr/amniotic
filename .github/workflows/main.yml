@@ -1,22 +1,32 @@
 name: Version and Deploy
 
 on:
+  push:
+    paths:
+      - 'amniotic/version'
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version'
-        required: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     env:
-      VERSION: ${{ github.event.inputs.version }}
       NAME: ${{ github.event.repository.name }}
+      NAME_SHORT: ${{ github.event.repository.name }}
+      ORG: ${{ github.repository_owner }}
+      PATH_VERSION: amniotic/version
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+
+      - name: Set Version Environment Variable
+        run: |
+          VERSION=$(cat ${PATH_VERSION})
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
@@ -24,6 +34,7 @@ jobs:
       - name: Install Tools
         run: |
           pip install twine pyyaml
+          pip install -U packaging setuptools twine pip build
 
       - name: Docker Login
         env:
@@ -47,15 +58,34 @@ jobs:
           git tag v${VERSION}
           git push --tags
 
-      - name: Create GitHub Release
-        uses: ncipollo/release-action@v1
+      - name: Increment Version
+        env:
+          GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
+        run: |
+               git config --global user.name 'Frontmatter Actions'
+               git config --global user.email "$GIT_EMAIL"       
+               VERSION=${{ env.VERSION }}   
+          
+          #          python ha/addon/update_version.py ${VERSION}
+          #          git add ${NAME}/version
+          #          git add ha/addon/config.yaml
+          #          git commit -am "Increment version number to ${VERSION} for release"
+               
+               git tag -a v${VERSION} -m "Release version ${VERSION}"
+               git checkout --track origin/release
+               git rebase main
+               git push --follow-tags
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
         with:
-          generateReleaseNotes: true
-          tag: v${{ github.event.inputs.version }}
+          tag_name: v${{ env.VERSION }}
+          generate_release_notes: true
+          prerelease: true
 
       - name: Build Wheel
         run: |
-          python setup.py sdist bdist_wheel
+          python -m build
 
       - name: Push Wheel
         env:
@@ -65,5 +95,10 @@ jobs:
           twine upload dist/*
 
       - name: Build and Push Docker
-        run: |
-          docker buildx build . --build-arg TYPE=release --build-arg VERSION=${VERSION} --tag fmtr/${NAME}:v${VERSION} --tag fmtr/${NAME}:latest --push --platform linux/386,linux/amd64,linux/arm/v5,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x
+        run: | # --tag fmtr/${{ env.NAME }}:latest \
+          docker buildx build . \
+            --build-arg TYPE=release \
+            --build-arg VERSION=${{ env.VERSION }} \
+            --tag fmtr/${{ env.NAME }}:v${{ env.VERSION }} \            
+            --push \
+            --platform linux/386,linux/amd64,linux/arm/v5,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x
