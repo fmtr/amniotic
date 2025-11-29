@@ -5,6 +5,7 @@ setup = Setup(
     dependencies=dict(
         install=[
             'fmtr.tools[version.dev,logging,sets,yaml,debug,caching,api,mqtt,path.app,tabular,av]',
+            'haco==1.0.0alpha004',
             'homeassistant_api'
         ]
     ),
