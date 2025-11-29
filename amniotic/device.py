@@ -17,7 +17,7 @@ class Amniotic(Device):
     theme_current: ThemeDefinition = field(default=None, metadata=dict(exclude=True))
     client_ha: homeassistant_api.Client = field(default=None, metadata=dict(exclude=True))
 
-    path_audio_str: str
+    path_audio_str: str = field(metadata=dict(exclude=True))
 
     def __post_init__(self):
         self.metas = [RecordingMetadata(path) for path in self.path_audio.iterdir()]  # All those on disk.
