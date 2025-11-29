@@ -73,6 +73,7 @@ class PlayStreamButton(Button):
         media_player = self.device.client_ha.get_domain("media_player")
         media_player.play_media(
             entity_id=self.device.media_player_current.entity_id,
-            media_content_id=f'https://amniotic.ws.gex.fmtr.dev/stream/{self.device.theme_current.id}',
+            media_content_id=self.device.theme_current.url,
             media_content_type="music",
         )
+        self

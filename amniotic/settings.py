@@ -1,20 +1,30 @@
 import asyncio
 
+from pydantic import Field
+
+from amniotic.client import ClientAmniotic
+from amniotic.device import Amniotic
 from amniotic.paths import paths
-from fmtr.tools import sets, Constants
+from fmtr.tools import sets, mqtt
 
 
 class Settings(sets.Base):
     paths = paths
 
-    # mqtt: mqtt.Client.Args
+    home_assistant_url: str = Field(alias="HOME_ASSISTANT_URL")
+    hassio_token: str = Field(alias="HASSIO_TOKEN")
+
+    stream_url: str
+    name: str = Amniotic.__name__
+    mqtt: mqtt.Client.Args
+    path_audio: str = str(paths.audio)
 
     def run(self):
         super().run()
         asyncio.run(self.run_async())
 
     async def run_async(self):
-        from fmtr.tools import debug, env
+        from fmtr.tools import debug
         debug.trace()
         from fmtr import tools
         from amniotic.obs import logger
@@ -25,21 +35,11 @@ class Settings(sets.Base):
         logger.debug(f'{paths.settings.exists()=} {str(paths.settings)=}')
 
         logger.info(f'Launching...')
-        from amniotic.client import ClientAmniotic
-        from amniotic.device import Amniotic
         import homeassistant_api
-
-        HA_URL = env.get("HOME_ASSISTANT_URL")
-        HA_TOKEN = env.get("HASSIO_TOKEN")
-
-        client_ha = homeassistant_api.Client(HA_URL, HA_TOKEN)
-
-        device = Amniotic(name=f"{Constants.DEVELOPMENT.capitalize()} Amniotic", client_ha=client_ha)
-
-        from haco.constants import MQTT_HOST
-        client = ClientAmniotic(hostname=MQTT_HOST, device=device)
+        client_ha = homeassistant_api.Client(f'{self.home_assistant_url}/api', self.hassio_token)
+        device = Amniotic(name=self.name, client_ha=client_ha, path_audio_str=self.path_audio)
+        client = ClientAmniotic.from_args(self.mqtt, device=device)
         await client.start()
-
 
 settings = Settings()
 settings

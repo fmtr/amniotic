@@ -5,9 +5,9 @@ import homeassistant_api
 
 from amniotic.controls import SelectTheme, SelectRecording, PlayRecording, NumberVolume, SelectMediaPlayer, PlayStreamButton
 from amniotic.obs import logger
-from amniotic.paths import paths
 from amniotic.recording import RecordingMetadata
 from amniotic.theme import ThemeDefinition
+from fmtr.tools import Path
 from haco.device import Device
 
 
@@ -17,10 +17,10 @@ class Amniotic(Device):
     theme_current: ThemeDefinition = field(default=None, metadata=dict(exclude=True))
     client_ha: homeassistant_api.Client = field(default=None, metadata=dict(exclude=True))
 
-
+    path_audio_str: str
 
     def __post_init__(self):
-        self.metas = [RecordingMetadata(path) for path in paths.audio.iterdir()]  # All those on disk.
+        self.metas = [RecordingMetadata(path) for path in self.path_audio.iterdir()]  # All those on disk.
         self.meta_current = next(iter(self.metas))
 
 
@@ -35,6 +35,10 @@ class Amniotic(Device):
         self.media_player_current = next(iter(self.media_player_states))
 
         self.controls = [self.select_recording, self.select_theme, self.swt_play, self.nbr_volume, self.select_media_player, self.btn_play]
+
+    @cached_property
+    def path_audio(self):
+        return Path(self.path_audio_str)
 
     @cached_property
     def select_theme(self):

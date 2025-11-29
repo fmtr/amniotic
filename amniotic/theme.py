@@ -40,6 +40,11 @@ class ThemeDefinition:
         self.streams: list[ThemeStream] = []
 
     @cached_property
+    def url(self) -> str:
+        from amniotic.settings import settings
+        return f'{settings.stream_url}/stream/{self.id}'
+
+    @cached_property
     def id(self):
         return sanitize(self.name)
 
