@@ -74,4 +74,4 @@ jobs:
           twine upload dist/*
 
       - name: Build and Push Docker
-        run: docker buildx build . --build-arg TYPE=release --build-arg VERSION=${{ env.VERSION }} --tag fmtr/${{ env.NAME }}:v${{ env.VERSION }} --push --platform linux/amd64,linux/arm64
+        run: docker buildx build . --build-arg VERSION=${{ env.VERSION }} --tag fmtr/${{ env.NAME }}:v${{ env.VERSION }} --push --platform linux/amd64,linux/arm64
