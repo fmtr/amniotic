@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from amniotic.obs import logger
 from haco.button import Button
 from haco.number import Number
 from haco.select import Select
@@ -71,9 +72,10 @@ class SelectMediaPlayer(Select):
 class PlayStreamButton(Button):
     def command(self, value):
         media_player = self.device.client_ha.get_domain("media_player")
-        media_player.play_media(
-            entity_id=self.device.media_player_current.entity_id,
-            media_content_id=self.device.theme_current.url,
-            media_content_type="music",
-        )
-        self
+
+        with logger.span(f'Sending play_media to {self.device.media_player_current.entity_id}: {self.device.theme_current.url}'):
+            media_player.play_media(
+                entity_id=self.device.media_player_current.entity_id,
+                media_content_id=self.device.theme_current.url,
+                media_content_type="music",
+            )

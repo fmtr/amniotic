@@ -60,7 +60,7 @@ jobs:
         with:
           tag_name: v${{ env.VERSION }}
           generate_release_notes: true
-          prerelease: true
+          #prerelease: true
 
       - name: Build Wheel
         run: |
@@ -74,4 +74,4 @@ jobs:
           twine upload dist/*
 
       - name: Build and Push Docker
-        run: docker buildx build . --build-arg VERSION=${{ env.VERSION }} --tag fmtr/${{ env.NAME }}:v${{ env.VERSION }} --push --platform linux/amd64,linux/arm64
+        run: docker buildx build . --build-arg VERSION=${{ env.VERSION }} --tag fmtr/${{ env.NAME }}:v${{ env.VERSION }} --tag fmtr/${{ env.NAME }}:latest --push --platform linux/amd64,linux/arm64
