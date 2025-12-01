@@ -4,8 +4,9 @@ from functools import cached_property
 import numpy as np
 
 from amniotic.obs import logger
-from amniotic.recording import LOG_THRESHOLD, RecordingThemeInstance
+from amniotic.recording import LOG_THRESHOLD
 from fmtr.tools import av
+from fmtr.tools.iterator_tools import IndexList
 from fmtr.tools.string_tools import sanitize
 
 
@@ -34,7 +35,7 @@ class ThemeDefinition:
         self.amniotic = amniotic
         self.name = name
 
-        self.instances: list[RecordingThemeInstance] = [meta.get_instance() for meta in self.amniotic.metas]
+        self.instances = IndexList(meta.get_instance() for meta in self.amniotic.metas)
         self.instance_current = next(iter(self.instances))
 
         self.streams: list[ThemeStream] = []
@@ -48,13 +49,10 @@ class ThemeDefinition:
     def id(self):
         return sanitize(self.name)
 
-    @cached_property
-    def instance_lookup(self):
-        return {instance.name: instance for instance in self.instances}
 
     @logger.instrument('Setting Theme "{self.name}" current recording instance to "{name}"...')
     def set_instance(self, name):
-        instance = self.instance_lookup[name]
+        instance = self.instances.name[name]
         self.instance_current = instance
 
     def get_stream(self):

@@ -1,14 +1,38 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from dataclasses import field, fields
 from functools import cached_property
+from typing import Self
 
 import homeassistant_api
 
 from amniotic.controls import SelectTheme, SelectRecording, PlayRecording, NumberVolume, SelectMediaPlayer, PlayStreamButton
-from amniotic.obs import logger
 from amniotic.recording import RecordingMetadata
 from amniotic.theme import ThemeDefinition
 from fmtr.tools import Path
+from fmtr.tools.iterator_tools import IndexList
 from haco.device import Device
+
+
+@dataclass
+class MediaState:
+    entity_id: str
+    state: str
+    friendly_name: str
+    media_content_type: str
+    media_duration: int
+    media_position: int
+    media_position_updated_at: str
+    supported_features: int
+    volume_level: float
+
+    @classmethod
+    def from_state(cls, state) -> Self:
+        data = state.model_dump()
+        data |= data.pop('attributes')
+        allowed = {f.name for f in fields(cls)}
+        filtered = {k: v for k, v in data.items() if k in allowed}
+        self = cls(**filtered)
+        return self
 
 
 @dataclass(kw_only=True)
@@ -20,9 +44,10 @@ class Amniotic(Device):
     path_audio_str: str = field(metadata=dict(exclude=True))
 
     def __post_init__(self):
-        self.metas = [RecordingMetadata(path) for path in self.path_audio.iterdir()]  # All those on disk.
+        self.metas = IndexList(RecordingMetadata(path) for path in self.path_audio.iterdir())  # All those on disk.
         self.meta_current = next(iter(self.metas))
 
+        self.themes = IndexList(self.themes)
 
         theme = ThemeDefinition(amniotic=self, name='Default A')
         self.themes.append(theme)
@@ -31,7 +56,8 @@ class Amniotic(Device):
         theme = ThemeDefinition(amniotic=self, name='Default B')
         self.themes.append(theme)
 
-        self.media_player_states = [s for s in self.client_ha.get_states() if s.entity_id.startswith("media_player.")]
+        media_players_data = [state for state in self.client_ha.get_states() if state.entity_id.startswith("media_player.")]
+        self.media_player_states = IndexList(MediaState.from_state(data) for data in media_players_data)
         self.media_player_current = next(iter(self.media_player_states))
 
         self.controls = [self.select_recording, self.select_theme, self.swt_play, self.nbr_volume, self.select_media_player, self.btn_play]
@@ -50,7 +76,7 @@ class Amniotic(Device):
 
     @cached_property
     def select_media_player(self):
-        return SelectMediaPlayer(name="Media Player", options=list(self.media_player_lookup.keys()))
+        return SelectMediaPlayer(name="Media Player", options=list(self.media_player_states.entity_id.keys()))
 
     @cached_property
     def swt_play(self):
@@ -64,19 +90,4 @@ class Amniotic(Device):
     def nbr_volume(self):
         return NumberVolume(name="Volume")
 
-    @property
-    def theme_lookup(self):
-        return {theme.name: theme for theme in self.themes}
 
-    @property
-    def media_player_lookup(self):
-        return {state.entity_id: state for state in self.media_player_states}
-
-    @property
-    def theme_lookup_id(self):
-        return {theme.id: theme for theme in self.themes}
-
-    @logger.instrument('Setting current Theme to "{name}"...')
-    def set_theme(self, name):
-        theme = self.theme_lookup[name]
-        self.theme_current = theme

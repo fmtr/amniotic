@@ -9,10 +9,13 @@ from haco.switch import Switch
 
 @dataclass(kw_only=True)
 class SelectTheme(Select):
+    icon: str = 'surround-sound'
 
     async def command(self, value):
-        self.device.set_theme(value)
+        theme = self.device.themes.name[value]
+        self.device.theme_current = theme
         return value
+
 
     async def state(self, value=None):
         name = self.device.theme_current.name
@@ -48,6 +51,7 @@ class PlayRecording(Switch):
 
 @dataclass(kw_only=True)
 class NumberVolume(Number):
+    icon: str = 'volume-medium'
 
     async def command(self, value):
         self.device.theme_current.instance_current.volume = value / 100
@@ -60,7 +64,7 @@ class NumberVolume(Number):
 @dataclass(kw_only=True)
 class SelectMediaPlayer(Select):
     async def command(self, value):
-        state = self.device.media_player_lookup[value]
+        state = self.device.media_player_states.entity_id[value]
         self.device.media_player_current = state
         return value
 
@@ -77,5 +81,6 @@ class PlayStreamButton(Button):
             media_player.play_media(
                 entity_id=self.device.media_player_current.entity_id,
                 media_content_id=self.device.theme_current.url,
-                media_content_type="music",
+                media_content_type="channel",
+                extra=dict(title=self.device.theme_current.name)
             )

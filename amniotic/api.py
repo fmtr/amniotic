@@ -29,7 +29,7 @@ class ApiAmniotic(api.Base):
         return endpoints
 
     async def stream(self, id: str):
-        theme_def: ThemeDefinition = self.client.device.theme_lookup_id[id]
+        theme_def: ThemeDefinition = self.client.device.themes.id[id]
         stream = theme_def.get_stream()
 
         response = StreamingResponse(stream, media_type="audio/mpeg")
