@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from amniotic.obs import logger
 from haco.button import Button
+from haco.control import Control
 from haco.number import Number
 from haco.select import Select
 from haco.sensor import Sensor
@@ -9,28 +10,47 @@ from haco.switch import Switch
 
 
 @dataclass(kw_only=True)
-class SelectTheme(Select):
+class ThemeRelativeControl(Control):
+
+    @property
+    def themes(self):
+        return self.device.themes
+
+    @property
+    def theme(self):
+        return self.themes.current
+
+    @property
+    def instances(self):
+        return self.theme.instances
+
+    @property
+    def instance(self):
+        return self.instances.current
+
+
+@dataclass(kw_only=True)
+class SelectTheme(Select, ThemeRelativeControl):
     icon: str = 'surround-sound'
 
     async def command(self, value):
-        theme = self.device.themes.name[value]
-        self.device.themes.current = theme
+        theme = self.themes.name[value]
+        self.themes.current = theme
         return value
 
 
     async def state(self, value=None):
-        name = self.device.themes.current.name
+        name = self.theme.name
         await self.device.select_recording.state()
         await self.device.sns_url.state()
         return name
 
 @dataclass(kw_only=True)
-class SelectRecording(Select):
+class SelectRecording(Select, ThemeRelativeControl):
 
-    # @logger.instrument('Setting Theme "{self.name}" current recording instance to "{name}"...')
+    @logger.instrument('Setting Theme "{self.theme.name}" current recording instance to "{value}"...')
     async def command(self, value):
-        self.device.themes.current.instances.current = self.device.themes.current.instances.name[value]
-
+        self.instances.current = self.instances.name[value]
         return value
 
     async def state(self, value):
@@ -42,30 +62,31 @@ class SelectRecording(Select):
 
 
 @dataclass(kw_only=True)
-class PlayRecording(Switch):
+class PlayRecording(Switch, ThemeRelativeControl):
 
+    @logger.instrument('Enabling recording instance "{self.instances.current.name}" for Theme "{self.theme.name}"...')
     async def command(self, value):
-        self.device.themes.current.instances.current.is_enabled = value
+        self.instance.is_enabled = value
 
     async def state(self, value=None):
-        is_enabled = self.device.themes.current.instances.current.is_enabled
+        is_enabled = self.instance.is_enabled
         return is_enabled
 
 
 @dataclass(kw_only=True)
-class NumberVolume(Number):
+class NumberVolume(Number, ThemeRelativeControl):
     icon: str = 'volume-medium'
 
     async def command(self, value):
-        self.device.themes.current.instances.current.volume = value / 100
+        self.instance.volume = value / 100
 
 
     async def state(self, value=None):
-        return int(self.device.themes.current.instances.current.volume * 100)
+        return int(self.instance.volume * 100)
 
 
 @dataclass(kw_only=True)
-class SelectMediaPlayer(Select):
+class SelectMediaPlayer(Select, ThemeRelativeControl):
     async def command(self, value):
         state = self.device.media_player_states.entity_id[value]
         self.device.media_player_states.current = state
@@ -76,25 +97,24 @@ class SelectMediaPlayer(Select):
 
 
 @dataclass(kw_only=True)
-class StreamURL(Sensor):
+class StreamURL(Sensor, ThemeRelativeControl):
     nane: str = 'Current Stream URL'
 
     async def state(self, value=None):
-        return self.device.themes.current.url
+        return self.theme.url
 
 
 @dataclass(kw_only=True)
-class PlayStreamButton(Button):
+class PlayStreamButton(Button, ThemeRelativeControl):
     def command(self, value):
         media_player = self.device.client_ha.get_domain("media_player")
 
         state = self.device.media_player_states.current
-        theme = self.device.themes.current
 
-        with logger.span(f'Sending play_media to {state.entity_id}: {theme.url}'):
+        with logger.span(f'Sending play_media to {state.entity_id}: {self.theme.url}'):
             media_player.play_media(
                 entity_id=state.entity_id,
-                media_content_id=theme.url,
+                media_content_id=self.theme.url,
                 media_content_type="channel",
-                extra=dict(title=theme.name)
+                extra=dict(title=self.theme.name)
             )
