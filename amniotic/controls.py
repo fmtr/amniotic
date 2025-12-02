@@ -4,6 +4,7 @@ from amniotic.obs import logger
 from haco.button import Button
 from haco.number import Number
 from haco.select import Select
+from haco.sensor import Sensor
 from haco.switch import Switch
 
 
@@ -20,6 +21,7 @@ class SelectTheme(Select):
     async def state(self, value=None):
         name = self.device.theme_current.name
         await self.device.select_recording.state()
+        await self.device.sns_url.state()
         return name
 
 @dataclass(kw_only=True)
@@ -70,6 +72,14 @@ class SelectMediaPlayer(Select):
 
     async def state(self, value):
         return self.device.media_player_current.entity_id
+
+
+@dataclass(kw_only=True)
+class StreamURL(Sensor):
+    nane: str = 'Current Stream URL'
+
+    async def state(self, value=None):
+        return self.device.theme_current.url
 
 
 @dataclass(kw_only=True)

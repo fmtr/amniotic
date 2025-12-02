@@ -1,11 +1,10 @@
+import homeassistant_api
 from dataclasses import dataclass
 from dataclasses import field, fields
 from functools import cached_property
 from typing import Self
 
-import homeassistant_api
-
-from amniotic.controls import SelectTheme, SelectRecording, PlayRecording, NumberVolume, SelectMediaPlayer, PlayStreamButton
+from amniotic.controls import SelectTheme, SelectRecording, PlayRecording, NumberVolume, SelectMediaPlayer, PlayStreamButton, StreamURL
 from amniotic.recording import RecordingMetadata
 from amniotic.theme import ThemeDefinition
 from fmtr.tools import Path
@@ -60,7 +59,7 @@ class Amniotic(Device):
         self.media_player_states = IndexList(MediaState.from_state(data) for data in media_players_data)
         self.media_player_current = next(iter(self.media_player_states))
 
-        self.controls = [self.select_recording, self.select_theme, self.swt_play, self.nbr_volume, self.select_media_player, self.btn_play]
+        self.controls = [self.select_recording, self.select_theme, self.swt_play, self.nbr_volume, self.select_media_player, self.btn_play, self.sns_url]
 
     @cached_property
     def path_audio(self):
@@ -85,6 +84,10 @@ class Amniotic(Device):
     @cached_property
     def btn_play(self):
         return PlayStreamButton(name="Play Stream")
+
+    @cached_property
+    def sns_url(self):
+        return StreamURL(name="Stream URL")
 
     @cached_property
     def nbr_volume(self):
