@@ -36,28 +36,23 @@ class MediaState:
 
 @dataclass(kw_only=True)
 class Amniotic(Device):
-    themes: list[ThemeDefinition] = field(default_factory=list, metadata=dict(exclude=True))
-    theme_current: ThemeDefinition = field(default=None, metadata=dict(exclude=True))
-    client_ha: homeassistant_api.Client = field(default=None, metadata=dict(exclude=True))
+    themes: IndexList[ThemeDefinition] = field(default_factory=IndexList, metadata=dict(exclude=True))
+    metas: IndexList[RecordingMetadata] = field(default_factory=IndexList, metadata=dict(exclude=True))
+
+    client_ha: homeassistant_api.Client | None = field(default=None, metadata=dict(exclude=True))
 
     path_audio_str: str = field(metadata=dict(exclude=True))
 
     def __post_init__(self):
         self.metas = IndexList(RecordingMetadata(path) for path in self.path_audio.iterdir())  # All those on disk.
-        self.meta_current = next(iter(self.metas))
 
-        self.themes = IndexList(self.themes)
+        theme_a = ThemeDefinition(amniotic=self, name='A')
+        theme_b = ThemeDefinition(amniotic=self, name='B')
+        self.themes = IndexList([theme_a, theme_b])
 
-        theme = ThemeDefinition(amniotic=self, name='Default A')
-        self.themes.append(theme)
-        self.theme_current: ThemeDefinition = theme
-
-        theme = ThemeDefinition(amniotic=self, name='Default B')
-        self.themes.append(theme)
 
         media_players_data = [state for state in self.client_ha.get_states() if state.entity_id.startswith("media_player.")]
         self.media_player_states = IndexList(MediaState.from_state(data) for data in media_players_data)
-        self.media_player_current = next(iter(self.media_player_states))
 
         self.controls = [self.select_recording, self.select_theme, self.swt_play, self.nbr_volume, self.select_media_player, self.btn_play, self.sns_url]
 

@@ -1,7 +1,6 @@
+import numpy as np
 import time
 from functools import cached_property
-
-import numpy as np
 
 from amniotic.obs import logger
 from amniotic.recording import LOG_THRESHOLD
@@ -49,11 +48,6 @@ class ThemeDefinition:
     def id(self):
         return sanitize(self.name)
 
-
-    @logger.instrument('Setting Theme "{self.name}" current recording instance to "{name}"...')
-    def set_instance(self, name):
-        instance = self.instances.name[name]
-        self.instance_current = instance
 
     def get_stream(self):
         theme = ThemeStream(self)
