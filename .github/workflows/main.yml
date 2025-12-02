@@ -73,5 +73,9 @@ jobs:
         run: |
           twine upload dist/*
 
+      - name: Wait for PyPI
+        run: |
+          sleep 60
+
       - name: Build and Push Docker
         run: docker buildx build . --build-arg VERSION=${{ env.VERSION }} --tag fmtr/${{ env.NAME }}:v${{ env.VERSION }} --tag fmtr/${{ env.NAME }}:latest --push --platform linux/amd64,linux/arm64
