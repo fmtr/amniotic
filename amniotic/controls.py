@@ -64,7 +64,7 @@ class SelectRecording(Select, ThemeRelativeControl):
 @dataclass(kw_only=True)
 class PlayRecording(Switch, ThemeRelativeControl):
 
-    @logger.instrument('Enabling recording instance "{self.instances.current.name}" for Theme "{self.theme.name}"...')
+    @logger.instrument('Toggling {value=} recording instance "{self.instances.current.name}" for Theme "{self.theme.name}"...')
     async def command(self, value):
         self.instance.is_enabled = value
 
@@ -77,6 +77,7 @@ class PlayRecording(Switch, ThemeRelativeControl):
 class NumberVolume(Number, ThemeRelativeControl):
     icon: str = 'volume-medium'
 
+    @logger.instrument('Setting volume to {value} for recording instance "{self.instances.current.name}" for Theme "{self.theme.name}"...')
     async def command(self, value):
         self.instance.volume = value / 100
 
@@ -87,6 +88,8 @@ class NumberVolume(Number, ThemeRelativeControl):
 
 @dataclass(kw_only=True)
 class SelectMediaPlayer(Select, ThemeRelativeControl):
+
+    @logger.instrument('Selecting Media Play "{value}" for Theme "{self.theme.name}"...')
     async def command(self, value):
         state = self.device.media_player_states.entity_id[value]
         self.device.media_player_states.current = state
