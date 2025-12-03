@@ -11,7 +11,7 @@ name: Amniotic
 panel_icon: mdi:nature-people
 slug: amniotic
 url: https://fmtr.link/amniotic
-version: 1.0.7
+version: 1.0.8
 
 ports:
   8007/tcp: 8080
