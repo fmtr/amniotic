@@ -1,1 +1,1 @@
-For general documentation, see **[the project wiki](https://fmtr.link/amniotic/doc)**.
+None yet.

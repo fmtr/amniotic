@@ -1,11 +1,24 @@
 #!/usr/bin/with-contenv bashio
 
-export AMNIOTIC_IS_ADDON=true
-export AMNIOTIC_CONFIG_PATH="/config/amniotic.yml"
-export AMNIOTIC_MQTT_HOST="$(bashio::services mqtt 'host')"
-export AMNIOTIC_MQTT_PASSWORD="$(bashio::services mqtt 'password')"
-export AMNIOTIC_MQTT_PORT="$(bashio::services mqtt 'port')"
-export AMNIOTIC_MQTT_USERNAME="$(bashio::services mqtt 'username')"
-export AMNIOTIC_PATH_AUDIO="/media/$(bashio::config 'audio_subdirectory')"
 
-amniotic
+export AMNIOTIC__HOME_ASSISTANT_URL="http://supervisor"
+
+export AMNIOTIC__MQTT__HOSTNAME="$(bashio::services mqtt 'host')"
+export AMNIOTIC__MQTT__PORT="$(bashio::services mqtt 'port')"
+export AMNIOTIC__MQTT__USERNAME="$(bashio::config 'amniotic__mqtt__username')"
+export AMNIOTIC__MQTT__PASSWORD="$(bashio::services mqtt 'username')"
+
+
+
+
+#export AMNIOTIC__MQTT__HOSTNAME="$(bashio::config 'amniotic__mqtt__hostname')"
+#export AMNIOTIC__MQTT__PORT="$(bashio::config 'amniotic__mqtt__port')"
+#export AMNIOTIC__MQTT__USERNAME="$(bashio::config 'amniotic__mqtt__username')"
+#export AMNIOTIC__MQTT__PASSWORD="$(bashio::config 'amniotic__mqtt__password')"
+
+
+
+export AMNIOTIC__STREAM_URL="$(bashio::config 'amniotic__stream_url')"
+export AMNIOTIC__PATH_AUDIO="$(bashio::config 'amniotic__path_audio')"
+
+/opt/dev/venv/amniotic/bin/amniotic
