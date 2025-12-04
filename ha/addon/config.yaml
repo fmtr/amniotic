@@ -34,4 +34,4 @@ schema:
   amniotic__stream_url: str
   amniotic__path_audio: str
 
-version: 1.0.9
+version: 1.0.10
