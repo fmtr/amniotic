@@ -1,7 +1,7 @@
 #!/usr/bin/with-contenv bashio
 
 
-export HOME_ASSISTANT_URL="http://supervisor/core"
+export HOME_ASSISTANT_URL="http://supervisor"
 
 export AMNIOTIC__MQTT__HOSTNAME="$(bashio::services mqtt 'host')"
 export AMNIOTIC__MQTT__PORT="$(bashio::services mqtt 'port' || echo 1883)"
