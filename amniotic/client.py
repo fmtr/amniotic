@@ -16,7 +16,7 @@ class ClientAmniotic(ClientHaco):
     def __init__(self, device: Amniotic, *args, **kwargs):
         super().__init__(device=device, *args, **kwargs)
 
-    @logger.instrument('Starting MQTT client {self.username}@{self.hostname}:{self.port}...')
+    @logger.instrument('Starting MQTT client {self._client.username}@{self._hostname}:{self._port}...')
     async def start(self):
         await asyncio.gather(
             super().start(),
