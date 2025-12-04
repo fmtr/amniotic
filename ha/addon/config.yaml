@@ -4,6 +4,7 @@ arch:
 
 description: A multi-output ambient sound mixer for Home Assistant
 init: false
+
 map:
   - media:rw
   - config:rw
@@ -34,4 +35,8 @@ schema:
   amniotic__stream_url: str
   amniotic__path_audio: str
 
-version: 1.0.12
+services:
+  - mqtt:need
+
+version: 1.0.13
+
