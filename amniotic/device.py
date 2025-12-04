@@ -17,12 +17,7 @@ class MediaState:
     entity_id: str
     state: str
     friendly_name: str
-    media_content_type: str
-    media_duration: int
-    media_position: int
-    media_position_updated_at: str
     supported_features: int
-    volume_level: float
 
     @classmethod
     def from_state(cls, state) -> Self:
