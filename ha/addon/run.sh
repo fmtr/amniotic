@@ -1,7 +1,7 @@
 #!/usr/bin/with-contenv bashio
 
 
-export HOME_ASSISTANT_URL="http://supervisor"
+export HOME_ASSISTANT_URL="http://supervisor/core"
 
 export AMNIOTIC__MQTT__HOSTNAME="$(bashio::services mqtt 'host')"
 export AMNIOTIC__MQTT__PORT="$(bashio::services mqtt 'port' || echo 1883)"
@@ -21,4 +21,5 @@ export AMNIOTIC__MQTT__PASSWORD="$(bashio::services mqtt 'password')"
 export AMNIOTIC__STREAM_URL="$(bashio::config 'amniotic__stream_url')"
 export AMNIOTIC__PATH_AUDIO="$(bashio::config 'amniotic__path_audio')"
 
-/opt/dev/venv/amniotic/bin/amniotic
+/opt/dev/venv/amniotic/bin/amniotic || sleep infinity
+

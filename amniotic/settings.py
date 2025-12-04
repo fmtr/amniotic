@@ -1,5 +1,4 @@
 import asyncio
-
 from pydantic import Field
 
 from amniotic.client import ClientAmniotic
@@ -36,7 +35,7 @@ class Settings(sets.Base):
 
         logger.info(f'Launching...')
         import homeassistant_api
-        client_ha = homeassistant_api.Client(f'{self.home_assistant_url}/api', self.hassio_token)
+        client_ha = homeassistant_api.Client(self.home_assistant_url, self.hassio_token)
         device = Amniotic(name=self.name, client_ha=client_ha, path_audio_str=self.path_audio, sw_version=__version__, manufacturer=paths.org_singleton, model=Amniotic.__name__)
         client = ClientAmniotic.from_args(self.mqtt, device=device)
         await client.start()
