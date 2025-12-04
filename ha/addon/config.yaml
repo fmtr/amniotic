@@ -37,7 +37,10 @@ schema:
 
 services:
   - mqtt:need
-  - homeassistant:need
 
-version: 1.0.15
+
+
+homeassistant_api: true
+
+version: 1.0.16
 
