@@ -15,7 +15,7 @@ url: https://fmtr.link/amniotic
 
 
 ports:
-  8007/tcp: 8080
+  8080/tcp: 8007
 
 audio: false
 
@@ -42,5 +42,5 @@ services:
 
 homeassistant_api: true
 
-version: 1.0.17
+version: 1.0.18
 
