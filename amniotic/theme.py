@@ -120,7 +120,7 @@ class ThemeStream:
                         time.sleep(ahead)
 
                     if i % LOG_THRESHOLD == 0:
-                        logger.debug(f'Waiting {ahead:.5f} seconds to maintain real-time pacing {audio_time=} {abs(data).mean()=}...')
+                        logger.debug(f'Waiting {ahead:.5f} seconds to maintain real-time pacing {audio_time=}...')
 
 
         finally:

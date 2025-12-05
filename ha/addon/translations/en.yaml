@@ -23,8 +23,8 @@ configuration:
 
   amniotic__path_audio:
     name: Audio Path
-    description: Path inside the container where Amniotic stores audio files.
+    description: Path where Amniotic stores audio files.
 
   is_ssh:
     name: Start Development SSH Server
-    description: Only use if you want an SSH server for development, which you almost certainly do not.
+    description: Only use this option if you want an SSH server for development, which you almost certainly do not.
