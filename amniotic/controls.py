@@ -56,7 +56,9 @@ class SelectRecording(Select, ThemeRelativeControl):
     async def state(self, value):
         await self.device.swt_play.state()
         await self.device.nbr_volume.state()
-        return self.instance.name
+        if self.instance:
+            return self.instance.name
+        return None
 
 
 
@@ -69,8 +71,9 @@ class PlayRecording(Switch, ThemeRelativeControl):
         self.instance.is_enabled = value
 
     async def state(self, value=None):
-        is_enabled = self.instance.is_enabled
-        return is_enabled
+        if self.instance:
+            return self.instance.is_enabled
+        return None
 
 
 @dataclass(kw_only=True)
@@ -79,11 +82,15 @@ class NumberVolume(Number, ThemeRelativeControl):
 
     @logger.instrument('Setting volume to {value} for recording instance "{self.instances.current.name}" for Theme "{self.theme.name}"...')
     async def command(self, value):
-        self.instance.volume = value / 100
+        if self.instance:
+            self.instance.volume = value / 100
+
 
 
     async def state(self, value=None):
-        return int(self.instance.volume * 100)
+        if self.instance:
+            return int(self.instance.volume * 100)
+        return None
 
 
 @dataclass(kw_only=True)
@@ -96,7 +103,10 @@ class SelectMediaPlayer(Select, ThemeRelativeControl):
         return value
 
     async def state(self, value):
-        return self.device.media_player_states.current.entity_id
+        player = self.device.media_player_states.current
+        if player:
+            return player.entity_id
+        return None
 
 
 @dataclass(kw_only=True)

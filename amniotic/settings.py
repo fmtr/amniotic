@@ -35,9 +35,7 @@ class Settings(sets.Base):
         logger.info(f'Launching {paths.name_ns} {__version__=} {tools.get_version()=} from entrypoint.')
         logger.debug(f'{paths.settings.exists()=} {str(paths.settings)=}')
 
-        if Path('/addon.env').exists():
-            logger.info(f'Running in Home Assistant add-on environment.')
-            load_dotenv('/addon.env')
+
 
         logger.info(f'Launching...')
         import homeassistant_api
@@ -45,6 +43,11 @@ class Settings(sets.Base):
         device = Amniotic(name=self.name, client_ha=client_ha, path_audio_str=self.path_audio, sw_version=__version__, manufacturer=paths.org_singleton, model=Amniotic.__name__)
         client = ClientAmniotic.from_args(self.mqtt, device=device)
         await client.start()
+
+
+if Path('/addon.env').exists():
+    # logger.info(f'Running in Home Assistant add-on environment.')
+    load_dotenv('/addon.env')
 
 settings = Settings()
 settings

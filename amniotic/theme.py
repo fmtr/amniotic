@@ -1,6 +1,7 @@
-import numpy as np
 import time
 from functools import cached_property
+
+import numpy as np
 
 from amniotic.obs import logger
 from amniotic.recording import LOG_THRESHOLD
@@ -35,7 +36,6 @@ class ThemeDefinition:
         self.name = name
 
         self.instances = IndexList(meta.get_instance() for meta in self.amniotic.metas)
-        self.instance_current = next(iter(self.instances))
 
         self.streams: list[ThemeStream] = []
 

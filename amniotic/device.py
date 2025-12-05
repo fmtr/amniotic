@@ -1,10 +1,12 @@
-import homeassistant_api
 from dataclasses import dataclass
 from dataclasses import field, fields
 from functools import cached_property
 from typing import Self
 
+import homeassistant_api
+
 from amniotic.controls import SelectTheme, SelectRecording, PlayRecording, NumberVolume, SelectMediaPlayer, PlayStreamButton, StreamURL
+from amniotic.obs import logger
 from amniotic.recording import RecordingMetadata
 from amniotic.theme import ThemeDefinition
 from fmtr.tools import Path
@@ -39,7 +41,10 @@ class Amniotic(Device):
     path_audio_str: str = field(metadata=dict(exclude=True))
 
     def __post_init__(self):
-        self.metas = IndexList(RecordingMetadata(path) for path in self.path_audio.iterdir())  # All those on disk.
+        if not self.path_audio.exists():
+            logger.warning(f'Audio path "{self.path_audio}" does not exist. Will be created.')
+            self.path_audio.mkdir()
+        self.metas = IndexList(RecordingMetadata(path) for path in self.path_audio.iterdir() if path.is_file())  # All those on disk.
 
         theme_a = ThemeDefinition(amniotic=self, name='A')
         theme_b = ThemeDefinition(amniotic=self, name='B')
