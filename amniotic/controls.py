@@ -33,6 +33,7 @@ class ThemeRelativeControl(Control):
 class SelectTheme(Select, ThemeRelativeControl):
     icon: str = 'surround-sound'
 
+    @logger.instrument('Setting Theme to "{value}"...')
     async def command(self, value):
         theme = self.themes.name[value]
         self.themes.current = theme
@@ -121,8 +122,10 @@ class StreamURL(Sensor, ThemeRelativeControl):
 class PlayStreamButton(Button, ThemeRelativeControl):
     def command(self, value):
         media_player = self.device.client_ha.get_domain("media_player")
-
         state = self.device.media_player_states.current
+
+        if not state:
+            return
 
         with logger.span(f'Sending play_media to {state.entity_id}: {self.theme.url}'):
             media_player.play_media(

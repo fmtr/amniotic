@@ -26,6 +26,8 @@ IS_SSH="$(bashio::config 'is_ssh')"
 
 if bashio::var.true "${IS_SSH}"; then
     bashio::log.info "Starting SSHD because is_ssh == true"
+    export FMTR_DEV=true
+    export FMTR_LOG_LEVEL=DEBUG
     printenv > /addon.env
     echo "root:password" | chpasswd
     /usr/sbin/sshd -D -o Port=22 -o PermitRootLogin=yes -o PasswordAuthentication=yes -o AllowTcpForwarding=yes -o LogLevel=VERBOSE
