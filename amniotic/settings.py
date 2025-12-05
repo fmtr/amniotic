@@ -1,10 +1,12 @@
 import asyncio
+
+from dotenv import load_dotenv
 from pydantic import Field
 
 from amniotic.client import ClientAmniotic
 from amniotic.device import Amniotic
 from amniotic.paths import paths
-from fmtr.tools import sets, mqtt
+from fmtr.tools import sets, mqtt, Path
 
 
 class Settings(sets.Base):
@@ -32,6 +34,10 @@ class Settings(sets.Base):
 
         logger.info(f'Launching {paths.name_ns} {__version__=} {tools.get_version()=} from entrypoint.')
         logger.debug(f'{paths.settings.exists()=} {str(paths.settings)=}')
+
+        if Path('/addon.env').exists():
+            logger.info(f'Running in Home Assistant add-on environment.')
+            load_dotenv('/addon.env')
 
         logger.info(f'Launching...')
         import homeassistant_api
