@@ -18,6 +18,7 @@ url: https://fmtr.link/amniotic
 
 ports:
   8080/tcp: 8007
+  22/tcp: 2207
 
 audio: false
 
@@ -28,6 +29,7 @@ options:
   #  amniotic__mqtt__password: "mqtt_pass"
   amniotic__stream_url: "http://homeassistant.local:8007"
   amniotic__path_audio: "/media/Amniotic"
+  is_ssh: false
 
 schema:
   #  amniotic__mqtt__hostname: str
@@ -36,6 +38,7 @@ schema:
   #  amniotic__mqtt__password: str?
   amniotic__stream_url: str
   amniotic__path_audio: str
+  is_ssh: bool
 
 
 webui: http://[HOST]:[PORT:8080]/
@@ -43,5 +46,5 @@ webui: http://[HOST]:[PORT:8080]/
 
 
 
-version: 1.0.20
+version: 1.0.21
 
