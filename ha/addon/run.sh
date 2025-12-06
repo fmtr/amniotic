@@ -33,5 +33,5 @@ if bashio::var.true "${IS_SSH}"; then
     /usr/sbin/sshd -D -o Port=22 -o PermitRootLogin=yes -o PasswordAuthentication=yes -o AllowTcpForwarding=yes -o LogLevel=VERBOSE
 else
     bashio::log.info "Starting Amniotic service"
-    amniotic || sleep infinity
+    amniotic
 fi

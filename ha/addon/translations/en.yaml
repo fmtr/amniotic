@@ -19,7 +19,7 @@ configuration:
 
   amniotic__stream_url:
     name: Stream URL
-    description: URL where media players can access the Amniotic audio stream.
+    description: URL where media players can access the Amniotic over the network. Only change this if you're using a non-default Home Assistant address.
 
   amniotic__path_audio:
     name: Audio Path

@@ -46,9 +46,10 @@ class Amniotic(Device):
             self.path_audio.mkdir()
         self.metas = IndexList(RecordingMetadata(path) for path in self.path_audio.iterdir() if path.is_file())  # All those on disk.
 
-        theme_a = ThemeDefinition(amniotic=self, name='A')
-        theme_b = ThemeDefinition(amniotic=self, name='B')
-        self.themes = IndexList([theme_a, theme_b])
+        if not self.metas:
+            logger.warning(f'No audio files found in "{self.path_audio}". You will need to add some before you can stream anything.')
+
+        self.themes = IndexList(ThemeDefinition(amniotic=self, name=f'Theme {ab}') for ab in 'AB')
 
 
         media_players_data = [state for state in self.client_ha.get_states() if state.entity_id.startswith("media_player.")]
@@ -62,30 +63,28 @@ class Amniotic(Device):
 
     @cached_property
     def select_theme(self):
-        return SelectTheme(name="Themes", options=[str(defin.name) for defin in self.themes])
+        return SelectTheme(options=[str(defin.name) for defin in self.themes])
 
     @cached_property
     def select_recording(self):
-        return SelectRecording(name="Recordings", options=[str(meta.name) for meta in self.metas])
+        return SelectRecording(options=[str(meta.name) for meta in self.metas])
 
     @cached_property
     def select_media_player(self):
-        return SelectMediaPlayer(name="Media Player", options=list(self.media_player_states.entity_id.keys()))
+        return SelectMediaPlayer(options=list(self.media_player_states.friendly_name.keys()))
 
     @cached_property
     def swt_play(self):
-        return PlayRecording(name="Play")
+        return PlayRecording()
 
     @cached_property
     def btn_play(self):
-        return PlayStreamButton(name="Play Stream")
+        return PlayStreamButton()
 
     @cached_property
     def sns_url(self):
-        return StreamURL(name="Stream URL")
+        return StreamURL()
 
     @cached_property
     def nbr_volume(self):
-        return NumberVolume(name="Volume")
-
-
+        return NumberVolume()

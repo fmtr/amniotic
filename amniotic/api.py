@@ -3,6 +3,7 @@ import logging
 from fastapi.responses import StreamingResponse
 
 from amniotic.theme import ThemeDefinition
+from amniotic.version import __version__
 from fmtr.tools import api, mqtt
 
 for name in ["uvicorn.access", "uvicorn.error", "uvicorn"]:
@@ -12,7 +13,7 @@ for name in ["uvicorn.access", "uvicorn.error", "uvicorn"]:
 
 
 class ApiAmniotic(api.Base):
-    TITLE = 'Amniotic Test API'
+    TITLE = f'Amniotic {__version__} Streaming API'
     URL_DOCS = '/'
 
     def __init__(self, client: mqtt.Client):

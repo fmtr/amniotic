@@ -11,14 +11,14 @@ map:
   - media:rw
   - config:rw
 name: Amniotic
-panel_icon: mdi:nature-people
+panel_icon: mdi:waveform
 slug: amniotic
 url: https://fmtr.link/amniotic
 
 
 ports:
   8080/tcp: 8007
-  22/tcp: 2207
+  22/tcp: null
 
 audio: false
 
@@ -46,5 +46,5 @@ webui: http://[HOST]:[PORT:8080]/
 
 
 
-version: 1.0.24
+version: 1.0.25
 

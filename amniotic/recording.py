@@ -37,8 +37,7 @@ class RecordingThemeInstance:
 
     def __init__(self, meta: RecordingMetadata):
         self.meta = meta
-        # self.streams: list['RecordingThemeStream'] = []
-        self.volume = 0.5
+        self.volume = 0.2
         self.is_enabled = False
 
     def get_stream(self):
