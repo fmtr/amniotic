@@ -4,7 +4,7 @@ setup = Setup(
     org=None,
     dependencies=dict(
         install=[
-            'fmtr.tools[version.dev,logging,sets,yaml,debug,caching,api,mqtt,path.app,tabular,av,ha.api,http]',
+            'fmtr.tools[version.dev,logging,sets,yaml,debug,caching,api,mqtt,path.app,tabular,av,ha.api,http]==1.3.96',
             'haco',
         ]
     ),
