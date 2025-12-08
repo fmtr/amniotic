@@ -1,6 +1,7 @@
 #!/usr/bin/with-contenv bashio
 
-source <(amniotic-convert-options-env)
+amniotic-convert-options-env
+source /addon.env
 
 export FMTR_DEV="$(bashio::config 'fmtr_dev')"
 
