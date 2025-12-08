@@ -1,23 +1,27 @@
 import asyncio
 
-from dotenv import load_dotenv
 from pydantic import Field
 
 from amniotic.client import ClientAmniotic
 from amniotic.device import Amniotic
 from amniotic.paths import paths
-from fmtr.tools import sets, mqtt, Path
+from fmtr import tools
+from fmtr.tools import sets, ha
 
 
 class Settings(sets.Base):
     paths = paths
 
-    home_assistant_url: str = Field(alias="HOME_ASSISTANT_URL")
-    hassio_token: str = Field(alias="HASSIO_TOKEN")
+    core_url: str = Field(default=ha.constants.URL_CORE_ADDON)
+    supervisor_url: str = Field(default=ha.constants.URL_SUPERVISOR_ADDON)
+
+    token: str = Field(alias=ha.constants.SUPERVISOR_TOKEN_KEY)
+
 
     stream_url: str
     name: str = Amniotic.__name__
-    mqtt: mqtt.Client.Args
+    mqtt: tools.mqtt.Client.Args | None = None
+
     path_audio: str = str(paths.audio)
 
     def run(self):
@@ -35,19 +39,19 @@ class Settings(sets.Base):
         logger.info(f'Launching {paths.name_ns} {__version__=} {tools.get_version()=} from entrypoint.')
         logger.debug(f'{paths.settings.exists()=} {str(paths.settings)=}')
 
-
-
         logger.info(f'Launching...')
-        import homeassistant_api
-        client_ha = homeassistant_api.Client(self.home_assistant_url, self.hassio_token)
+
+        client_ha = ha.core.Client(api_url=self.core_url, token=self.token)
         device = Amniotic(name=self.name, client_ha=client_ha, path_audio_str=self.path_audio, sw_version=__version__, manufacturer=paths.org_singleton, model=Amniotic.__name__)
-        client = ClientAmniotic.from_args(self.mqtt, device=device)
+
+        if self.mqtt:
+            client = ClientAmniotic.from_args(self.mqtt, device=device)
+        else:
+            client = ClientAmniotic.from_supervisor(device=device)
+
         await client.start()
 
 
-if Path('/addon.env').exists():
-    # logger.info(f'Running in Home Assistant add-on environment.')
-    load_dotenv('/addon.env')
-
+ha.apply_addon_env()
 settings = Settings()
 settings

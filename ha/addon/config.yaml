@@ -23,22 +23,20 @@ ports:
 audio: false
 
 options:
-  #  amniotic__mqtt__hostname: "mqtt.local"
-  #  amniotic__mqtt__port: "1883"
-  #  amniotic__mqtt__username: "mqtt_user"
-  #  amniotic__mqtt__password: "mqtt_pass"
   amniotic__stream_url: "http://homeassistant.local:8007"
   amniotic__path_audio: "/media/Amniotic"
-  is_ssh: false
+  fmtr_dev: false
 
 schema:
-  #  amniotic__mqtt__hostname: str
-  #  amniotic__mqtt__port: str
-  #  amniotic__mqtt__username: str?
-  #  amniotic__mqtt__password: str?
   amniotic__stream_url: str
   amniotic__path_audio: str
-  is_ssh: bool
+
+  amniotic__mqtt__hostname: str?
+  amniotic__mqtt__port: str?
+  amniotic__mqtt__username: str?
+  amniotic__mqtt__password: str?
+
+  fmtr_dev: bool
 
 
 webui: http://[HOST]:[PORT:8080]/
@@ -46,5 +44,5 @@ webui: http://[HOST]:[PORT:8080]/
 
 
 
-version: 1.0.25
+version: 1.1.0
 

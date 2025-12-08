@@ -4,9 +4,8 @@ setup = Setup(
     org=None,
     dependencies=dict(
         install=[
-            'fmtr.tools[version.dev,logging,sets,yaml,debug,caching,api,mqtt,path.app,tabular,av]',
+            'fmtr.tools[version.dev,logging,sets,yaml,debug,caching,api,mqtt,path.app,tabular,av,ha.api,http]',
             'haco',
-            'homeassistant_api'
         ]
     ),
     description='A multi-output ambient sound mixer for Home Assistant',
