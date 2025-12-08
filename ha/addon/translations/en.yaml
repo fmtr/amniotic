@@ -8,21 +8,21 @@ configuration:
     name: Audio Path
     description: Path where Amniotic stores audio files.
 
-  amniotic__mqtt__hostname:
-    name: Custom MQTT Hostname
-    description: Hostname or IP address of your MQTT broker. Only set these options if you're using a custom MQTT broker, i.e. one not managed by Home Assistant.
-
-  amniotic__mqtt__port:
-    name: MQTT Port
-    description: Port number used to connect to your MQTT broker.
-
-  amniotic__mqtt__username:
-    name: MQTT Username
-    description: Optional username for MQTT authentication.
-
-  amniotic__mqtt__password:
-    name: MQTT Password
-    description: Optional password for MQTT authentication.
+  #  amniotic__mqtt__hostname:
+  #    name: Custom MQTT Hostname
+  #    description: Hostname or IP address of your MQTT broker. Only set these options if you're using a custom MQTT broker, i.e. one not managed by Home Assistant.
+  #
+  #  amniotic__mqtt__port:
+  #    name: MQTT Port
+  #    description: Port number used to connect to your MQTT broker.
+  #
+  #  amniotic__mqtt__username:
+  #    name: MQTT Username
+  #    description: Optional username for MQTT authentication.
+  #
+  #  amniotic__mqtt__password:
+  #    name: MQTT Password
+  #    description: Optional password for MQTT authentication.
 
   fmtr_dev:
     name: Start Development SSH Server

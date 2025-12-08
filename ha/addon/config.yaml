@@ -31,10 +31,10 @@ schema:
   amniotic__stream_url: str
   amniotic__path_audio: str
 
-  amniotic__mqtt__hostname: str?
-  amniotic__mqtt__port: str?
-  amniotic__mqtt__username: str?
-  amniotic__mqtt__password: str?
+  #  amniotic__mqtt__hostname: str?
+  #  amniotic__mqtt__port: str?
+  #  amniotic__mqtt__username: str?
+  #  amniotic__mqtt__password: str?
 
   fmtr_dev: bool
 
