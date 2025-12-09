@@ -31,7 +31,7 @@ class ClientAmniotic(ClientHaco):
 
         with http.Client() as client:
             response = client.get(
-                f"{settings.supervisor_url}/services/mqtt",
+                f"{settings.ha_supervisor_api}/services/mqtt",
                 headers={
                     "Authorization": f"Bearer {settings.token}",
                     "Content-Type": "application/json",

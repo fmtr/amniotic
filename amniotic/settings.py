@@ -12,8 +12,8 @@ from fmtr.tools import sets, ha
 class Settings(sets.Base):
     paths = paths
 
-    core_url: str = Field(default=ha.constants.URL_CORE_ADDON)
-    supervisor_url: str = Field(default=ha.constants.URL_SUPERVISOR_ADDON)
+    ha_core_api: str = Field(default=ha.constants.URL_CORE_ADDON)
+    ha_supervisor_api: str = Field(default=ha.constants.URL_SUPERVISOR_ADDON)
 
     token: str = Field(alias=ha.constants.SUPERVISOR_TOKEN_KEY)
 
@@ -41,7 +41,7 @@ class Settings(sets.Base):
 
         logger.info(f'Launching...')
 
-        client_ha = ha.core.Client(api_url=self.core_url, token=self.token)
+        client_ha = ha.core.Client(api_url=self.ha_core_api, token=self.token)
         device = Amniotic(name=self.name, client_ha=client_ha, path_audio_str=self.path_audio, sw_version=__version__, manufacturer=paths.org_singleton, model=Amniotic.__name__)
 
         if self.mqtt:
