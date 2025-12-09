@@ -31,7 +31,7 @@ schema:
   amniotic__stream_url: str
   amniotic__path_audio: str
 
-  #  amniotic__mqtt__hostname: str?
+  amniotic__mqtt__hostname: str?
   #  amniotic__mqtt__port: str?
   #  amniotic__mqtt__username: str?
   #  amniotic__mqtt__password: str?
@@ -44,5 +44,5 @@ webui: http://[HOST]:[PORT:8080]/
 
 
 
-version: 1.1.4
+version: 1.1.5
 

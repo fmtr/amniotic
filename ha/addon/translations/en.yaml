@@ -8,9 +8,9 @@ configuration:
     name: Audio Path
     description: Path where Amniotic stores audio files.
 
-  #  amniotic__mqtt__hostname:
-  #    name: Custom MQTT Hostname
-  #    description: Hostname or IP address of your MQTT broker. Only set these options if you're using a custom MQTT broker, i.e. one not managed by Home Assistant.
+  amniotic__mqtt__hostname:
+    name: Custom MQTT Hostname
+    description: Hostname or IP address of your MQTT broker. Only set these options if you're using a custom MQTT broker, i.e. one not managed by Home Assistant.
   #
   #  amniotic__mqtt__port:
   #    name: MQTT Port
