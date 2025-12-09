@@ -34,7 +34,7 @@ schema:
   amniotic__mqtt__hostname: str?
   amniotic__mqtt__port: str?
   amniotic__mqtt__username: str?
-  amniotic__mqtt__password: str?
+  amniotic__mqtt__password: password?
 
   fmtr_dev: bool
 
@@ -44,5 +44,5 @@ webui: http://[HOST]:[PORT:8080]/
 
 
 
-version: 1.1.6
+version: 1.1.7
 
