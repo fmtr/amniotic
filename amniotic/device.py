@@ -18,8 +18,11 @@ from haco.device import Device
 class MediaState:
     entity_id: str
     state: str
-    friendly_name: str
-    supported_features: int
+    friendly_name: str | None = None
+    supported_features: int | None = None
+
+    def __post_init__(self):
+        self.friendly_name = self.friendly_name or self.entity_id
 
     @classmethod
     def from_state(cls, state) -> Self:
