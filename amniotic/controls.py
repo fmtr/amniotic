@@ -1,12 +1,14 @@
 from dataclasses import dataclass
 
 from amniotic.obs import logger
+from amniotic.theme import ThemeDefinition
 from haco.button import Button
 from haco.control import Control
 from haco.number import Number
 from haco.select import Select
 from haco.sensor import Sensor
 from haco.switch import Switch
+from haco.text import Text
 
 
 @dataclass(kw_only=True)
@@ -31,7 +33,7 @@ class ThemeRelativeControl(Control):
 
 @dataclass(kw_only=True)
 class SelectTheme(Select, ThemeRelativeControl):
-    icon: str = 'surround-sound'
+    icon: str = 'access-point'
     name: str = 'Theme'
 
     @logger.instrument('Setting Theme to "{value}"...')
@@ -42,7 +44,23 @@ class SelectTheme(Select, ThemeRelativeControl):
 
 
     async def state(self, value=None):
+
+        if self.theme not in self.themes:
+            if self.themes:
+                self.themes.current = next(iter(self.themes))
+            else:
+                logger.warning('No themes exist. Creating default...')
+                theme = ThemeDefinition(amniotic=self.device, name="Default")
+                self.themes.append(theme)
+                self.themes.current = theme
+
+        options = sorted(self.themes.name.keys())
+        if self.options != options:
+            self.options = options
+            await self.announce()
+
         name = self.theme.name
+
         await self.device.select_recording.state()
         await self.device.sns_url.state()
         return name
@@ -144,3 +162,33 @@ class PlayStreamButton(Button, ThemeRelativeControl):
                 media_content_type="channel",
                 extra=dict(title=self.theme.name)
             )
+
+
+@dataclass(kw_only=True)
+class NewTheme(Text, ThemeRelativeControl):
+    icon: str = 'access-point-plus'
+    name: str = 'New Theme'
+
+    @logger.instrument('Creating new Theme "{value}"...')
+    async def command(self, value):
+        theme = ThemeDefinition(amniotic=self.device, name=value)
+        self.themes.append(theme)
+        self.themes.current = theme
+
+        await self.device.select_theme.state()
+        return value
+
+    async def state(self, value=None):
+        return value or 'new theme!'
+
+
+@dataclass(kw_only=True)
+class DeleteTheme(Button, ThemeRelativeControl):
+    icon: str = 'access-point-remove'
+    name: str = 'Delete Current Theme'
+
+    @logger.instrument('Deleting Theme "{self.theme.name}"...')
+    async def command(self, value):
+        self.themes.remove(self.theme)
+        await self.device.select_theme.state()
+        return value

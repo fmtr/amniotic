@@ -5,7 +5,7 @@ from typing import Self
 
 import homeassistant_api
 
-from amniotic.controls import SelectTheme, SelectRecording, PlayRecording, NumberVolume, SelectMediaPlayer, PlayStreamButton, StreamURL
+from amniotic.controls import SelectTheme, SelectRecording, PlayRecording, NumberVolume, SelectMediaPlayer, PlayStreamButton, StreamURL, NewTheme, DeleteTheme
 from amniotic.obs import logger
 from amniotic.recording import RecordingMetadata
 from amniotic.theme import ThemeDefinition
@@ -49,13 +49,23 @@ class Amniotic(Device):
         if not self.metas:
             logger.warning(f'No audio files found in "{self.path_audio}". You will need to add some before you can stream anything.')
 
-        self.themes = IndexList(ThemeDefinition(amniotic=self, name=f'Theme {ab}') for ab in 'AB')
+        self.themes = IndexList()
 
 
         media_players_data = [state for state in self.client_ha.get_states() if state.entity_id.startswith("media_player.")]
         self.media_player_states = IndexList(MediaState.from_state(data) for data in media_players_data)
 
-        self.controls = [self.select_recording, self.select_theme, self.swt_play, self.nbr_volume, self.select_media_player, self.btn_play, self.sns_url]
+        self.controls = [
+            self.select_theme,
+            self.select_recording,
+            self.btn_delete_theme,
+            self.txt_new_theme,
+            self.swt_play,
+            self.nbr_volume,
+            self.select_media_player,
+            self.btn_play,
+            self.sns_url
+        ]
 
     @cached_property
     def path_audio(self):
@@ -88,3 +98,11 @@ class Amniotic(Device):
     @cached_property
     def nbr_volume(self):
         return NumberVolume()
+
+    @cached_property
+    def txt_new_theme(self):
+        return NewTheme()
+
+    @cached_property
+    def btn_delete_theme(self):
+        return DeleteTheme()
