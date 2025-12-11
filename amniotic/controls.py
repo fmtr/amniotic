@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from amniotic.obs import logger
 from amniotic.theme import ThemeDefinition
+from fmtr.tools import http
 from haco.button import Button
 from haco.control import Control
 from haco.number import Number
@@ -148,20 +149,29 @@ class PlayStreamButton(Button, ThemeRelativeControl):
     icon: str = 'play-network'
     name: str = 'Stream'
 
-    def command(self, value):
-        media_player = self.device.client_ha.get_domain("media_player")
+    async def command(self, value):
+        from amniotic.settings import settings
         state = self.device.media_player_states.current
 
         if not state:
             return
 
         with logger.span(f'Sending play_media to {state.entity_id}: {self.theme.url}'):
-            media_player.play_media(
-                entity_id=state.entity_id,
-                media_content_id=self.theme.url,
-                media_content_type="channel",
-                extra=dict(title=self.theme.name)
+            url = f"{settings.ha_core_api}/services/media_player/play_media"
+            response = http.client.post(
+                url,
+                headers={
+                    "Authorization": f"Bearer {settings.token}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "entity_id": state.entity_id,
+                    "media_content_id": self.theme.url,
+                    "media_content_type": "music",
+                }
             )
+
+            response.raise_for_status()
 
 
 @dataclass(kw_only=True)
