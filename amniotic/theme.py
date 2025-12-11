@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numpy as np
 import time
 import typing
@@ -11,7 +13,7 @@ from fmtr.tools.iterator_tools import IndexList
 from fmtr.tools.string_tools import sanitize
 
 if typing.TYPE_CHECKING:
-    pass
+    from amniotic.device import Amniotic
 
 
 @dataclass(kw_only=True)
@@ -48,7 +50,7 @@ class ThemeDefinition:
 
     """
 
-    amniotic: typing.Any = field(metadata=dict(exclude=True))
+    amniotic: Amniotic = field(metadata=dict(exclude=True))
     instances: IndexList[RecordingThemeInstance] | list[RecordingThemeInstance] = field(default_factory=list)
     name: str
 

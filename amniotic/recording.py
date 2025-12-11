@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numpy as np
 import typing
 from dataclasses import dataclass, field
@@ -7,7 +9,7 @@ from fmtr.tools import av
 from haco.base import Base
 
 if typing.TYPE_CHECKING:
-    pass
+    from amniotic.device import Amniotic
 
 LOG_THRESHOLD = 500
 
@@ -46,7 +48,7 @@ class RecordingThemeInstance(Base):
 
     """
 
-    device: typing.Any = field(metadata=dict(exclude=True))  # todo fix Any
+    device: Amniotic = field(metadata=dict(exclude=True))
 
     path: str
     volume: float = 0.2
