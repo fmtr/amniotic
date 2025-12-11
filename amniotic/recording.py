@@ -1,7 +1,13 @@
 import numpy as np
+import typing
+from dataclasses import dataclass, field
 
 from amniotic.obs import logger
 from fmtr.tools import av
+from haco.base import Base
+
+if typing.TYPE_CHECKING:
+    pass
 
 LOG_THRESHOLD = 500
 
@@ -23,8 +29,13 @@ class RecordingMetadata:
     def name(self):
         return self.path.stem
 
+    @property
+    def path_str(self):
+        return str(self.path)
 
-class RecordingThemeInstance:
+
+@dataclass(kw_only=True)
+class RecordingThemeInstance(Base):
     """
 
     Wraps the metadata, but with some extra state, to represent how that recording is set up within a given theme.
@@ -35,10 +46,16 @@ class RecordingThemeInstance:
 
     """
 
-    def __init__(self, meta: RecordingMetadata):
-        self.meta = meta
-        self.volume = 0.2
-        self.is_enabled = False
+    device: typing.Any = field(metadata=dict(exclude=True))  # todo fix Any
+
+    path: str
+    volume: float = 0.2
+    is_enabled: bool = False
+
+    @property
+    def meta(self):
+        return self.device.metas.path_str[self.path]
+
 
     def get_stream(self):
         return RecordingThemeStream(self)

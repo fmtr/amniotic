@@ -1,15 +1,20 @@
+import numpy as np
 import time
+import typing
+from dataclasses import dataclass, field
 from functools import cached_property
 
-import numpy as np
-
 from amniotic.obs import logger
-from amniotic.recording import LOG_THRESHOLD
+from amniotic.recording import LOG_THRESHOLD, RecordingThemeInstance
 from fmtr.tools import av
 from fmtr.tools.iterator_tools import IndexList
 from fmtr.tools.string_tools import sanitize
 
+if typing.TYPE_CHECKING:
+    pass
 
+
+@dataclass(kw_only=True)
 class ThemeDefinition:
     """
 
@@ -18,7 +23,7 @@ class ThemeDefinition:
     ThemeDefinition: What recordings are involved, volumes. User defines these via the UI, then selects a media player entity to stream from it.
     ThemeStream: One instance per client/connection. Has a RecordingStream for each recording in the ThemeDefinition.
 
-    When a user selectes a media player for this theme, then clicks play, HA tells the player to play URL /theme/name.
+    When a user selects a media player for this theme, then clicks play, HA tells the player to play URL /theme/name.
      - On the API side, the ThemeDefinition with ID "name" is selected, and a new ThemeStream initialized.
 
     When a user modifies a themeDefinition, like change recording volume, all live ThemeStreams are updated.
@@ -29,15 +34,35 @@ class ThemeDefinition:
 
     recording (immutable, one per-path) -> recording_instance (mutable, contains addition vol, is_enabled, etc) -> recording_stream (one per-connection)
 
+
+    # Persistence
+
+    - Have this class and RecordingInstance inherit from Base, and get model_dump method.
+    - Subclass IndexList for Theme to Implement a save method that writes model_dump to disk.
+    - Add a load classmethod(amniotic) to that class that loads from disk.
+    - Saving will need to be manual, but there are limited places where it is needed, namely things like volume control command method.
+
+
+
+    - Start out with an empty instances list, as instances can be created on the fly by the SelectRecording control
+
     """
 
-    def __init__(self, amniotic, name):
-        self.amniotic = amniotic
-        self.name = name
+    amniotic: typing.Any = field(metadata=dict(exclude=True))
+    instances: IndexList[RecordingThemeInstance] | list[RecordingThemeInstance] = field(default_factory=list)
+    name: str
 
-        self.instances = IndexList(meta.get_instance() for meta in self.amniotic.metas)
+    def __post_init__(self):
+        if type(self.instances) is list:
+            self.instances = IndexList[RecordingThemeInstance](self.instances)
 
-        self.streams: list[ThemeStream] = []
+        if not self.instances:
+            meta = self.amniotic.metas.current
+            instance = RecordingThemeInstance(device=self.amniotic, path=meta.path_str)
+            self.instances.append(instance)
+            self.instances.current = instance
+
+
 
     @cached_property
     def url(self) -> str:
@@ -51,21 +76,16 @@ class ThemeDefinition:
 
     def get_stream(self):
         theme = ThemeStream(self)
-        self.streams.append(theme)
         return theme
 
 
 class ThemeStream:
     """
 
-    Run-time only. A ephemeral mix defined by the user.
 
-    ThemeDefinition: What recordings are involved, volumes. User defines these via the UI, then selects a media player entity to stream from it.
+
+
     ThemeStream: One instance per client/connection. Has a RecordingStream for each recording in the ThemeDefinition.
-
-    When a user selectes a media player for this theme, then clicks play, HA tells the player to play URL /theme/name.
-     - On the API side, the ThemeDefinition with ID "name" is selected, and a new ThemeStream initialized.
-
     When a user modifies a themeDefinition, like change recording volume, all live ThemeStreams are updated.
 
     """

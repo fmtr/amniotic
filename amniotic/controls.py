@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from amniotic.obs import logger
+from amniotic.recording import RecordingThemeInstance
 from amniotic.theme import ThemeDefinition
 from fmtr.tools import http
 from haco.button import Button
@@ -73,15 +74,23 @@ class SelectRecording(Select, ThemeRelativeControl):
 
     @logger.instrument('Setting Theme "{self.theme.name}" current recording instance to "{value}"...')
     async def command(self, value):
-        self.instances.current = self.instances.name[value]
+        # todo: check if exists, and create if not. I think this is the ONLY place we need to do this, because all other dependent controls are called AFTER this one?
+
+        instance = self.instances.name.get(value)
+        if not instance:
+            logger.info(f'Creating new recording instance "{value}" for Theme "{self.theme.name}"...')
+            meta = self.device.metas.name[value]
+            instance = RecordingThemeInstance(path=meta.path_str, device=self.device)
+            self.instances.append(instance)
+
+        self.instances.current = instance
         return value
 
     async def state(self, value):
         await self.device.swt_play.state()
         await self.device.nbr_volume.state()
-        if self.instance:
-            return self.instance.name
-        return None
+        return self.instance.name
+
 
 
 @dataclass(kw_only=True)
@@ -91,7 +100,7 @@ class PlayRecording(Switch, ThemeRelativeControl):
 
     @logger.instrument('Toggling {value=} recording instance "{self.instances.current.name}" for Theme "{self.theme.name}"...')
     async def command(self, value):
-        self.instance.is_enabled = value
+        self.instance.is_enabled = value  # todo: manual theme save
 
     async def state(self, value=None):
         if self.instance:
@@ -106,15 +115,11 @@ class NumberVolume(Number, ThemeRelativeControl):
 
     @logger.instrument('Setting volume to {value} for recording instance "{self.instances.current.name}" for Theme "{self.theme.name}"...')
     async def command(self, value):
-        if self.instance:
-            self.instance.volume = value / 100
-
-
+        self.instance.volume = value / 100  # todo: manual theme save
 
     async def state(self, value=None):
-        if self.instance:
-            return int(self.instance.volume * 100)
-        return None
+        return int(self.instance.volume * 100)
+
 
 
 @dataclass(kw_only=True)
@@ -183,7 +188,7 @@ class NewTheme(Text, ThemeRelativeControl):
     async def command(self, value):
         theme = ThemeDefinition(amniotic=self.device, name=value)
         self.themes.append(theme)
-        self.themes.current = theme
+        self.themes.current = theme  # todo: manual theme save
 
         await self.device.select_theme.state()
         return value
