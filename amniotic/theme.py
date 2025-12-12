@@ -102,12 +102,15 @@ class ThemeStream:
         data = np.zeros((1, RecordingThemeStream.CHUNK_SIZE), np.int16)
         return data
 
+    @property
+    def is_enabled(self):
+        return any(stream.instance.is_enabled for stream in self.recording_streams)
+
     def iter_chunks(self):
 
         while True:
-            data_recs = [next(streams) for streams in self.recording_streams if streams.instance.is_enabled]
+            data_recs = [next(stream) for stream in self.recording_streams if stream.instance.is_enabled]
             if not data_recs:
-                # logger.debug(f'Theme "{self.theme_def.name}" has no enabled recordings. Streaming silence...')
                 data_recs.append(self.chunk_silence)
             data = np.vstack(data_recs)
             data = data.mean(axis=0).astype(data.dtype).reshape(1, -1)  # Mix recordings

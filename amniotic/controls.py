@@ -127,7 +127,7 @@ class SelectMediaPlayer(Select, ThemeRelativeControl):
     icon: str = 'cast-audio'
     name: str = 'Media Player'
 
-    @logger.instrument('Selecting Media Play "{value}" for Theme "{self.theme.name}"...')
+    @logger.instrument('Selecting Media Player "{value}" for Theme "{self.theme.name}"...')
     async def command(self, value):
         state = self.device.media_player_states.friendly_name[value]
         self.device.media_player_states.current = state
@@ -154,29 +154,44 @@ class PlayStreamButton(Button, ThemeRelativeControl):
     icon: str = 'play-network'
     name: str = 'Stream'
 
-    async def command(self, value):
+    @property
+    def url_api(self):
         from amniotic.settings import settings
+
+        return f"{settings.ha_core_api}/services/media_player/play_media"
+
+
+    async def command(self, value):
+
         state = self.device.media_player_states.current
 
         if not state:
             return
 
-        with logger.span(f'Sending play_media to {state.entity_id}: {self.theme.url}'):
-            url = f"{settings.ha_core_api}/services/media_player/play_media"
-            response = http.client.post(
-                url,
-                headers={
-                    "Authorization": f"Bearer {settings.token}",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "entity_id": state.entity_id,
-                    "media_content_id": self.theme.url,
-                    "media_content_type": "music",
-                }
-            )
+        with logger.span(f'Posting request to HA API {self.url_api} {state.entity_id=} {self.theme.url=}') as span:
+            try:
+                await self.post(state)
+            except Exception as exception:
+                logger.error(f'Error posting to HA API: {repr(exception)}.')
+                span.record_exception(exception=exception)
 
-            response.raise_for_status()
+    async def post(self, state):
+        from amniotic.settings import settings
+
+        response = http.client.post(
+            self.url_api,
+            headers={
+                "Authorization": f"Bearer {settings.token}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "entity_id": state.entity_id,
+                "media_content_id": self.theme.url,
+                "media_content_type": "music",
+            }
+        )
+
+        response.raise_for_status()
 
 
 @dataclass(kw_only=True)

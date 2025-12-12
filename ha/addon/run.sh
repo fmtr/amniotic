@@ -1,5 +1,7 @@
 #!/usr/bin/with-contenv bashio
 
+bashio::log.info "Amniotic container started."
+
 export FMTR_DEV="$(bashio::config 'fmtr_dev')"
 
 if bashio::var.true "${FMTR_DEV}"; then
