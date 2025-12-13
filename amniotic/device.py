@@ -5,7 +5,7 @@ from typing import Self
 
 import homeassistant_api
 
-from amniotic.controls import SelectTheme, SelectRecording, PlayRecording, NumberVolume, SelectMediaPlayer, PlayStreamButton, StreamURL, NewTheme, DeleteTheme
+from amniotic.controls import SelectTheme, SelectRecording, EnableRecording, NumberVolume, SelectMediaPlayer, PlayStreamButton, StreamURL, NewTheme, DeleteTheme
 from amniotic.obs import logger
 from amniotic.recording import RecordingMetadata
 from amniotic.theme import ThemeDefinition
@@ -34,6 +34,45 @@ class MediaState:
         return self
 
 
+class IndexThemes(IndexList[ThemeDefinition]):
+
+    @classmethod
+    def get_path_themes(cls):
+        from amniotic.settings import settings
+        return settings.path_themes
+
+    @classmethod
+    def load_data(cls):
+        path_themes = cls.get_path_themes()
+
+        if not path_themes.exists():
+            logger.warning(f'No themes file found at "{path_themes}". No themes will be loaded.')
+            return []
+
+        with logger.span(f'Loading themes from "{path_themes}"'):
+            data = path_themes.read_yaml()
+            logger.info(f'Loaded {len(data)} themes.')
+
+        return data
+
+    @classmethod
+    def load(cls, amniotic: 'Amniotic'):
+        data = cls.load_data()
+        self = cls.from_data(amniotic, data)
+        return self
+
+    @classmethod
+    def from_data(cls, amniotic: 'Amniotic', data: list[dict]):
+        themes = [ThemeDefinition.from_data(amniotic=amniotic, data=datum) for datum in data]
+        self = cls(themes)
+        return self
+
+    def save(self):
+        path = self.get_path_themes()
+        with logger.span(f'Saving {len(self)} themes to "{path}"'):
+            data = [theme.model_dump() for theme in self]
+            return path.write_json(data)
+
 @dataclass(kw_only=True)
 class Amniotic(Device):
     themes: IndexList[ThemeDefinition] = field(default_factory=IndexList, metadata=dict(exclude=True))
@@ -52,7 +91,7 @@ class Amniotic(Device):
         if not self.metas:
             logger.warning(f'No audio files found in "{self.path_audio}". You will need to add some before you can stream anything.')
 
-        self.themes = IndexList()
+        self.themes = IndexThemes.load(self)
 
 
         media_players_data = [state for state in self.client_ha.get_states() if state.entity_id.startswith("media_player.")]
@@ -88,7 +127,7 @@ class Amniotic(Device):
 
     @cached_property
     def swt_play(self):
-        return PlayRecording()
+        return EnableRecording()
 
     @cached_property
     def btn_play(self):

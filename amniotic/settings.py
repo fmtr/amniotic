@@ -1,4 +1,5 @@
 import asyncio
+from functools import cached_property
 
 from pydantic import Field
 
@@ -6,10 +7,11 @@ from amniotic.client import ClientAmniotic
 from amniotic.device import Amniotic
 from amniotic.paths import paths
 from fmtr import tools
-from fmtr.tools import sets, ha
+from fmtr.tools import sets, ha, Path
 
 
 class Settings(sets.Base):
+
     paths = paths
 
     ha_core_api: str = Field(default=ha.constants.URL_CORE_ADDON)
@@ -17,12 +19,16 @@ class Settings(sets.Base):
 
     token: str = Field(alias=ha.constants.SUPERVISOR_TOKEN_KEY)
 
-
     stream_url: str
     name: str = Amniotic.__name__
     mqtt: tools.mqtt.Client.Args | None = None
 
-    path_audio: str = str(paths.audio)
+    path_audio: Path
+    path_config: Path = ha.constants.PATH_ADDON_CONFIG / Amniotic.__name__.lower()  # todo make add-specific defaults on settings subclass
+
+    @cached_property
+    def path_themes(self):
+        return self.path_config / 'themes.json'
 
     def run(self):
         super().run()
@@ -40,6 +46,10 @@ class Settings(sets.Base):
         logger.debug(f'{paths.settings.exists()=} {str(paths.settings)=}')
 
         logger.info(f'Launching...')
+
+        if not self.path_config.exists():
+            logger.warning(f'Config directory does not exist at "{self.path_config}". Will be created.')
+            self.path_config.mkdir()
 
         client_ha = ha.core.Client(api_url=self.ha_core_api, token=self.token)
         device = Amniotic(name=self.name, client_ha=client_ha, path_audio_str=self.path_audio, sw_version=__version__, manufacturer=paths.org_singleton, model=Amniotic.__name__)

@@ -1,23 +1,30 @@
 from __future__ import annotations
 
-import numpy as np
 import time
 import typing
 from dataclasses import dataclass, field
 from functools import cached_property
+
+import numpy as np
 
 from amniotic.obs import logger
 from amniotic.recording import LOG_THRESHOLD, RecordingThemeInstance
 from fmtr.tools import av
 from fmtr.tools.iterator_tools import IndexList
 from fmtr.tools.string_tools import sanitize
+from haco.base import Base
 
 if typing.TYPE_CHECKING:
     from amniotic.device import Amniotic
 
 
+class IndexInstances(IndexList[RecordingThemeInstance]):
+
+    def model_dump(self):
+        return [item.model_dump() for item in self]
+
 @dataclass(kw_only=True)
-class ThemeDefinition:
+class ThemeDefinition(Base):
     """
 
     Run-time only. A ephemeral mix defined by the user.
@@ -51,12 +58,12 @@ class ThemeDefinition:
     """
 
     amniotic: Amniotic = field(metadata=dict(exclude=True))
-    instances: IndexList[RecordingThemeInstance] | list[RecordingThemeInstance] = field(default_factory=list)
+    instances: IndexInstances | list[RecordingThemeInstance] = field(default_factory=list)
     name: str
 
     def __post_init__(self):
         if type(self.instances) is list:
-            self.instances = IndexList[RecordingThemeInstance](self.instances)
+            self.instances = IndexInstances(self.instances)
 
         if not self.instances:
             meta = self.amniotic.metas.current
@@ -79,6 +86,14 @@ class ThemeDefinition:
     def get_stream(self):
         theme = ThemeStream(self)
         return theme
+
+    @classmethod
+    def from_data(cls, amniotic: 'Amniotic', data: dict):
+        data_instances = data.pop('instances', [])
+        instances = IndexInstances(RecordingThemeInstance(device=amniotic, **kwargs) for kwargs in data_instances)
+        self = cls(amniotic=amniotic, instances=instances, **data)
+        return self
+
 
 
 class ThemeStream:

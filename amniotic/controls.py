@@ -55,6 +55,7 @@ class SelectTheme(Select, ThemeRelativeControl):
                 theme = ThemeDefinition(amniotic=self.device, name="Default")
                 self.themes.append(theme)
                 self.themes.current = theme
+                self.themes.save()
 
         options = sorted(self.themes.name.keys())
         if self.options != options:
@@ -74,7 +75,6 @@ class SelectRecording(Select, ThemeRelativeControl):
 
     @logger.instrument('Setting Theme "{self.theme.name}" current recording instance to "{value}"...')
     async def command(self, value):
-        # todo: check if exists, and create if not. I think this is the ONLY place we need to do this, because all other dependent controls are called AFTER this one?
 
         instance = self.instances.name.get(value)
         if not instance:
@@ -94,13 +94,14 @@ class SelectRecording(Select, ThemeRelativeControl):
 
 
 @dataclass(kw_only=True)
-class PlayRecording(Switch, ThemeRelativeControl):
+class EnableRecording(Switch, ThemeRelativeControl):
     icon: str = 'playlist-plus'
     name: str = 'Enable Recording'
 
     @logger.instrument('Toggling {value=} recording instance "{self.instances.current.name}" for Theme "{self.theme.name}"...')
     async def command(self, value):
-        self.instance.is_enabled = value  # todo: manual theme save
+        self.instance.is_enabled = value
+        self.themes.save()
 
     async def state(self, value=None):
         if self.instance:
@@ -115,7 +116,8 @@ class NumberVolume(Number, ThemeRelativeControl):
 
     @logger.instrument('Setting volume to {value} for recording instance "{self.instances.current.name}" for Theme "{self.theme.name}"...')
     async def command(self, value):
-        self.instance.volume = value / 100  # todo: manual theme save
+        self.instance.volume = value / 100
+        self.themes.save()
 
     async def state(self, value=None):
         return int(self.instance.volume * 100)
@@ -201,15 +203,18 @@ class NewTheme(Text, ThemeRelativeControl):
 
     @logger.instrument('Creating new Theme "{value}"...')
     async def command(self, value):
+        if not value:
+            return
+
         theme = ThemeDefinition(amniotic=self.device, name=value)
         self.themes.append(theme)
-        self.themes.current = theme  # todo: manual theme save
+        self.themes.current = theme
+        self.themes.save()
 
         await self.device.select_theme.state()
-        return value
 
     async def state(self, value=None):
-        return value or 'new theme!'
+        return 'New'
 
 
 @dataclass(kw_only=True)
@@ -220,5 +225,6 @@ class DeleteTheme(Button, ThemeRelativeControl):
     @logger.instrument('Deleting Theme "{self.theme.name}"...')
     async def command(self, value):
         self.themes.remove(self.theme)
+        self.themes.save()
         await self.device.select_theme.state()
         return value

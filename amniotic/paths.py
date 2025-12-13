@@ -15,6 +15,14 @@ class PackagePaths(PackagePaths):
         return self.data / 'audio'
 
     @cached_property
+    def config(self):
+        return self.data / 'config'
+
+    @cached_property
+    def themes(self):
+        return self.config / 'themes'
+
+    @cached_property
     def example_700KB(self):
         return self.audio / 'file_example_MP3_700KB.mp3'
 
