@@ -9,9 +9,10 @@ services:
     ports:
       - "8007:8080"  # Amniotic audio stream over HTTP port.
 
-    # Mount local audio folder to container
+    # Mount local audio and config directories to container
     volumes:
       - ./audio:/amniotic/audio
+      - ./config:/amniotic/config
 
     environment:
       # Home Assistant URL and token
@@ -20,13 +21,14 @@ services:
 
       # MQTT settings
       AMNIOTIC__MQTT__HOSTNAME: "mqtt.local"   # MQTT broker hostname or IP
-      AMNIOTIC__MQTT__PORT: "1883"             # Optional MQTT port (defaults to 1883 for TCP)
-      AMNIOTIC__MQTT__USERNAME: "mqtt_user"    # Optional MQTT username
-      AMNIOTIC__MQTT__PASSWORD: "mqtt_pass"    # Optional MQTT password
+      #AMNIOTIC__MQTT__PORT: "1883"             # Optional MQTT port (defaults to 1883 for TCP)
+      #AMNIOTIC__MQTT__USERNAME: "mqtt_user"    # Optional MQTT username
+      #AMNIOTIC__MQTT__PASSWORD: "mqtt_pass"    # Optional MQTT password
 
       # Application-specific settings
       AMNIOTIC__STREAM_URL: "http://<ip_or_hostname>:8007"  # URL where media players can access Amniotic on your network.
       AMNIOTIC__PATH_AUDIO: "/amniotic/audio"               # Path inside container for audio files (mapped above)
+      AMNIOTIC__PATH_CONFIG: "/amniotic/config"              # Path inside container for config files (mapped above)
 
     # No need for root
     user: "1000:1000"
