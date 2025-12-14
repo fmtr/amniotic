@@ -86,7 +86,13 @@ class SelectRecording(Select, ThemeRelativeControl):
         self.instances.current = instance
         return value
 
-    async def state(self, value):
+    async def state(self, value=None):
+
+        options = sorted(self.device.metas.name.keys())
+        if self.options != options:
+            self.options = options
+            await self.announce()
+
         await self.device.swt_play.state()
         await self.device.nbr_volume.state()
         return self.instance.name

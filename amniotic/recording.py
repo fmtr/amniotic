@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-import numpy as np
 import typing
 from dataclasses import dataclass, field
+
+import numpy as np
 
 from amniotic.obs import logger
 from fmtr.tools import av
@@ -45,6 +46,14 @@ class RecordingThemeInstance(Base):
 
     ThemeDef.recording_current=RecordingThemeInstance
     This needs methods like setting volume that apply to all children streams.
+
+
+    To handle removed recording fields on disk, this class needs to either raise on init if missing - or
+
+    There are two ways this object can become invalid:
+
+    - If it gets access (e.g. by a stream) when it's just been deleted from disk. Even then, deleting would presumably not be possible while streaming?
+    - Amniotic notices it's been deleted (scheduled polling)    -
 
     """
 

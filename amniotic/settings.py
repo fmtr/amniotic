@@ -52,7 +52,7 @@ class Settings(sets.Base):
             self.path_config.mkdir()
 
         client_ha = ha.core.Client(api_url=self.ha_core_api, token=self.token)
-        device = Amniotic(name=self.name, client_ha=client_ha, path_audio_str=self.path_audio, sw_version=__version__, manufacturer=paths.org_singleton, model=Amniotic.__name__)
+        device = Amniotic(name=self.name, client_ha=client_ha, path_audio=self.path_audio, sw_version=__version__, manufacturer=paths.org_singleton, model=Amniotic.__name__)
 
         if self.mqtt:
             client = ClientAmniotic.from_args(self.mqtt, device=device)

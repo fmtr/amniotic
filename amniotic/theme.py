@@ -167,3 +167,43 @@ class ThemeStream:
             logger.info('Closing transcoder...')
             iter_chunks.close()
             output.close()
+
+
+class IndexThemes(IndexList[ThemeDefinition]):
+
+    @classmethod
+    def get_path_themes(cls):
+        from amniotic.settings import settings
+        return settings.path_themes
+
+    @classmethod
+    def load_data(cls):
+        path_themes = cls.get_path_themes()
+
+        if not path_themes.exists():
+            logger.warning(f'No themes file found at "{path_themes}". No themes will be loaded.')
+            return []
+
+        with logger.span(f'Loading themes from "{path_themes}"'):
+            data = path_themes.read_yaml()
+            logger.info(f'Loaded {len(data)} themes.')
+
+        return data
+
+    @classmethod
+    def load(cls, amniotic: 'Amniotic'):
+        data = cls.load_data()
+        self = cls.from_data(amniotic, data)
+        return self
+
+    @classmethod
+    def from_data(cls, amniotic: 'Amniotic', data: list[dict]):
+        themes = [ThemeDefinition.from_data(amniotic=amniotic, data=datum) for datum in data]
+        self = cls(themes)
+        return self
+
+    def save(self):
+        path = self.get_path_themes()
+        with logger.span(f'Saving {len(self)} themes to "{path}"'):
+            data = [theme.model_dump() for theme in self]
+            return path.write_json(data)

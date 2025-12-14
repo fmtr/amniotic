@@ -1,3 +1,4 @@
+import asyncio
 from dataclasses import dataclass
 from dataclasses import field, fields
 from functools import cached_property
@@ -8,9 +9,9 @@ import homeassistant_api
 from amniotic.controls import SelectTheme, SelectRecording, EnableRecording, NumberVolume, SelectMediaPlayer, PlayStreamButton, StreamURL, NewTheme, DeleteTheme
 from amniotic.obs import logger
 from amniotic.recording import RecordingMetadata
-from amniotic.theme import ThemeDefinition
+from amniotic.theme import ThemeDefinition, IndexThemes
 from fmtr.tools import Path
-from fmtr.tools.iterator_tools import IndexList
+from fmtr.tools.iterator_tools import IndexList, IterDiffer
 from haco.device import Device
 
 
@@ -34,45 +35,6 @@ class MediaState:
         return self
 
 
-class IndexThemes(IndexList[ThemeDefinition]):
-
-    @classmethod
-    def get_path_themes(cls):
-        from amniotic.settings import settings
-        return settings.path_themes
-
-    @classmethod
-    def load_data(cls):
-        path_themes = cls.get_path_themes()
-
-        if not path_themes.exists():
-            logger.warning(f'No themes file found at "{path_themes}". No themes will be loaded.')
-            return []
-
-        with logger.span(f'Loading themes from "{path_themes}"'):
-            data = path_themes.read_yaml()
-            logger.info(f'Loaded {len(data)} themes.')
-
-        return data
-
-    @classmethod
-    def load(cls, amniotic: 'Amniotic'):
-        data = cls.load_data()
-        self = cls.from_data(amniotic, data)
-        return self
-
-    @classmethod
-    def from_data(cls, amniotic: 'Amniotic', data: list[dict]):
-        themes = [ThemeDefinition.from_data(amniotic=amniotic, data=datum) for datum in data]
-        self = cls(themes)
-        return self
-
-    def save(self):
-        path = self.get_path_themes()
-        with logger.span(f'Saving {len(self)} themes to "{path}"'):
-            data = [theme.model_dump() for theme in self]
-            return path.write_json(data)
-
 @dataclass(kw_only=True)
 class Amniotic(Device):
     themes: IndexList[ThemeDefinition] = field(default_factory=IndexList, metadata=dict(exclude=True))
@@ -80,13 +42,17 @@ class Amniotic(Device):
 
     client_ha: homeassistant_api.Client | None = field(default=None, metadata=dict(exclude=True))
 
-    path_audio_str: str = field(metadata=dict(exclude=True))
+    path_audio: Path = field(metadata=dict(exclude=True))
+    path_audio_schedule_duration: int = field(default=10, metadata=dict(exclude=True))
+
+    path_audio_schedule_task: asyncio.Task | None = field(default=None, metadata=dict(exclude=True))
 
     def __post_init__(self):
         if not self.path_audio.exists():
             logger.warning(f'Audio path "{self.path_audio}" does not exist. Will be created.')
             self.path_audio.mkdir()
-        self.metas = IndexList(RecordingMetadata(path) for path in self.path_audio.iterdir() if path.is_file())  # All those on disk.
+        self.metas = IndexList()
+        self.refresh_metas()
 
         if not self.metas:
             logger.warning(f'No audio files found in "{self.path_audio}". You will need to add some before you can stream anything.')
@@ -109,9 +75,6 @@ class Amniotic(Device):
             self.sns_url
         ]
 
-    @cached_property
-    def path_audio(self):
-        return Path(self.path_audio_str)
 
     @cached_property
     def select_theme(self):
@@ -119,7 +82,7 @@ class Amniotic(Device):
 
     @cached_property
     def select_recording(self):
-        return SelectRecording(options=[str(meta.name) for meta in self.metas])
+        return SelectRecording(options=sorted(self.metas.name.keys()))
 
     @cached_property
     def select_media_player(self):
@@ -148,3 +111,32 @@ class Amniotic(Device):
     @cached_property
     def btn_delete_theme(self):
         return DeleteTheme()
+
+    def refresh_metas(self) -> bool:
+
+        paths_existing = self.metas.path.keys()
+        paths_disk = {path for path in self.path_audio.iterdir() if path.is_file()}
+
+        diff = IterDiffer(paths_existing, paths_disk)
+
+        for path in diff.added:
+            logger.info(f'Adding new recording: "{path}"...')
+            meta = RecordingMetadata(path)
+            self.metas.append(meta)
+
+        return diff.is_changed
+
+    @logger.instrument('Starting audio file monitoring task. Duration: {self.path_audio_schedule_duration}. Directory: "{self.path_audio}"...')
+    async def refresh_metas_task(self):
+        while True:
+            await asyncio.sleep(self.path_audio_schedule_duration)
+
+            logger.debug(f'Syncing recordings in "{self.path_audio}"...')
+            is_changed = self.refresh_metas()
+            if is_changed:
+                await self.select_recording.state()
+
+    async def initialise(self):
+        await super().initialise()
+        if not self.path_audio_schedule_task:
+            self.path_audio_schedule_task = asyncio.create_task(self.refresh_metas_task())
