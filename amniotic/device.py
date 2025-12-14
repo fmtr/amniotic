@@ -123,6 +123,8 @@ class Amniotic(Device):
             logger.info(f'Adding new recording: "{path}"...')
             meta = RecordingMetadata(path)
             self.metas.append(meta)
+            if not self.metas.current:
+                self.metas.current = meta
 
         return diff.is_changed
 
