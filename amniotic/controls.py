@@ -93,6 +93,9 @@ class SelectRecording(Select, ThemeRelativeControl):
             self.options = options
             await self.announce()
 
+        if not self.instance:
+            return None
+
         await self.device.swt_play.state()
         await self.device.nbr_volume.state()
         return self.instance.name
@@ -106,13 +109,21 @@ class EnableRecording(Switch, ThemeRelativeControl):
 
     @logger.instrument('Toggling {value=} recording instance "{self.instances.current.name}" for Theme "{self.theme.name}"...')
     async def command(self, value):
+
+        if not self.instance:
+            return None
+
         self.instance.is_enabled = value
         self.themes.save()
 
+
     async def state(self, value=None):
-        if self.instance:
-            return self.instance.is_enabled
-        return None
+
+        if not self.instance:
+            return None
+
+        return self.instance.is_enabled
+
 
 
 @dataclass(kw_only=True)
@@ -122,10 +133,20 @@ class NumberVolume(Number, ThemeRelativeControl):
 
     @logger.instrument('Setting volume to {value} for recording instance "{self.instances.current.name}" for Theme "{self.theme.name}"...')
     async def command(self, value):
+
+        if not self.instance:
+            return None
+
         self.instance.volume = value / 100
         self.themes.save()
 
+
     async def state(self, value=None):
+
+        if not self.instance:
+            return None
+
+
         return int(self.instance.volume * 100)
 
 
@@ -170,6 +191,9 @@ class PlayStreamButton(Button, ThemeRelativeControl):
 
 
     async def command(self, value):
+
+        if not self.instance:
+            return None
 
         state = self.device.media_player_states.current
 

@@ -65,7 +65,7 @@ class RecordingThemeInstance(Base):
 
     @property
     def meta(self):
-        return self.device.metas.path_str[self.path]
+        return self.device.metas.path_str.get(self.path)
 
 
     def get_stream(self):

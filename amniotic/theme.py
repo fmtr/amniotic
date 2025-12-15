@@ -67,6 +67,8 @@ class ThemeDefinition(Base):
 
         if not self.instances:
             meta = self.amniotic.metas.current
+            if not meta:
+                return
             instance = RecordingThemeInstance(device=self.amniotic, path=meta.path_str)
             self.instances.append(instance)
             self.instances.current = instance
@@ -90,7 +92,17 @@ class ThemeDefinition(Base):
     @classmethod
     def from_data(cls, amniotic: 'Amniotic', data: dict):
         data_instances = data.pop('instances', [])
-        instances = IndexInstances(RecordingThemeInstance(device=amniotic, **kwargs) for kwargs in data_instances)
+
+        instances = IndexInstances()
+        for kwargs in data_instances:
+            instance = RecordingThemeInstance(device=amniotic, **kwargs)
+            if not instance.meta:
+                logger.warning(f'Recording no longer exists "{instance.path}". Will be removed from Theme.')
+                continue
+            instances.append(instance)
+            if not instances.current:
+                instances.current = instance
+
         self = cls(amniotic=amniotic, instances=instances, **data)
         return self
 
