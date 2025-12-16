@@ -197,7 +197,7 @@ class IndexThemes(IndexList[ThemeDefinition]):
             return []
 
         with logger.span(f'Loading themes from "{path_themes}"'):
-            data = path_themes.read_yaml()
+            data = path_themes.read_json()
             logger.info(f'Loaded {len(data)} themes.')
 
         return data
