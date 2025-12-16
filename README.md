@@ -67,7 +67,7 @@ Better documentation is coming soon. Currently, the easiest workflow is the foll
 ## Do I need a fancy Sonos-type Speaker? Can't I just use a Raspberry Pi, etc?
 
 - You can use basically any device with audio hardware. You just need to allow Home Assistant to see it as a Media Player entity.
-- In Home Assistant, install the https://www.home-assistant.io/integrations/vlc_telnet
+- In Home Assistant, install the [VLC Telnet integration](https://www.home-assistant.io/integrations/vlc_telnet).
 - On your Device, install VLC, and start it in telnet mode, e.g.
   `vlc -I telnet --telnet-password password --telnet-host 0.0.0.0:4212`
-- Add your VLC server to the integration.
+- Add your device to the VLC Telnet integration.
