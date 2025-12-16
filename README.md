@@ -41,10 +41,21 @@ Better documentation is coming soon. Currently, the easiest workflow is the foll
 - Install as an Addon, using the button above.
 - If you're using a non-default address for Home Assistant on your network (i.e. not
   `homeassistant.local`), set that in the Addon configuration.
-- Add some audio files to the Home Assistant
-  `/media/Amniotic` directory. Note: currently, you'll need to restart the Addon for it to see new files.
-- Add the Dashboard to Lovelace.
-- Select a Default Theme from A or B. Note: Adding your own themes isn't implemented yet, nor will they be saved between restarts.
+- Add some audio files to the Home Assistant `/media/Amniotic` directory.
+
+#### Adding the Dashboard to Lovelace
+
+- Find the [Lovelace Dashboard View here](https://fmtr.link/amniotic/doc/dashboard).
+- Click on the Copy icon to "Copy raw file"
+- In your Home Assistant UI, navigate to a dashboard you'd like to add the View to.
+- Click on the Edit Dashboard icon.
+- Click the `+` to add a new View.
+- Click on the three dots in the top right corner of the new View editor, and select `Edit in YAML`.
+- Overwrite the _entire_ edit box with the contents of your clipboard.
+- Click `Save`.
+- Click `Done` in the dashboard editor.
+
+#### Using the Dashboard
 - Select a Recording from the dropdown.
 - Toggle to Enable the Recording.
 - Select a Media Player to stream the Theme to. Note: Your media player needs to support streaming from a basic HTTP stream, which most should.
@@ -53,7 +64,7 @@ Better documentation is coming soon. Currently, the easiest workflow is the foll
 - You can now Enable additional Recordings in the Theme, modify their volume, etc., to create a custom mix.
 - Note: there's also a Current Theme URL, for if you want to manually paste stream to a non-HA player, like a phone or something.
 
-## Do I need a Sonos Speaker? Can't I just use a Raspberry Pi, etc?
+## Do I need a fancy Sonos-type Speaker? Can't I just use a Raspberry Pi, etc?
 
 - You can use basically any device with audio hardware. You just need to allow Home Assistant to see it as a Media Player entity.
 - In Home Assistant, install the https://www.home-assistant.io/integrations/vlc_telnet

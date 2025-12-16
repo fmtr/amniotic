@@ -1,107 +1,106 @@
-views:
-  title: Amniotic
-    sections:
-      - type: grid
-        cards:
-          - type: heading
-            heading: Theme
-            heading_style: title
-          - type: tile
-            grid_options:
-              columns: 48
-              rows: 1
-            entity: select.amniotic_theme
-            name: Theme
-            vertical: false
-            features:
-              - type: select-options
-            features_position: bottom
-          - type: entities
-            entities:
-              - entity: button.amniotic_delete_current_theme
-              - entity: text.amniotic_new_theme
-              - entity: sensor.amniotic_stream_url
-                name:
-                  type: entity
-            grid_options:
-              columns: 18
-              rows: auto
-        column_span: 4
-      - type: grid
-        cards:
-          - type: heading
-            heading_style: title
-            heading: Current Recording
-          - type: tile
-            grid_options:
-              columns: 48
-              rows: 1
-            entity: select.amniotic_recording
-            name: Theme Recording
-            vertical: false
-            features:
-              - type: select-options
-            features_position: bottom
-          - type: tile
-            grid_options:
-              columns: 48
-              rows: 1
-            entity: switch.amniotic_enable_recording
-            name: Enable Current Recording in Theme
-            vertical: false
-            features_position: bottom
-            features:
-              - type: toggle
-          - type: tile
-            grid_options:
-              columns: 48
-              rows: 1
-            entity: number.amniotic_recording_volume
-            name: Current Recording Volume
-            vertical: false
-            features:
-              - style: slider
-                type: numeric-input
-            features_position: bottom
-        column_span: 4
-      - type: grid
-        cards:
-          - type: heading
-            heading: Media Players
-            heading_style: title
-          - type: tile
-            grid_options:
-              columns: 48
-              rows: 1
-            entity: select.amniotic_media_player
-            name: Media Player
-            vertical: false
-            features:
-              - type: select-options
-            features_position: bottom
-          - type: tile
-            grid_options:
-              columns: 48
-              rows: 1
-            entity: button.amniotic_stream
-            name: Stream Current Theme to Media Player
-            show_entity_picture: false
-            hide_state: true
-            vertical: false
-            features:
-              - type: button
-                action_name: Stream
-            features_position: bottom
-        column_span: 4
-    type: sections
-    max_columns: 4
-    icon: mdi:waveform
-  cards: [ ]
-    header:
-      card:
-        type: markdown
-        text_only: true
-        content: |-
-          # Amniotic
-          An ambient sound mixer for Home Assistant.
-    
+title: Amniotic
+sections:
+  - type: grid
+    cards:
+      - type: heading
+        heading: Theme
+        heading_style: title
+      - type: tile
+        grid_options:
+          columns: 48
+          rows: 1
+        entity: select.amniotic_theme
+        name: Theme
+        vertical: false
+        features:
+          - type: select-options
+        features_position: bottom
+      - type: entities
+        entities:
+          - entity: button.amniotic_delete_current_theme
+          - entity: text.amniotic_new_theme
+          - entity: sensor.amniotic_stream_url
+            name:
+              type: entity
+        grid_options:
+          columns: 18
+          rows: auto
+    column_span: 4
+  - type: grid
+    cards:
+      - type: heading
+        heading_style: title
+        heading: Current Recording
+      - type: tile
+        grid_options:
+          columns: 48
+          rows: 1
+        entity: select.amniotic_recording
+        name: Theme Recording
+        vertical: false
+        features:
+          - type: select-options
+        features_position: bottom
+      - type: tile
+        grid_options:
+          columns: 48
+          rows: 1
+        entity: switch.amniotic_enable_recording
+        name: Enable Current Recording in Theme
+        vertical: false
+        features_position: bottom
+        features:
+          - type: toggle
+      - type: tile
+        grid_options:
+          columns: 48
+          rows: 1
+        entity: number.amniotic_recording_volume
+        name: Current Recording Volume
+        vertical: false
+        features:
+          - style: slider
+            type: numeric-input
+        features_position: bottom
+    column_span: 4
+  - type: grid
+    cards:
+      - type: heading
+        heading: Media Players
+        heading_style: title
+      - type: tile
+        grid_options:
+          columns: 48
+          rows: 1
+        entity: select.amniotic_media_player
+        name: Media Player
+        vertical: false
+        features:
+          - type: select-options
+        features_position: bottom
+      - type: tile
+        grid_options:
+          columns: 48
+          rows: 1
+        entity: button.amniotic_stream
+        name: Stream Current Theme to Media Player
+        show_entity_picture: false
+        hide_state: true
+        vertical: false
+        features:
+          - type: button
+            action_name: Stream
+        features_position: bottom
+    column_span: 4
+type: sections
+max_columns: 4
+icon: mdi:waveform
+cards: [ ]
+header:
+  card:
+    type: markdown
+    text_only: true
+    content: |-
+      # Amniotic
+      An ambient sound mixer for Home Assistant.
+  
