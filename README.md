@@ -64,6 +64,16 @@ Better documentation is coming soon. Currently, the easiest workflow is the foll
 - You can now Enable additional Recordings in the Theme, modify their volume, etc., to create a custom mix.
 - Note: there's also a Current Theme URL, for if you want to manually paste stream to a non-HA player, like a phone or something.
 
+#### Upgrading from Amniotic 0.x and fixing entity IDs
+
+If you upgraded from the old version and need to fix entity IDs:
+
+- Go into Devices and find both old and new Amniotic devices.
+- Delete both (MQTT Info -> Delete)
+- Restart the Add-On/Container, and just the new one should recreate itself.
+- If you end up with funky Entity IDs (like
+  `select.amniotic_theme_2`) click in the :recycle: button in the Entity ID box.
+
 ## Do I need a fancy Sonos-type Speaker? Can't I just use a Raspberry Pi, etc?
 
 - You can use basically any device with audio hardware. You just need to allow Home Assistant to see it as a Media Player entity.
