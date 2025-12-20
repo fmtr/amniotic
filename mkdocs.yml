@@ -1,0 +1,48 @@
+site_name: Amniotic
+
+theme:
+  name: material
+  features:
+    - content.code.annotate
+    - content.code.copy
+
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: true
+
+markdown_extensions:
+  - admonition
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      pygments_lang_class: true
+  - pymdownx.snippets:
+      check_paths: true
+  - attr_list
+  - md_in_html
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+nav:
+  - Home: index.md
+  - Quick Start: quick-start.md
+  - Install:
+      - Docker: install/docker.md
+      - Lovelace Dashboard: install/dashboard.md
+  - Recordings: recordings.md
+  - Themes: themes.md
+  - Players: players.md
+
+extra:
+  version:
+    provider: mike
+
+
+
