@@ -14,12 +14,15 @@ Below is an example dashboard for the Amniotic integration. You don't need to us
 - Click `Done` in the dashboard editor.
 
 === "Dashboard Code"
-```yaml
---8<--
-dashboard.yaml    
---8<--
-```
+
+    ```yaml
+    --8<--
+    dashboard.yaml    
+    --8<--
+    ```
+
 === "Screenshot"
-![Dashboard Screenshot](https://fmtr.link/amniotic/doc/dashboard/screenshot)
+
+    ![Dashboard Screenshot](https://fmtr.link/amniotic/doc/dashboard/screenshot)
 
 
