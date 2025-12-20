@@ -518,11 +518,9 @@
 <h1 id="running-as-a-docker-image">Running as a Docker Image</h1>
 <p>There's also a <a href="https://hub.docker.com/r/fmtr/amniotic">pre-built Docker Image</a> available, so you can run on a NAS or
 home server etc. To run in container, use this command to map through sound devices, audio and config files:</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="1:1"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">compose</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">compose</label><label for="__tabbed_1_2">.env</label></div>
 <div class="tabbed-content">
-<div class="tabbed-block"></div>
-</div>
-</div>
+<div class="tabbed-block">
 <div class="language-yaml highlight"><pre><span></span><code><span class="nt">services</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">amniotic</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">container_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">amniotic</span>
@@ -558,13 +556,13 @@ home server etc. To run in container, use this command to map through sound devi
 <span class="w">    </span><span class="c1"># No need for root</span>
 <span class="w">    </span><span class="nt">user</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1000:1000&quot;</span>
 </code></pre></div>
-<div class="tabbed-set tabbed-alternate" data-tabs="2:1"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">.env</label></div>
-<div class="tabbed-content">
-<div class="tabbed-block"></div>
 </div>
-</div>
+<div class="tabbed-block">
 <div class="language-text highlight"><pre><span></span><code>TOKEN=123
 </code></pre></div>
+</div>
+</div>
+</div>
 
 
 
