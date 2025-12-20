@@ -9,6 +9,10 @@
       
       
       
+        <link rel="prev" href="../dashboard/">
+      
+      
+        <link rel="next" href="../../recordings/">
       
       
         
@@ -19,7 +23,7 @@
     
     
       
-        <title>Upgrading - Amniotic</title>
+        <title>Upgrading from the Old Version - Amniotic</title>
       
     
     
@@ -102,7 +106,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Upgrading
+              Upgrading from the Old Version
             
           </span>
         </div>
@@ -249,18 +253,20 @@
       
   
   
+    
   
   
+  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
           <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
@@ -281,7 +287,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             
@@ -343,6 +349,88 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Upgrading from the Old Version
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Upgrading from the Old Version
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#upgrading-from-amniotic-0x-and-fixing-entity-ids" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Upgrading from Amniotic 0.x and fixing entity IDs
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -488,16 +576,16 @@
 
 
 
-  <h1>Upgrading</h1>
+  <h1>Upgrading from the Old Version</h1>
 
-<h4 id="upgrading-from-amniotic-0x-and-fixing-entity-ids">Upgrading from Amniotic 0.x and fixing entity IDs</h4>
+<h2 id="upgrading-from-amniotic-0x-and-fixing-entity-ids">Upgrading from Amniotic 0.x and fixing entity IDs</h2>
 <p>If you upgraded from the old version and need to fix entity IDs:</p>
 <ul>
 <li>Go into Devices and find both old and new Amniotic devices.</li>
 <li>Delete both (MQTT Info -&gt; Delete)</li>
 <li>Restart the Add-On/Container, and just the new one should recreate itself.</li>
 <li>If you end up with funky Entity IDs (like
-  <code>select.amniotic_theme_2</code>) click in the <img alt="♻" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/267b.svg" title=":recycle:" /> button in the Entity ID box.</li>
+  <code>select.amniotic_theme_2</code>) click in the <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17.65 6.35A7.96 7.96 0 0 0 12 4a8 8 0 0 0-8 8 8 8 0 0 0 8 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18a6 6 0 0 1-6-6 6 6 0 0 1 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4z"/></svg></span> button in the Entity ID box.</li>
 </ul>
 
 
