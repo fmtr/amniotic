@@ -10,7 +10,4 @@ RUN mkdir -p /opt/dev/repo
 RUN python -m pip install amniotic==${BUILD_VERSION} --break-system-packages --no-cache-dir
 RUN fmtr-tools-install-yamlscript
 
-COPY run.sh /
-RUN chmod a+x /run.sh
-
 CMD ha-addon-launch --name=amniotic
