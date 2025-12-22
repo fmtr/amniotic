@@ -6,9 +6,10 @@ from dataclasses import dataclass, field
 from functools import cached_property
 
 import numpy as np
+from starlette.requests import Request
 
 from amniotic.obs import logger
-from amniotic.recording import LOG_THRESHOLD, RecordingThemeInstance
+from amniotic.recording import LOG_THRESHOLD, RecordingThemeInstance, RecordingThemeStream
 from fmtr.tools import av
 from fmtr.tools.iterator_tools import IndexList
 from fmtr.tools.string_tools import sanitize
@@ -84,11 +85,6 @@ class ThemeDefinition(Base):
     def id(self):
         return sanitize(self.name)
 
-
-    def get_stream(self):
-        theme = ThemeStream(self)
-        return theme
-
     @classmethod
     def from_data(cls, amniotic: 'Amniotic', data: dict):
         data_instances = data.pop('instances', [])
@@ -119,9 +115,10 @@ class ThemeStream:
 
     """
 
-    def __init__(self, theme_def: ThemeDefinition):
+    def __init__(self, theme_def: ThemeDefinition, request: Request):
         self.theme_def = theme_def
-        self.recording_streams = [instance.get_stream() for instance in theme_def.instances]
+        self.request = request
+        self.recording_streams = IndexList[RecordingThemeStream]()
 
     @cached_property
     def chunk_silence(self):
@@ -131,12 +128,28 @@ class ThemeStream:
 
     @property
     def is_enabled(self):
-        return any(stream.instance.is_enabled for stream in self.recording_streams)
+        streams = self.get_streams()
+        return any(stream.instance.is_enabled for stream in streams)
+
+    def get_streams(self):
+        names_map = self.recording_streams.name
+        for instance in self.theme_def.instances:
+            if not instance.is_enabled:
+                continue
+            stream = names_map.get(instance.name)
+            if not stream:
+                stream = RecordingThemeStream(instance=instance)
+                self.recording_streams.append(stream)
+            yield stream
+
+
+
 
     def iter_chunks(self):
 
         while True:
-            data_recs = [next(stream) for stream in self.recording_streams if stream.instance.is_enabled]
+            streams = list(self.get_streams())
+            data_recs = [next(stream) for stream in streams]
             if not data_recs:
                 data_recs.append(self.chunk_silence)
             data = np.vstack(data_recs)
@@ -155,6 +168,7 @@ class ThemeStream:
         try:
             while True:
                 for i, data in enumerate(iter_chunks):
+                    vol_rms = float(np.sqrt((data.astype(np.float32) ** 2).mean()))
                     frame = av.AudioFrame.from_ndarray(data, format='s16', layout='mono')
                     frame.rate = 44100
 
@@ -172,14 +186,15 @@ class ThemeStream:
                         time.sleep(ahead)
 
                     if i % LOG_THRESHOLD == 0:
-                        logger.debug(f'Waiting {ahead:.5f} seconds to maintain real-time pacing {audio_time=}...')
-
+                        logger.info(f'{repr(self)}: Yielding chunk #{i} {vol_rms=}. Real-time delay {ahead:.5f}.')
 
         finally:
-            logger.info('Closing transcoder...')
+            logger.info(f'{repr(self)} Closing stream...')
             iter_chunks.close()
             output.close()
 
+    def __repr__(self):
+        return f'{self.__class__.__name__}(name={repr(self.theme_def.name)}, request={repr(self.request.client)})'
 
 class IndexThemes(IndexList[ThemeDefinition]):
 

@@ -91,6 +91,10 @@ class RecordingThemeStream:
 
         self.gen = self._gen()
 
+    @property
+    def name(self):
+        return self.instance.name
+
     def _gen(self):
 
         while True:
@@ -120,8 +124,8 @@ class RecordingThemeStream:
                         yield data
 
                         if i % LOG_THRESHOLD == 0:
-                            vol_mean = round(abs(data).mean())
-                            logger.info(f'{self.__class__.__name__} Yielding chunk #{i} {data_resamp.shape=} {data.shape=}, {buffer.shape=}, {vol_mean=} {self.instance.meta.path=}')
+                            vol_rms = float(np.sqrt((data.astype(np.float32) ** 2).mean()))
+                            logger.info(f'{self.__class__.__name__} Yielding chunk #{i} {data_resamp.shape=} {data.shape=}, {buffer.shape=}, {vol_rms=} {self.instance.meta.path=}')
                         i += 1
 
             container.close()
