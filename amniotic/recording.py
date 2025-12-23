@@ -86,10 +86,11 @@ class RecordingThemeStream:
 
     def __init__(self, instance: RecordingThemeInstance):
         self.instance = instance
-
         self.resampler = av.AudioResampler(format='s16', layout='mono', rate=44100)
-
         self.gen = self._gen()
+
+        self.container = None
+        self.stream = None
 
     @property
     def name(self):
@@ -99,16 +100,19 @@ class RecordingThemeStream:
 
         while True:
 
-            container = av.open(self.instance.meta.path)
+            self.container = av.open(self.instance.meta.path)
 
-            if len(container.streams.audio) == 0:
-                raise ValueError('No audio stream')
-            stream = next(iter(container.streams.audio))
+            if len(self.container.streams.audio) == 0:
+                raise ValueError(f'{repr(self)}. File has no audio stream.')
+            self.stream = next(iter(self.container.streams.audio))
+
+            with logger.span(f'Started transcoding: {repr(self)}'):
+                logger.info(self.description)
 
             buffer = np.empty((1, 0), dtype=np.int16)
 
             i = 0
-            for frame_orig in container.decode(stream):
+            for frame_orig in self.container.decode(self.stream):
 
                 for frame_resamp in self.resampler.resample(frame_orig):
                     data_resamp = frame_resamp.to_ndarray()
@@ -124,11 +128,11 @@ class RecordingThemeStream:
                         yield data
 
                         if i % LOG_THRESHOLD == 0:
-                            vol_rms = float(np.sqrt((data.astype(np.float32) ** 2).mean()))
-                            logger.info(f'{self.__class__.__name__} Yielding chunk #{i} {data_resamp.shape=} {data.shape=}, {buffer.shape=}, {vol_rms=} {self.instance.meta.path=}')
+                            vol_rms = round(float(np.sqrt((data.astype(np.float32) ** 2).mean())), 2)
+                            logger.info(f'{repr(self)}: Yielding chunk #{i} {data_resamp.shape=} {data.shape=}, {buffer.shape=}, {vol_rms=}')
                         i += 1
 
-            container.close()
+            self.container.close()
 
     def __iter__(self):
         return self  # This returns the instance itself
@@ -141,4 +145,10 @@ class RecordingThemeStream:
         """
         return next(self.gen)
 
+    @property
+    def description(self):
+        desc = f'Container: {self.container.format.long_name}. Codec: {self.stream.codec_context.codec.long_name}. Layout: {self.stream.codec_context.layout.name}. Rate: {self.stream.codec_context.rate}'
+        return desc
 
+    def __repr__(self):
+        return f'{self.__class__.__name__}(name={repr(self.name)})'

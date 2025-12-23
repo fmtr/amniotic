@@ -168,7 +168,7 @@ class ThemeStream:
         try:
             while True:
                 for i, data in enumerate(iter_chunks):
-                    vol_rms = float(np.sqrt((data.astype(np.float32) ** 2).mean()))
+                    vol_rms = round(float(np.sqrt((data.astype(np.float32) ** 2).mean())), 2)
                     frame = av.AudioFrame.from_ndarray(data, format='s16', layout='mono')
                     frame.rate = 44100
 
@@ -189,7 +189,7 @@ class ThemeStream:
                         logger.info(f'{repr(self)}: Yielding chunk #{i} {vol_rms=}. Real-time delay {ahead:.5f}.')
 
         finally:
-            logger.info(f'{repr(self)} Closing stream...')
+            logger.info(f'{repr(self)}: Closing transcoder...')
             iter_chunks.close()
             output.close()
 
