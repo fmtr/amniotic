@@ -1,8 +1,12 @@
 [Unit]
-Description = Amniotic
+Description=VLC Telnet
+After=sound.target
+Wants=sound.target
+
 [Service]
-Type = simple
-Restart = always
-ExecStart = %h/.local/bin/amniotic
+Type=simple
+Restart=always
+ExecStart=%h/.local/bin/vlc-tn
+
 [Install]
-WantedBy = default.target
+WantedBy=default.target
