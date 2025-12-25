@@ -1,12 +1,11 @@
 import asyncio
+import homeassistant_api
 from dataclasses import dataclass
 from dataclasses import field, fields
 from functools import cached_property
 from typing import Self
 
-import homeassistant_api
-
-from amniotic.controls import SelectTheme, SelectRecording, EnableRecording, NumberVolume, SelectMediaPlayer, PlayStreamButton, StreamURL, NewTheme, DeleteTheme
+from amniotic.controls import SelectTheme, SelectRecording, EnableRecording, NumberVolume, SelectMediaPlayer, PlayStreamButton, StreamURL, NewTheme, DeleteTheme, DownloadLink, DownloadStatus, DownloadPercent
 from amniotic.obs import logger
 from amniotic.recording import RecordingMetadata
 from amniotic.theme import ThemeDefinition, IndexThemes
@@ -72,7 +71,10 @@ class Amniotic(Device):
             self.nbr_volume,
             self.select_media_player,
             self.btn_play,
-            self.sns_url
+            self.sns_url,
+            self.txt_download,
+            self.sns_download_status,
+            self.sns_download_percent,
         ]
 
 
@@ -112,6 +114,18 @@ class Amniotic(Device):
     def btn_delete_theme(self):
         return DeleteTheme()
 
+    @cached_property
+    def txt_download(self):
+        return DownloadLink()
+
+    @cached_property
+    def sns_download_status(self):
+        return DownloadStatus()
+
+    @cached_property
+    def sns_download_percent(self):
+        return DownloadPercent()
+
     def refresh_metas(self) -> bool:
 
         paths_existing = self.metas.path.keys()
@@ -126,16 +140,15 @@ class Amniotic(Device):
             if not self.metas.current:
                 self.metas.current = meta
 
-        return diff.is_changed
+        return bool(diff.added)
 
-    @logger.instrument('Starting audio file monitoring task. Duration: {self.path_audio_schedule_duration}. Directory: "{self.path_audio}"...')
     async def refresh_metas_task(self):
+
         while True:
             await asyncio.sleep(self.path_audio_schedule_duration)
-
-            logger.debug(f'Syncing recordings in "{self.path_audio}"...')
             is_changed = self.refresh_metas()
             if is_changed:
+                logger.info(f'Audio file monitoring task found changes. Directory: "{self.path_audio}"...')
                 await self.select_recording.state()
 
     async def initialise(self):

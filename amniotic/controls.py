@@ -1,9 +1,12 @@
-from dataclasses import dataclass
+import asyncio
+import shutil
+from dataclasses import dataclass, field
+from functools import cached_property
 
 from amniotic.obs import logger
 from amniotic.recording import RecordingThemeInstance
 from amniotic.theme import ThemeDefinition
-from fmtr.tools import http
+from fmtr.tools import http, youtube
 from haco.button import Button
 from haco.control import Control
 from haco.number import Number
@@ -11,6 +14,7 @@ from haco.select import Select
 from haco.sensor import Sensor
 from haco.switch import Switch
 from haco.text import Text
+from haco.uom import Uom
 
 
 @dataclass(kw_only=True)
@@ -244,7 +248,7 @@ class NewTheme(Text, ThemeRelativeControl):
         await self.device.select_theme.state()
 
     async def state(self, value=None):
-        return 'New'
+        return 'My New Theme'
 
 
 @dataclass(kw_only=True)
@@ -258,3 +262,91 @@ class DeleteTheme(Button, ThemeRelativeControl):
         self.themes.save()
         await self.device.select_theme.state()
         return value
+
+
+@dataclass(kw_only=True)
+class DownloadLink(Text):
+    """
+
+    YouTube audio stream downloader URL input.
+
+    """
+
+    icon: str = 'cloud-download-outline'
+    name: str = 'Download from YouTube'
+    downloader: youtube.AudioStreamDownloader | None = field(default=None, metadata=dict(exclude=True))
+
+    @cached_property
+    def status_state(self):
+        return self.device.sns_download_status.state
+
+    @cached_property
+    def percent_state(self):
+        return self.device.sns_download_percent.state
+
+    @logger.instrument('Downloading YouTube Link "{value}"...')
+    async def command(self, value):
+        asyncio.create_task(self.download(value))
+        return value
+
+    async def state(self, value=None):
+        return value or ''
+
+    @logger.instrument('Downloading "{url}"...')
+    async def download(self, url: str):
+
+        if self.downloader:
+            message = f'Cannot download "{url}". Downloader already running.'
+            logger.warning(message)
+            await self.status_state(value=message)
+            return None
+
+        self.downloader = youtube.AudioStreamDownloader(url_or_id=url)
+
+        try:
+            async for data in self.downloader.download():
+
+                if data.message:
+                    logger.info(data.message)
+                    await self.status_state(value=data.message)
+                if data.percentage is not None:
+                    message = f"Downloading: {data.percentage}% complete..."
+                    logger.info(message)
+                    await self.percent_state(value=data.percentage)
+
+            await self.status_state(value='Moving download to audio directory...')
+            src = self.downloader.path
+            dst = self.device.path_audio / src.name
+            shutil.move(src, dst)
+            self.device.refresh_metas()
+
+            await self.status_state(value='Finished')
+
+        except Exception as exception:
+            message = 'Error downloading. See container logs for details.'
+            logger.error(message)
+            await self.status_state(value=message)
+            raise exception
+        finally:
+            await self.status_state(value=None)
+            await self.percent_state(value=None)
+            self.downloader = None
+
+
+@dataclass(kw_only=True)
+class DownloadStatus(Sensor, ThemeRelativeControl):
+    icon: str = 'cloud-sync-outline'
+    name: str = 'Download Status'
+
+    async def state(self, value=None):
+        return value or 'Idle'
+
+
+@dataclass(kw_only=True)
+class DownloadPercent(Sensor, ThemeRelativeControl):
+    icon: str = 'cloud-percent-outline'
+    name: str = 'Download Percent Complete'
+    unit_of_measurement: Uom = Uom.PERCENTAGE
+
+    async def state(self, value=None):
+        return value or 0

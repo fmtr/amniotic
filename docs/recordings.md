@@ -10,6 +10,10 @@ There are two ways to add Recordings to Amniotic:
 
     Originally I'd planned Spotify integration. But on the _very day_ I started to work on it, the `libspotify` [ API was closed down](https://developer.spotify.com/community/news/2022/04/12/libspotify-sunset/). Anyway, since I wanted some kind of cloud integration (so as not to strictly _require_ local files), and because YouTube contains a lot ambient audio content, I though that it would make for a decent solution, at least for the meantime.
 
+## Adding Recordings via YouTube
+
+This can be done via the [Lovelace Dashboard](install/dashboard.md), specifically the "Recording Download" section. The input accepts both YouTube URLs or YouTube video IDs. Paste one of these into the control and hit Enter. You should then see download progress and messages appear as the audio stream is downloaded. Once it completes, you will find the new Recording listed in the "Theme Recording" pulldown.
+
 ## Adding Recordings Manually
 
 ### Addon via Media Browser
@@ -40,4 +44,4 @@ If you're not running as an addon, you'll need to manually copy audio files to w
 
 ## Audio Formats
 
-Since Amniotic uses the [Python FFMPEG bindings](https://pyav.org/docs/develop/overview/installation.html), it should support [any format FFMPEG does](https://ffmpeg.org/ffmpeg-formats.html) - but probably safest to stick to simple audio formats, MP3, M4A etc., which have been tested during development.
+Since Amniotic uses [Python FFMPEG bindings](https://pyav.org/docs/develop/overview/installation.html), it should support [any format FFMPEG does](https://ffmpeg.org/ffmpeg-formats.html) - but probably safest to stick to simple audio formats, MP3, M4A etc., which have been tested during development.

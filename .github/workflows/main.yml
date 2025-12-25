@@ -33,8 +33,8 @@ jobs:
 
       - name: Install Tools
         run: |
-          pip install twine pyyaml
-          pip install -U packaging setuptools twine pip build
+          pip install fmtr.tools[deploy]
+          pip install -U packaging #https://github.com/pypa/twine/issues/1216
 
       - name: Docker Login
         env:
@@ -72,6 +72,10 @@ jobs:
           TWINE_USERNAME: __token__
         run: |
           twine upload dist/*
+
+      - name: Deploy Docs
+        run: |
+          docs-deploy      
 
       - name: Wait for PyPI
         run: |
