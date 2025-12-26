@@ -7,6 +7,8 @@ from amniotic.obs import logger
 from amniotic.recording import RecordingThemeInstance
 from amniotic.theme import ThemeDefinition
 from fmtr.tools import http, youtube
+from haco import binary_sensor
+from haco.binary_sensor import BinarySensor
 from haco.button import Button
 from haco.control import Control
 from haco.number import Number
@@ -70,6 +72,7 @@ class SelectTheme(Select, ThemeRelativeControl):
 
         await self.device.select_recording.state()
         await self.device.sns_url.state()
+        await self.device.bsn_theme_streamable.state()
         return name
 
 @dataclass(kw_only=True)
@@ -77,9 +80,7 @@ class SelectRecording(Select, ThemeRelativeControl):
     icon: str = 'waveform'
     name: str = 'Recording'
 
-    @logger.instrument('Setting Theme "{self.theme.name}" current recording instance to "{value}"...')
-    async def command(self, value):
-
+    def set_default(self, value):
         instance = self.instances.name.get(value)
         if not instance:
             logger.info(f'Creating new recording instance "{value}" for Theme "{self.theme.name}"...')
@@ -88,6 +89,11 @@ class SelectRecording(Select, ThemeRelativeControl):
             self.instances.append(instance)
 
         self.instances.current = instance
+        return instance
+
+    @logger.instrument('Setting Theme "{self.theme.name}" current recording instance to "{value}"...')
+    async def command(self, value):
+        self.set_default(value)
         return value
 
     async def state(self, value=None):
@@ -98,7 +104,11 @@ class SelectRecording(Select, ThemeRelativeControl):
             await self.announce()
 
         if not self.instance:
-            return None
+            if not self.device.metas.current:
+                return None
+
+            name = self.device.metas.current.name
+            instance = self.set_default(name)
 
         await self.device.swt_play.state()
         await self.device.nbr_volume.state()
@@ -126,6 +136,7 @@ class EnableRecording(Switch, ThemeRelativeControl):
         if not self.instance:
             return None
 
+        await self.device.bsn_theme_streamable.state()
         return self.instance.is_enabled
 
 
@@ -318,7 +329,8 @@ class DownloadLink(Text):
             src = self.downloader.path
             dst = self.device.path_audio / src.name
             shutil.move(src, dst)
-            self.device.refresh_metas()
+            await self.device.refresh_metas_task(loop=False)
+            await self.device.select_recording.state()
 
             await self.status_state(value='Finished')
 
@@ -334,7 +346,7 @@ class DownloadLink(Text):
 
 
 @dataclass(kw_only=True)
-class DownloadStatus(Sensor, ThemeRelativeControl):
+class DownloadStatus(Sensor):
     icon: str = 'cloud-sync-outline'
     name: str = 'Download Status'
 
@@ -343,10 +355,31 @@ class DownloadStatus(Sensor, ThemeRelativeControl):
 
 
 @dataclass(kw_only=True)
-class DownloadPercent(Sensor, ThemeRelativeControl):
+class DownloadPercent(Sensor):
     icon: str = 'cloud-percent-outline'
     name: str = 'Download Percent Complete'
     unit_of_measurement: Uom = Uom.PERCENTAGE
 
     async def state(self, value=None):
         return value or 0
+
+
+@dataclass(kw_only=True)
+class RecordingsPresent(BinarySensor):
+    icon: str = 'waves'
+    name: str = 'Recordings Present'
+
+    async def state(self, value=None):
+        value = bool(self.device.metas)
+        return value
+
+
+@dataclass(kw_only=True)
+class ThemeStreamable(BinarySensor, ThemeRelativeControl):
+    icon: str = 'volume-vibrate'
+    name: str = 'Theme Streamable'
+    device_class = binary_sensor.DeviceClass.SOUND
+
+    async def state(self, value=None):
+        value = self.theme.is_enabled
+        return value

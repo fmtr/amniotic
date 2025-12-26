@@ -1,11 +1,10 @@
 from __future__ import annotations
 
+import numpy as np
 import time
 import typing
 from dataclasses import dataclass, field
 from functools import cached_property
-
-import numpy as np
 from starlette.requests import Request
 
 from amniotic.obs import logger
@@ -102,7 +101,9 @@ class ThemeDefinition(Base):
         self = cls(amniotic=amniotic, instances=instances, **data)
         return self
 
-
+    @property
+    def is_enabled(self):
+        return any(instance.is_enabled for instance in self.instances)
 
 class ThemeStream:
     """
@@ -128,8 +129,7 @@ class ThemeStream:
 
     @property
     def is_enabled(self):
-        streams = self.get_streams()
-        return any(stream.instance.is_enabled for stream in streams)
+        return self.theme_def.is_enabled
 
     def get_streams(self):
         names_map = self.recording_streams.name

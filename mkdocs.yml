@@ -9,6 +9,8 @@ theme:
 
 plugins:
   - search
+  - include_dir_to_nav:
+      reverse_sort_file: true
   - mkdocstrings:
       handlers:
         python:
@@ -40,6 +42,7 @@ nav:
   - Recordings: recordings.md
   - Themes: themes.md
   - Players: players.md
+  - Changelog: changelog/
 
 extra:
   version:

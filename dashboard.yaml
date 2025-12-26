@@ -3,28 +3,38 @@ sections:
   - type: grid
     cards:
       - type: heading
-        heading: Theme
+        heading: Theme Management
         heading_style: title
       - type: tile
         grid_options:
-          columns: 48
-          rows: 1
+          rows: 2
+          columns: 6
         entity: select.amniotic_theme
-        name: Theme
+        name:
+          type: entity
+        hide_state: true
         vertical: false
         features:
           - type: select-options
         features_position: bottom
       - type: entities
         entities:
-          - entity: button.amniotic_delete_current_theme
           - entity: text.amniotic_new_theme
-          - entity: sensor.amniotic_stream_url
             name:
               type: entity
         grid_options:
-          columns: 18
+          columns: 9
           rows: auto
+      - type: tile
+        entity: button.amniotic_delete_current_theme
+        name: Delete
+        color: red
+        hide_state: true
+        vertical: false
+        features:
+          - type: button
+            action_name: Delete
+        features_position: bottom
     column_span: 4
   - type: grid
     cards:
@@ -33,24 +43,28 @@ sections:
         heading: Current Recording
       - type: tile
         grid_options:
-          columns: 48
-          rows: 1
+          rows: 2
+          columns: 6
         entity: select.amniotic_recording
         name: Theme Recording
+        hide_state: true
         vertical: false
         features:
           - type: select-options
         features_position: bottom
       - type: tile
         grid_options:
-          columns: 48
-          rows: 1
+          columns: 6
+          rows: 2
         entity: switch.amniotic_enable_recording
-        name: Enable Current Recording in Theme
+        name:
+          type: entity
+        show_entity_picture: false
+        hide_state: true
         vertical: false
-        features_position: bottom
         features:
           - type: toggle
+        features_position: bottom
       - type: tile
         grid_options:
           columns: 48
@@ -61,29 +75,90 @@ sections:
         features:
           - style: slider
             type: numeric-input
+          - type: numeric-input
+            style: buttons
+        features_position: bottom
+    column_span: 4
+    visibility:
+      - condition: state
+        entity: binary_sensor.amniotic_recordings_present
+        state: "on"
+  - type: grid
+    cards:
+      - type: heading
+        heading: Current Recording
+        heading_style: title
+      - type: tile
+        grid_options:
+          columns: full
+        entity: binary_sensor.amniotic_recordings_present
+        name: No Recordings have been added yet. You will need to add some.
+        icon: mdi:alert-circle
+        color: amber
+        hide_state: true
+        vertical: false
+        features_position: bottom
+      - type: markdown
+        content: >-
+          [Documentation on Adding
+          Recordings](https://fmtr.link/amniotic/doc/recordings)
+        text_only: true
+    column_span: 4
+    visibility:
+      - condition: state
+        entity: binary_sensor.amniotic_recordings_present
+        state: "off"
+  - type: grid
+    cards:
+      - type: heading
+        heading: Recording Download
+        heading_style: title
+      - type: entities
+        entities:
+          - entity: text.amniotic_download_from_youtube
+            name:
+              type: entity
+        grid_options:
+          columns: 12
+          rows: auto
+      - type: tile
+        entity: sensor.amniotic_download_status_2
+        name: Downloader
+        vertical: false
+        features_position: bottom
+      - type: tile
+        grid_options:
+          columns: 6
+          rows: 2
+        entity: sensor.amniotic_download_percent_complete
+        name: Completed
+        vertical: false
+        features:
+          - type: bar-gauge
         features_position: bottom
     column_span: 4
   - type: grid
     cards:
       - type: heading
-        heading: Media Players
+        heading: Streaming
         heading_style: title
       - type: tile
         grid_options:
-          columns: 48
-          rows: 1
+          columns: 6
+          rows: 2
         entity: select.amniotic_media_player
         name: Media Player
+        hide_state: true
         vertical: false
         features:
           - type: select-options
         features_position: bottom
       - type: tile
         grid_options:
-          columns: 48
-          rows: 1
+          columns: 6
+          rows: 2
         entity: button.amniotic_stream
-        name: Stream Current Theme to Media Player
+        name: Stream
         show_entity_picture: false
         hide_state: true
         vertical: false
@@ -91,7 +166,47 @@ sections:
           - type: button
             action_name: Stream
         features_position: bottom
+      - type: tile
+        entity: sensor.amniotic_stream_url
+        name:
+          type: entity
+        vertical: false
+        features_position: bottom
+        grid_options:
+          columns: 9
+          rows: 1
     column_span: 4
+    visibility:
+      - condition: state
+        entity: binary_sensor.amniotic_theme_streamable
+        state: "on"
+  - type: grid
+    cards:
+      - type: heading
+        heading: Streaming
+        heading_style: title
+      - type: tile
+        grid_options:
+          columns: full
+        entity: binary_sensor.amniotic_theme_streamable
+        name: >-
+          No Recordings are enabled for the current Theme. You will need to
+          enable some before you can Stream.
+        icon: mdi:alert-circle
+        color: amber
+        hide_state: true
+        vertical: false
+        features_position: bottom
+      - type: markdown
+        content: >-
+          [Documentation on Themes and Enabling
+          Recordings](https://fmtr.link/amniotic/doc/themes)
+        text_only: true
+    column_span: 4
+    visibility:
+      - condition: state
+        entity: binary_sensor.amniotic_theme_streamable
+        state: "off"
 type: sections
 max_columns: 4
 icon: mdi:waveform
@@ -99,8 +214,8 @@ cards: [ ]
 header:
   card:
     type: markdown
-    text_only: true
     content: |-
       # Amniotic
       An ambient sound mixer for Home Assistant.
-  
+    text_only: true
+badges: [ ]

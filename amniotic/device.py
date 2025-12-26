@@ -5,7 +5,7 @@ from dataclasses import field, fields
 from functools import cached_property
 from typing import Self
 
-from amniotic.controls import SelectTheme, SelectRecording, EnableRecording, NumberVolume, SelectMediaPlayer, PlayStreamButton, StreamURL, NewTheme, DeleteTheme, DownloadLink, DownloadStatus, DownloadPercent
+from amniotic.controls import SelectTheme, SelectRecording, EnableRecording, NumberVolume, SelectMediaPlayer, PlayStreamButton, StreamURL, NewTheme, DeleteTheme, DownloadLink, DownloadStatus, DownloadPercent, RecordingsPresent, ThemeStreamable
 from amniotic.obs import logger
 from amniotic.recording import RecordingMetadata
 from amniotic.theme import ThemeDefinition, IndexThemes
@@ -75,6 +75,8 @@ class Amniotic(Device):
             self.txt_download,
             self.sns_download_status,
             self.sns_download_percent,
+            self.bsn_recordings_present,
+            self.bsn_theme_streamable,
         ]
 
 
@@ -126,6 +128,14 @@ class Amniotic(Device):
     def sns_download_percent(self):
         return DownloadPercent()
 
+    @cached_property
+    def bsn_recordings_present(self):
+        return RecordingsPresent()
+
+    @cached_property
+    def bsn_theme_streamable(self):
+        return ThemeStreamable()
+
     def refresh_metas(self) -> bool:
 
         paths_existing = self.metas.path.keys()
@@ -142,14 +152,18 @@ class Amniotic(Device):
 
         return bool(diff.added)
 
-    async def refresh_metas_task(self):
+    async def refresh_metas_task(self, loop=True):
 
-        while True:
+        while loop:
             await asyncio.sleep(self.path_audio_schedule_duration)
-            is_changed = self.refresh_metas()
-            if is_changed:
-                logger.info(f'Audio file monitoring task found changes. Directory: "{self.path_audio}"...')
-                await self.select_recording.state()
+            await self.refresh_metas_task(loop=False)
+            return
+
+        is_changed = self.refresh_metas()
+        if is_changed:
+            logger.info(f'Audio file monitoring task found changes. Directory: "{self.path_audio}"...')
+            await self.bsn_recordings_present.state()
+            await self.select_recording.state()
 
     async def initialise(self):
         await super().initialise()

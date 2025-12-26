@@ -1,7 +1,8 @@
 Amniotic lets you define multiple Themes, each of which you can stream to separate Media Player entities.
 
 !!! note "What's a Theme?"
-Theme here just means a custom, named mix of one or more Recordings, their relative volumes, etc. So a simple Theme might be called "Relaxing Sleep Sounds" and involve two Recordings: one Recording of Birdsong, for example, at 20% volume, mixed with a second Recording, say of white noise, at 12% volume.
+
+    Theme here just means a custom, named mix of one or more Recordings, their relative volumes, etc. So a simple Theme might be called "Relaxing Sleep Sounds" and involve two Recordings: one Recording of Birdsong, for example, at 20% volume, mixed with a second Recording, say of white noise, at 12% volume.
 
 # Creating Themes via Home Assistant Controls
 
@@ -12,7 +13,9 @@ Themes persist, and are saved to disk when modified in any way.
 When running for the first time, you'll have a single theme called **Default
 **. You can add new Themes by entering a name into the **New Theme** control.
 
+!!! note "Themes Need Recordings Enabled"
 
+    When you first create a Theme, it will have no Recordings enabled. In order to be able to stream the Theme, you'll need to enable at least one Recording for it. To enable a Recording, select one from the "Theme Recordings" control, then toggle "Enable Recording".
 
 
 
