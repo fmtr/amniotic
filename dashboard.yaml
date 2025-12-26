@@ -122,7 +122,7 @@ sections:
           columns: 12
           rows: auto
       - type: tile
-        entity: sensor.amniotic_download_status_2
+        entity: sensor.amniotic_download_status
         name: Downloader
         vertical: false
         features_position: bottom
