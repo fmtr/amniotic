@@ -8,6 +8,6 @@ RUN ssh-keygen -A
 RUN mkdir -p /opt/dev/repo
 #RUN python3 -m venv /opt/dev/venv/amniotic
 RUN python -m pip install amniotic==${BUILD_VERSION} --break-system-packages --no-cache-dir
-RUN fmtr-tools-install-yamlscript
+#RUN fmtr-tools-install-yamlscript
 
 CMD ha-addon-launch --name=amniotic
