@@ -138,6 +138,8 @@ class Amniotic(Device):
 
     def refresh_metas(self) -> bool:
 
+        logger.debug(f'Refreshing Recordings from "{self.path_audio}"...')
+
         paths_existing = self.metas.path.keys()
         paths_disk = {path for path in self.path_audio.iterdir() if path.is_file()}
 
@@ -157,7 +159,6 @@ class Amniotic(Device):
         while loop:
             await asyncio.sleep(self.path_audio_schedule_duration)
             await self.refresh_metas_task(loop=False)
-            return
 
         is_changed = self.refresh_metas()
         if is_changed:

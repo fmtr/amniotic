@@ -6,7 +6,7 @@ from functools import cached_property
 from amniotic.obs import logger
 from amniotic.recording import RecordingThemeInstance
 from amniotic.theme import ThemeDefinition
-from fmtr.tools import http, youtube
+from fmtr.tools import http, youtube, Constants
 from haco import binary_sensor
 from haco.binary_sensor import BinarySensor
 from haco.button import Button
@@ -301,7 +301,7 @@ class DownloadLink(Text):
         return value
 
     async def state(self, value=None):
-        return value or ''
+        return value or Constants.PROMPT_NONE_SPECIFIED
 
     @logger.instrument('Downloading "{url}"...')
     async def download(self, url: str):
