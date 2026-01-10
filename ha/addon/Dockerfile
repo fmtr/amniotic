@@ -7,7 +7,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         python3-pip \
         make \
-        openssh-client \
+        openssh-server \
         rsync \
         sudo && \
     rm -rf /var/lib/apt/lists/*
