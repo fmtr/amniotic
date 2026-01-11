@@ -9,6 +9,10 @@
       
       
       
+        <link rel="prev" href="../../players/">
+      
+      
+        <link rel="next" href="../1.5.0/">
       
       
         
@@ -19,7 +23,7 @@
     
     
       
-        <title>Native - Amniotic</title>
+        <title>1.5.2 - Amniotic</title>
       
     
     
@@ -62,7 +66,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#hardware" class="md-skip">
+        <a href="#fixes" class="md-skip">
           Skip to content
         </a>
       
@@ -102,7 +106,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Native
+              1.5.2
             
           </span>
         </div>
@@ -299,7 +303,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../docker/" class="md-nav__link">
+      <a href="../../install/docker/" class="md-nav__link">
         
   
   
@@ -327,7 +331,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../dashboard/" class="md-nav__link">
+      <a href="../../install/dashboard/" class="md-nav__link">
         
   
   
@@ -355,7 +359,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../upgrading/" class="md-nav__link">
+      <a href="../../install/upgrading/" class="md-nav__link">
         
   
   
@@ -468,18 +472,20 @@
       
   
   
+    
   
   
+  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
         
           
           <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
@@ -500,7 +506,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             
@@ -515,10 +521,35 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../changelog/1.5.2/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1.5.2
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -534,6 +565,35 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#fixes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixes
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -546,7 +606,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../changelog/1.5.0/" class="md-nav__link">
+      <a href="../1.5.0/" class="md-nav__link">
         
   
   
@@ -574,7 +634,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../changelog/1.4.3/" class="md-nav__link">
+      <a href="../1.4.3/" class="md-nav__link">
         
   
   
@@ -602,7 +662,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../changelog/1.4.0/" class="md-nav__link">
+      <a href="../1.4.0/" class="md-nav__link">
         
   
   
@@ -630,7 +690,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../changelog/1.3.0/" class="md-nav__link">
+      <a href="../1.3.0/" class="md-nav__link">
         
   
   
@@ -675,8 +735,25 @@
   
   
   
-    
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#fixes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixes
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -693,60 +770,12 @@
 
 
 
-<p>This section covers installing Amniotic outside of Home Assistant (i.e. on a separate, dedicated machine, a desktop PC,
-etc.)</p>
-<h1 id="hardware">Hardware</h1>
-<p>Any vaguely suitable device (i.e. with a network connection and audio outputs) should work, but it was primarily
-intended for (and developed on) a dedicated Raspberry Pi 4B. The lowest spec I've tested on is a Pi Zero W 1, which
-works fine but struggled playing more than one Theme at a time. And obviously you'll have better results with better
-audio equipment (amps, speakers, etc.), especially for lower-frequency themes.</p>
-<h1 id="platform">Platform</h1>
-<p>Raspbian/Debian are best tested and covered here. But for other platforms etc., see
-the <a href="#other-platforms">Other Platforms</a> section.</p>
-<h1 id="installing-on-raspberry-pi-linux">Installing  on Raspberry Pi (Linux)</h1>
-<p>To install on Raspbian, or any Debian Linux etc., first install dependencies, then the Amniotic package:</p>
-<div class="language-console highlight"><pre><span></span><code><span class="go">sudo apt update -y</span>
-<span class="go">sudo apt install -y python3-pip pulseaudio vlc</span>
-<span class="go">pip3 install amniotic</span>
-</code></pre></div>
-<p>Once done, you should find <code>amnitoic</code> installed in  <code>~/.local/bin/amniotic</code></p>
-<h1 id="config-file">Config File</h1>
-<p>You will need to add a config file at the path <code>~/.config/amniotic/config.yml</code>. It's primarily for adding your MQTT
-credentials. A commented example file that you can modify is <a href="https://github.com/fmtr/amniotic/blob/main/config.example.yml">
-<code>config.example.yml</code></a>.</p>
-<h1 id="default-audio-directory">Default Audio Directory</h1>
-<p>This can be set in the Config File, as above, but by default it's the following path: <code>~/.local/share/amniotic</code></p>
-<h1 id="running">Running</h1>
-<p>You should now simply be able to run <code>~/.local/bin/amniotic</code>, which will connect to MQTT:</p>
-<div class="language-console highlight"><pre><span></span><code><span class="go">2022-05-20 15:14:51 INFO  amniotic.mqtt    : Amniotic 0.0.1 has started.</span>
-<span class="go">2022-05-20 15:14:51 INFO  amniotic.mqtt    : Amniotic 0.0.1 starting MQTT...</span>
-<span class="go">2022-05-20 15:14:51 INFO  amniotic.mqtt    : Attempting to connect to MQTT &quot;homeassistant.local:1883&quot;: Connection successful</span>
-</code></pre></div>
-<h1 id="installing-as-a-service">Installing as a Service</h1>
-<p>Since a dedicated Amniotic device (e.g. a Pi) functions like an appliance, you might want to install as a service, so
-that restarts, running on boot etc., are handled automatically.</p>
-<ul>
-<li>Ensure the current user has session lingering enabled, to allow long-running services: <code>loginctl enable-linger $USER</code>.</li>
-<li>Copy the service unit file <a href="https://github.com/fmtr/amniotic/blob/main/amniotic.service"><code>amniotic.service</code></a> to
-  <code>~/.config/systemd/user/amniotic.service</code></li>
-<li>Enable the service: <code>systemctl --user enable amniotic.service</code>. The service should now start automatically on each
-  boot.</li>
-<li>If you want to start immediately: <code>systemctl --user start amniotic.service</code></li>
-<li>And to stop: <code>systemctl --user stop amniotic.service</code></li>
-<li>To view service logs: <code>journalctl --user --unit amniotic.service</code></li>
-</ul>
-<p>Installing on <strong>macOS</strong> using <code>brew</code> will look (roughly) like this:</p>
-<div class="language-console highlight"><pre><span></span><code><span class="go">brew install python3</span>
-<span class="go">brew install --cask vlc</span>
-<span class="go">pip3 install amniotic</span>
-</code></pre></div>
-<h1 id="updating">Updating</h1>
-<p>Amniotic also exposes its updater to Home Assistant, so newer versions can be installed from there. Updating
-will restart automatically and the device will reappear running the latest version, so all quite seamless.</p>
-<figure><img src="assets/ha-updater.png" width="280"/></figure>
+  <h1>1.5.2</h1>
 
-<p>To update manually, enter:</p>
-<p><code>pip install amniotic --upgrade</code></p>
+<h2 id="fixes">Fixes</h2>
+<ul>
+<li>Replace remaining uses of <code>homeassistant_api</code> with manual API calls.</li>
+</ul>
 
 
 
