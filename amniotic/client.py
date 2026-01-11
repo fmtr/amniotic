@@ -29,8 +29,7 @@ class ClientAmniotic(ClientHaco):
     def from_supervisor(cls, device: Amniotic, **kwargs):
         from amniotic.settings import settings
 
-        with http.Client() as client:
-            response = client.get(
+        response = http.client.get(
                 f"{settings.ha_supervisor_api}/services/mqtt",
                 headers={
                     "Authorization": f"Bearer {settings.token}",

@@ -6,6 +6,7 @@ from functools import cached_property
 from typing import Self
 
 from amniotic.controls import SelectTheme, SelectRecording, EnableRecording, NumberVolume, SelectMediaPlayer, PlayStreamButton, StreamURL, NewTheme, DeleteTheme, DownloadLink, DownloadStatus, DownloadPercent, RecordingsPresent, ThemeStreamable
+from amniotic.ha_api import client_ha
 from amniotic.obs import logger
 from amniotic.recording import RecordingMetadata
 from amniotic.theme import ThemeDefinition, IndexThemes
@@ -25,8 +26,7 @@ class MediaState:
         self.friendly_name = self.friendly_name or self.entity_id
 
     @classmethod
-    def from_state(cls, state) -> Self:
-        data = state.model_dump()
+    def from_state(cls, data) -> Self:
         data |= data.pop('attributes')
         allowed = {f.name for f in fields(cls)}
         filtered = {k: v for k, v in data.items() if k in allowed}
@@ -58,9 +58,7 @@ class Amniotic(Device):
 
         self.themes = IndexThemes.load(self)
 
-
-        media_players_data = [state for state in self.client_ha.get_states() if state.entity_id.startswith("media_player.")]
-        self.media_player_states = IndexList(MediaState.from_state(data) for data in media_players_data)
+        self.media_player_states = IndexList(self.get_media_players())
 
         self.controls = [
             self.select_theme,
@@ -165,6 +163,22 @@ class Amniotic(Device):
             logger.info(f'Audio file monitoring task found changes. Directory: "{self.path_audio}"...')
             await self.bsn_recordings_present.state()
             await self.select_recording.state()
+
+    @logger.instrument('Refreshing Media Player Entities from HA API...')
+    def get_media_players(self) -> list[MediaState]:
+
+        response = client_ha.get(
+            f"{client_ha.url_api}/states",
+            headers=client_ha.headers_auth,
+        )
+
+        response.raise_for_status()
+        data_all = response.json()
+        data_mps = [datum for datum in data_all if datum["entity_id"].startswith("media_player.")]
+        objs = [MediaState.from_state(datum) for datum in data_mps]
+
+        logger.info(f'Found {len(objs)} Media Player Entities.')
+        return objs
 
     async def initialise(self):
         await super().initialise()

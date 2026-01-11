@@ -3,10 +3,11 @@ import shutil
 from dataclasses import dataclass, field
 from functools import cached_property
 
+from amniotic.ha_api import client_ha
 from amniotic.obs import logger
 from amniotic.recording import RecordingThemeInstance
 from amniotic.theme import ThemeDefinition
-from fmtr.tools import http, youtube, Constants
+from fmtr.tools import youtube, Constants
 from haco import binary_sensor
 from haco.binary_sensor import BinarySensor
 from haco.button import Button
@@ -198,12 +199,9 @@ class PlayStreamButton(Button, ThemeRelativeControl):
     icon: str = 'play-network'
     name: str = 'Stream'
 
-    @property
-    def url_api(self):
-        from amniotic.settings import settings
-
-        return f"{settings.ha_core_api}/services/media_player/play_media"
-
+    @cached_property
+    def url(self):
+        return f'{client_ha.url_api}/services/media_player/play_media'
 
     async def command(self, value):
 
@@ -215,7 +213,7 @@ class PlayStreamButton(Button, ThemeRelativeControl):
         if not state:
             return
 
-        with logger.span(f'Posting request to HA API {self.url_api} {state.entity_id=} {self.theme.url=}') as span:
+        with logger.span(f'Posting request to HA API {self.url} {state.entity_id=} {self.theme.url=}') as span:
             try:
                 await self.post(state)
             except Exception as exception:
@@ -223,14 +221,9 @@ class PlayStreamButton(Button, ThemeRelativeControl):
                 span.record_exception(exception=exception)
 
     async def post(self, state):
-        from amniotic.settings import settings
-
-        response = http.client.post(
-            self.url_api,
-            headers={
-                "Authorization": f"Bearer {settings.token}",
-                "Content-Type": "application/json",
-            },
+        response = client_ha.post(
+            self.url,
+            headers=client_ha.headers_auth,
             json={
                 "entity_id": state.entity_id,
                 "media_content_id": self.theme.url,
