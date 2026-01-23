@@ -1,0 +1,1 @@
+docs/changelog/1.5.2.md

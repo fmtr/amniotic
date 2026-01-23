@@ -1,1 +1,0 @@
-For the latest changes, see **[the project releases page](https://fmtr.link/amniotic/changes)**.
