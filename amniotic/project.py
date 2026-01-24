@@ -20,5 +20,19 @@ class Project(infra.Project):
             entrypoint=entrypoint,
             hostname=hostname,
             channel=channel,
-            extras=extras
+            extras=extras,
+
+            nav=[
+                {"Home": "index.md"},
+                {"Quick Start": "quick-start.md"},
+                {"Install": [
+                    {"Docker": "install/docker.md"},
+                    {"Lovelace Dashboard": "install/dashboard.md"},
+                    {"Upgrading from the Old Version": "install/upgrading.md"},
+                ]},
+                {"Recordings": "recordings.md"},
+                {"Themes": "themes.md"},
+                {"Players": "players.md"},
+                {"Changelog": "changelog/"},
+            ]
         )
