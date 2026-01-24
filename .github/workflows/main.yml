@@ -3,7 +3,7 @@ name: Version and Deploy
 on:
   push:
     paths:
-      - 'amniotic/version'
+      - 'amniotic/versionTEMP'
   workflow_dispatch:
 
 jobs:
