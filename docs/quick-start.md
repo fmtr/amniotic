@@ -6,6 +6,10 @@ The easiest way to get started is to:
 docs/addon-install-button.md
 --8<--
 
+!!! tip "Amniotic Requires MQTT"
+
+    See the [MQTT](install/mqtt.md) section.
+
 - Install as an Addon, using the button above.
 - If you're using a non-default address for Home Assistant on your network (i.e. not
   `homeassistant.local`), set that in the Addon configuration.

@@ -9,10 +9,3 @@ home server etc. Below is an example compose and .env file for running the conta
 compose.example.yml    
 --8<--
 ```
-
-=== ".env"
-```dotenv
---8<--
-compose.example.env   
---8<--
-```

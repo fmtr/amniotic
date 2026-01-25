@@ -39,5 +39,9 @@ class ClientAmniotic(ClientHaco):
 
         data = response.json().get("data", {})
 
+        if not data.get("host"):
+            msg = "MQTT service not found in Supervisor API. See https://fmtr.link/amniotic/doc/mqtt for how to install an MQTT broker."
+            raise RuntimeError(msg)
+
         self = cls(device=device, hostname=data['host'], port=data['port'], username=data['username'], password=data['password'], **kwargs)
         return self
