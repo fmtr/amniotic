@@ -28,6 +28,7 @@ class Project(infra.Project):
                 {"Install": [
                     {"Docker": "install/docker.md"},
                     {"Lovelace Dashboard": "install/dashboard.md"},
+                    {"MQTT": "install/mqtt.md"},
                     {"Upgrading from the Old Version": "install/upgrading.md"},
                 ]},
                 {"Recordings": "recordings.md"},
