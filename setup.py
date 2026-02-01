@@ -1,7 +1,6 @@
 from fmtr.tools import Setup
 
 setup = Setup(
-    org=None,
     dependencies=dict(
         install=[
             'fmtr.tools[version.dev,logging,sets,yaml,debug,caching,api,mqtt,path.app,tabular,av,ha.api,http,youtube]',
