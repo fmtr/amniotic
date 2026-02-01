@@ -1,42 +1,49 @@
 {
-  "version": "1.5.14",
-  "port": 7,
-  "docs": {
-    "nav": [
-      {
-        "Home": "index.md"
-      },
-      {
-        "Quick Start": "quick-start.md"
-      },
-      {
-        "Install": [
-          {
-            "Docker": "install/docker.md"
-          },
-          {
-            "Lovelace Dashboard": "install/dashboard.md"
-          },
-          {
-            "MQTT": "install/mqtt.md"
-          },
-          {
-            "Upgrading from the Old Version": "install/upgrading.md"
-          }
+    "version": "1.6.0",
+    "port": 7,
+    "entrypoint": null,
+    "base": "python",
+    "scripts": [],
+    "services": [],
+    "docs": {
+        "nav": [
+            {
+                "Home": "index.md"
+            },
+            {
+                "Quick Start": "quick-start.md"
+            },
+            {
+                "Install": [
+                    {
+                        "Docker": "install/docker.md"
+                    },
+                    {
+                        "Lovelace Dashboard": "install/dashboard.md"
+                    },
+                    {
+                        "MQTT": "install/mqtt.md"
+                    },
+                    {
+                        "Upgrading from the Old Version": "install/upgrading.md"
+                    }
+                ]
+            },
+            {
+                "Recordings": "recordings.md"
+            },
+            {
+                "Themes": "themes.md"
+            },
+            {
+                "Players": "players.md"
+            },
+            {
+                "Changelog": "changelog/"
+            }
         ]
-      },
-      {
-        "Recordings": "recordings.md"
-      },
-      {
-        "Themes": "themes.md"
-      },
-      {
-        "Players": "players.md"
-      },
-      {
-        "Changelog": "changelog/"
-      }
-    ]
-  }
+    },
+    "setup": {},
+    "is_pypi": false,
+    "is_dockerhub": false
 }
