@@ -7,7 +7,7 @@ from amniotic.client import ClientAmniotic
 from amniotic.device import Amniotic
 from amniotic.paths import paths
 from fmtr import tools
-from fmtr.tools import sets, ha, Path
+from fmtr.tools import sets, ha, Path, Constants
 
 
 class Settings(sets.Base):
@@ -40,9 +40,8 @@ class Settings(sets.Base):
         from fmtr import tools
         from amniotic.obs import logger
         from amniotic.paths import paths
-        from amniotic.version import __version__
 
-        logger.info(f'Launching {paths.name_ns} {__version__=} {tools.get_version()=} from entrypoint.')
+        logger.info(f'Launching {paths.name_ns} {paths.metadata.version=} {tools.get_version()=} from entrypoint.')
         logger.debug(f'{paths.settings.exists()=} {str(paths.settings)=}')
 
         logger.info(f'Launching...')
@@ -52,7 +51,7 @@ class Settings(sets.Base):
             self.path_config.mkdir()
 
         client_ha = ha.core.Client(api_url=self.ha_core_api, token=self.token)
-        device = Amniotic(name=self.name, client_ha=client_ha, path_audio=self.path_audio, sw_version=__version__, manufacturer=paths.org_singleton, model=Amniotic.__name__)
+        device = Amniotic(name=self.name, client_ha=client_ha, path_audio=self.path_audio, sw_version=paths.metadata.version, manufacturer=Constants.ORG_NAME, model=Amniotic.__name__)
 
         if self.mqtt:
             client = ClientAmniotic.from_args(self.mqtt, device=device)

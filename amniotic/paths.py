@@ -30,4 +30,6 @@ class PackagePaths(PackagePaths):
     def gambling(self):
         return self.audio / 'A Good Bass for Gambling.mp3'
 
-paths = PackagePaths(org_singleton='fmtr')
+
+paths = PackagePaths()
+paths

@@ -2,13 +2,13 @@ from fastapi.responses import StreamingResponse
 from starlette.requests import Request
 
 from amniotic.obs import logger
+from amniotic.paths import paths
 from amniotic.theme import ThemeDefinition, ThemeStream
-from amniotic.version import __version__
 from fmtr.tools import api, mqtt
 
 
 class ApiAmniotic(api.Base):
-    TITLE = f'Amniotic {__version__} Streaming API'
+    TITLE = f'Amniotic {paths.metadata.version} Streaming API'
     URL_DOCS = '/'
 
     def __init__(self, client: mqtt.Client):
