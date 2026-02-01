@@ -1,7 +1,5 @@
 {
-    "version": "1.6.1",
-    "is_pypi": true,
-    "is_dockerhub": true,
+    "version": "1.6.2",
     "port": 7,
     "entrypoint": null,
     "base": "python",
@@ -45,5 +43,7 @@
             }
         ]
     },
-    "setup": {}
+    "setup": {},
+    "is_pypi": true,
+    "is_dockerhub": true
 }
