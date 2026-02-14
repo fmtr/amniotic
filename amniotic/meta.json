@@ -1,8 +1,13 @@
 {
-    "version": "1.6.6",
+    "version": "1.6.7",
     "port": 7,
     "entrypoint": null,
     "base": "python",
+    "description": null,
+    "org_singleton": null,
+    "org_github": "fmtr",
+    "org_friendly": "Frontmatter AI",
+    "is_client": false,
     "scripts": [],
     "services": [],
     "docs": {
