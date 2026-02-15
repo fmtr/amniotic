@@ -1,6 +1,6 @@
 from functools import cached_property
 
-from fmtr.tools import PackagePaths
+from corio import PackagePaths
 
 
 class PackagePaths(PackagePaths):

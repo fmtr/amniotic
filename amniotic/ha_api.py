@@ -1,4 +1,4 @@
-from fmtr.tools import http
+from corio import http
 
 
 class ClientHA(http.Client):

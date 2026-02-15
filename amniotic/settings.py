@@ -1,13 +1,12 @@
 import asyncio
+from fmtr import tools
 from functools import cached_property
-
 from pydantic import Field
 
 from amniotic.client import ClientAmniotic
 from amniotic.device import Amniotic
 from amniotic.paths import paths
-from fmtr import tools
-from fmtr.tools import sets, ha, Path, Constants
+from corio import sets, ha, Path, Constants
 
 
 class Settings(sets.Base):
@@ -35,13 +34,14 @@ class Settings(sets.Base):
         asyncio.run(self.run_async())
 
     async def run_async(self):
-        from fmtr.tools import debug
+        from corio import debug
         debug.trace()
-        from fmtr import tools
+        import corio
+
         from amniotic.obs import logger
         from amniotic.paths import paths
 
-        logger.info(f'Launching {paths.name_ns} {paths.metadata.version=} {tools.get_version()=} from entrypoint.')
+        logger.info(f'Launching {paths.name_ns} {paths.metadata.version=} {corio.get_version()=} from entrypoint.')
         logger.debug(f'{paths.settings.exists()=} {str(paths.settings)=}')
 
         logger.info(f'Launching...')
