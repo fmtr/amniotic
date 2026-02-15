@@ -1,8 +1,8 @@
 import asyncio
-from fmtr import tools
 from functools import cached_property
 from pydantic import Field
 
+import corio
 from amniotic.client import ClientAmniotic
 from amniotic.device import Amniotic
 from amniotic.paths import paths
@@ -20,7 +20,7 @@ class Settings(sets.Base):
 
     stream_url: str
     name: str = Amniotic.__name__
-    mqtt: tools.mqtt.Client.Args | None = None
+    mqtt: corio.mqtt.Client.Args | None = None
 
     path_audio: Path
     path_config: Path = ha.constants.PATH_ADDON_CONFIG / Amniotic.__name__.lower()  # todo make add-specific defaults on settings subclass
@@ -36,7 +36,6 @@ class Settings(sets.Base):
     async def run_async(self):
         from corio import debug
         debug.trace()
-        import corio
 
         from amniotic.obs import logger
         from amniotic.paths import paths
