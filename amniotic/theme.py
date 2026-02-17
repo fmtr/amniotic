@@ -176,8 +176,10 @@ class ThemeStream:
                     frame_duration = frame.samples / frame.rate
                     audio_time += frame_duration
 
+                    size = 0
                     for packet in out_stream.encode(frame):
                         packet_bytes = bytes(packet)
+                        size += len(packet_bytes)
                         yield packet_bytes
 
                     # Only sleep if we are ahead of real-time
@@ -187,7 +189,7 @@ class ThemeStream:
                         time.sleep(ahead)
 
                     if i % LOG_THRESHOLD == 0:
-                        logger.info(f'{repr(self)}: Yielding chunk #{i} {vol_rms=}. Real-time delay {ahead:.5f}.')
+                        logger.info(f'{repr(self)}: Yielding chunk #{i} {vol_rms=} bytes={size}. Real-time delay {ahead:.5f}.')
 
         finally:
             logger.info(f'{repr(self)}: Closing transcoder...')
