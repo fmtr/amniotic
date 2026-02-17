@@ -1,4 +1,4 @@
-from fmtr.tools import Setup
+from corio import Setup
 
 setup = Setup(
     dependencies=dict(
