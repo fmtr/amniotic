@@ -31,4 +31,5 @@ services:
       AMNIOTIC__PATH_CONFIG: "/amniotic/config"              # Path inside container for config files (mapped above)
 
     # No need for root
+    # You should probably keep as 1000 as custom UIDs might not get the right paths in the container.
     user: "1000:1000"
