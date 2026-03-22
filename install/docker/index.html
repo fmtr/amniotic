@@ -834,6 +834,7 @@ home server etc. Below is an example compose and .env file for running the conta
 <span class="w">      </span><span class="nt">AMNIOTIC__PATH_CONFIG</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/amniotic/config&quot;</span><span class="w">              </span><span class="c1"># Path inside container for config files (mapped above)</span>
 
 <span class="w">    </span><span class="c1"># No need for root</span>
+<span class="w">    </span><span class="c1"># You should probably keep as 1000 as custom UIDs might not get the right paths in the container.</span>
 <span class="w">    </span><span class="nt">user</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1000:1000&quot;</span>
 </code></pre></div>
 
