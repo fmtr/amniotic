@@ -546,6 +546,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../changelog/changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../changelog/1.5.5/" class="md-nav__link">
         
   
@@ -780,32 +808,99 @@
 <p>This section covers installing Amniotic outside of Home Assistant (i.e. on a separate, dedicated machine, a desktop PC,
 etc.)</p>
 <h1 id="hardware">Hardware</h1>
-<p>Any vaguely suitable device (i.e. with a network connection and audio outputs) should work, but it was primarily
+<p>Any vaguely suitable device (i.e. with a network connection) should work, but it was primarily
 intended for (and developed on) a dedicated Raspberry Pi 4B. The lowest spec I've tested on is a Pi Zero W 1, which
 works fine but struggled playing more than one Theme at a time. And obviously you'll have better results with better
-audio equipment (amps, speakers, etc.), especially for lower-frequency themes.</p>
+equipment, especially for lower-frequency themes.</p>
 <h1 id="platform">Platform</h1>
 <p>Raspbian/Debian are best tested and covered here. But for other platforms etc., see
 the <a href="#other-platforms">Other Platforms</a> section.</p>
 <h1 id="installing-on-raspberry-pi-linux">Installing  on Raspberry Pi (Linux)</h1>
 <p>To install on Raspbian, or any Debian Linux etc., first install dependencies, then the Amniotic package:</p>
 <div class="language-console highlight"><pre><span></span><code><span class="go">sudo apt update -y</span>
-<span class="go">sudo apt install -y python3-pip pulseaudio vlc</span>
+<span class="go">sudo apt install -y python3-pip</span>
 <span class="go">pip3 install amniotic</span>
 </code></pre></div>
-<p>Once done, you should find <code>amnitoic</code> installed in  <code>~/.local/bin/amniotic</code></p>
-<h1 id="config-file">Config File</h1>
-<p>You will need to add a config file at the path <code>~/.config/amniotic/config.yml</code>. It's primarily for adding your MQTT
-credentials. A commented example file that you can modify is <a href="https://github.com/fmtr/amniotic/blob/main/config.example.yml">
-<code>config.example.yml</code></a>.</p>
+<p>Once done, you should find <code>amniotic</code> installed in <code>~/.local/bin/amniotic</code>.</p>
+<h1 id="configuration">Configuration</h1>
+<p>Amniotic uses <a href="https://docs.pydantic.dev/latest/concepts/pydantic_settings/">Pydantic Settings</a>, meaning it can be configured via a YAML file, environment variables, or CLI flags.</p>
+<h2 id="config-file">Config File</h2>
+<p>By default, Amniotic looks for a config file at <code>~/.config/amniotic/config.yml</code> (or <code>~/.config/amniotic/settings.yaml</code>). It's primarily used for adding your MQTT credentials and Home Assistant connection details.</p>
+<p>A commented example file that you can modify is <a href="https://github.com/fmtr/amniotic/blob/main/config.example.yml"><code>config.example.yml</code></a>.</p>
+<h2 id="environment-variables">Environment Variables</h2>
+<p>All settings can be set via environment variables prefixed with <code>AMNIOTIC__</code>. Nested settings (like MQTT) use a double underscore <code>__</code> as a delimiter.</p>
+<ul>
+<li><code>AMNIOTIC__TOKEN</code>: Your Home Assistant Long-Lived Access Token.</li>
+<li><code>AMNIOTIC__STREAM_URL</code>: The URL where Amniotic's API is accessible (e.g., <code>http://192.168.1.10:8080</code>).</li>
+<li><code>AMNIOTIC__MQTT__HOSTNAME</code>: Your MQTT broker address.</li>
+</ul>
+<h2 id="cli-flags">CLI Flags</h2>
+<p>You can also pass configuration directly when running the <code>amniotic</code> command. Flags use kebab-case.</p>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--token</code></td>
+<td>HA Long-Lived Access Token</td>
+<td>(Required)</td>
+</tr>
+<tr>
+<td><code>--stream-url</code></td>
+<td>Base URL for the streaming API</td>
+<td>(Required)</td>
+</tr>
+<tr>
+<td><code>--ha-core-api</code></td>
+<td>HA Core API URL</td>
+<td><code>http://supervisor/core/api</code></td>
+</tr>
+<tr>
+<td><code>mqtt.hostname</code></td>
+<td>MQTT Broker hostname</td>
+<td><code>localhost</code></td>
+</tr>
+<tr>
+<td><code>mqtt.username</code></td>
+<td>MQTT Username</td>
+<td><code>None</code></td>
+</tr>
+<tr>
+<td><code>mqtt.password</code></td>
+<td>MQTT Password</td>
+<td><code>None</code></td>
+</tr>
+<tr>
+<td><code>--path-audio</code></td>
+<td>Directory containing audio files</td>
+<td><code>~/.local/share/amniotic</code></td>
+</tr>
+<tr>
+<td><code>--path-config</code></td>
+<td>Directory for configuration files</td>
+<td><code>~/.config/amniotic</code></td>
+</tr>
+</tbody>
+</table>
+<p>Example:
+<div class="language-console highlight"><pre><span></span><code><span class="go">amniotic --token &quot;your_token&quot; --stream-url &quot;http://192.168.1.10:8080&quot; mqtt.hostname &quot;192.168.1.5&quot;</span>
+</code></pre></div></p>
 <h1 id="default-audio-directory">Default Audio Directory</h1>
 <p>This can be set in the Config File, as above, but by default it's the following path: <code>~/.local/share/amniotic</code></p>
 <h1 id="running">Running</h1>
 <p>You should now simply be able to run <code>~/.local/bin/amniotic</code>, which will connect to MQTT:</p>
+<div class="language-console highlight"><pre><span></span><code><span class="go">amniotic --token &quot;your_token&quot; --stream-url &quot;http://192.168.1.10:8080&quot;</span>
+</code></pre></div>
+<p>Expected output:
 <div class="language-console highlight"><pre><span></span><code><span class="go">2022-05-20 15:14:51 INFO  amniotic.mqtt    : Amniotic 0.0.1 has started.</span>
 <span class="go">2022-05-20 15:14:51 INFO  amniotic.mqtt    : Amniotic 0.0.1 starting MQTT...</span>
 <span class="go">2022-05-20 15:14:51 INFO  amniotic.mqtt    : Attempting to connect to MQTT &quot;homeassistant.local:1883&quot;: Connection successful</span>
-</code></pre></div>
+</code></pre></div></p>
 <h1 id="installing-as-a-service">Installing as a Service</h1>
 <p>Since a dedicated Amniotic device (e.g. a Pi) functions like an appliance, you might want to install as a service, so
 that restarts, running on boot etc., are handled automatically.</p>
@@ -821,7 +916,6 @@ that restarts, running on boot etc., are handled automatically.</p>
 </ul>
 <p>Installing on <strong>macOS</strong> using <code>brew</code> will look (roughly) like this:</p>
 <div class="language-console highlight"><pre><span></span><code><span class="go">brew install python3</span>
-<span class="go">brew install --cask vlc</span>
 <span class="go">pip3 install amniotic</span>
 </code></pre></div>
 <h1 id="updating">Updating</h1>
