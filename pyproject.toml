@@ -2,10 +2,6 @@
 requires = ["corio[setup,debug]"]
 build-backend = "setuptools.build_meta" #
 
-[project]
-name= "amniotic"
-dynamic = ["description", "readme", "version", "dependencies", "optional-dependencies"]
-
 [tool.uv.sources]
 corio = { path = "../corio", editable = true }
 haco = { path = "../haco", editable = true }
