@@ -2,14 +2,17 @@ from __future__ import annotations
 
 import numpy as np
 import typing
-from dataclasses import dataclass, field
 
 from amniotic.obs import logger
 from corio import av
 from haco.base import Base
+from pydantic import Field
 
 if typing.TYPE_CHECKING:
     from amniotic.device import Amniotic
+    AmnioticRef = Amniotic
+else:
+    AmnioticRef = object
 
 LOG_THRESHOLD = 500
 
@@ -24,8 +27,8 @@ class RecordingMetadata:
     def __init__(self, path):
         self.path = path
 
-    def get_instance(self):
-        return RecordingThemeInstance(self)
+    def get_instance(self, device: 'Amniotic'):
+        return RecordingThemeInstance(device=device, path=self.path_str)
 
     @property
     def name(self):
@@ -36,7 +39,6 @@ class RecordingMetadata:
         return str(self.path)
 
 
-@dataclass(kw_only=True)
 class RecordingThemeInstance(Base):
     """
 
@@ -56,7 +58,7 @@ class RecordingThemeInstance(Base):
 
     """
 
-    device: Amniotic = field(metadata=dict(exclude=True))
+    device: AmnioticRef = Field(exclude=True, repr=False)
 
     path: str
     volume: float = 0.2
@@ -90,6 +92,7 @@ class RecordingThemeStream:
 
         self.container = None
         self.stream = None
+        logger.debug(f'Initialized {repr(self)} for path="{self.instance.path}"')
 
     @property
     def name(self):

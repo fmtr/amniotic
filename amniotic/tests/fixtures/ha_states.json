@@ -1,0 +1,31 @@
+[
+  {
+    "entity_id": "media_player.living_room",
+    "state": "idle",
+    "attributes": {
+      "friendly_name": "Living Room Speaker",
+      "supported_features": 152461,
+      "volume_level": 0.42
+    },
+    "last_changed": "2026-04-30T10:00:00+00:00",
+    "last_updated": "2026-04-30T10:00:00+00:00"
+  },
+  {
+    "entity_id": "media_player.office",
+    "state": "playing",
+    "attributes": {
+      "supported_features": 12345
+    },
+    "last_changed": "2026-04-30T10:01:00+00:00",
+    "last_updated": "2026-04-30T10:01:00+00:00"
+  },
+  {
+    "entity_id": "sensor.temperature_hallway",
+    "state": "21.4",
+    "attributes": {
+      "friendly_name": "Hallway Temperature"
+    },
+    "last_changed": "2026-04-30T10:02:00+00:00",
+    "last_updated": "2026-04-30T10:02:00+00:00"
+  }
+]

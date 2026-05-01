@@ -4,7 +4,6 @@ import time
 
 import numpy as np
 import typing
-from dataclasses import dataclass, field
 from functools import cached_property
 from starlette.requests import Request
 
@@ -14,9 +13,13 @@ from corio import av
 from corio.iterator_tools import IndexList
 from corio.string_tools import sanitize
 from haco.base import Base
+from pydantic import Field
 
 if typing.TYPE_CHECKING:
     from amniotic.device import Amniotic
+    AmnioticRef = Amniotic
+else:
+    AmnioticRef = object
 
 
 class IndexInstances(IndexList[RecordingThemeInstance]):
@@ -24,7 +27,6 @@ class IndexInstances(IndexList[RecordingThemeInstance]):
     def model_dump(self):
         return [item.model_dump() for item in self]
 
-@dataclass(kw_only=True)
 class ThemeDefinition(Base):
     """
 
@@ -58,11 +60,11 @@ class ThemeDefinition(Base):
 
     """
 
-    amniotic: Amniotic = field(metadata=dict(exclude=True))
-    instances: IndexInstances | list[RecordingThemeInstance] = field(default_factory=list)
+    amniotic: AmnioticRef = Field(exclude=True, repr=False)
+    instances: IndexInstances | list[RecordingThemeInstance] = Field(default_factory=list)
     name: str
 
-    def __post_init__(self):
+    def model_post_init(self, __context):
         if type(self.instances) is list:
             self.instances = IndexInstances(self.instances)
 
@@ -121,6 +123,7 @@ class ThemeStream:
         self.theme_def = theme_def
         self.request = request
         self.recording_streams = IndexList[RecordingThemeStream]()
+        logger.debug(f'Initialized {repr(self)}')
 
     @cached_property
     def chunk_silence(self):
@@ -147,7 +150,7 @@ class ThemeStream:
 
 
     def iter_chunks(self):
-
+        logger.debug(f'{repr(self)}: Starting to iterate chunks...')
         while True:
             streams = list(self.get_streams())
             data_recs = [next(stream) for stream in streams]
@@ -165,6 +168,8 @@ class ThemeStream:
 
         start_time = time.time()
         audio_time = 0.0  # total audio duration sent
+
+        logger.debug(f'{repr(self)}: Starting transcoding loop...')
 
         try:
             while True:
@@ -191,6 +196,9 @@ class ThemeStream:
                     if i % LOG_THRESHOLD == 0:
                         logger.info(f'{repr(self)}: Yielding chunk #{i} {vol_rms=} bytes={size}. Real-time delay {ahead:.5f}.')
 
+        except Exception:
+            logger.exception(f'{repr(self)}: Error in transcoding loop.')
+            raise
         finally:
             logger.info(f'{repr(self)}: Closing transcoder...')
             iter_chunks.close()

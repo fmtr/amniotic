@@ -1,6 +1,5 @@
 import asyncio
 import shutil
-from dataclasses import dataclass, field
 from functools import cached_property
 
 from amniotic.ha_api import client_ha
@@ -11,17 +10,16 @@ from corio import youtube, Constants
 from haco import binary_sensor
 from haco.binary_sensor import BinarySensor
 from haco.button import Button
-from haco.control import Control
 from haco.number import Number
 from haco.select import Select
 from haco.sensor import Sensor
 from haco.switch import Switch
 from haco.text import Text
 from haco.uom import Uom
+from pydantic import Field
 
 
-@dataclass(kw_only=True)
-class ThemeRelativeControl(Control):
+class ThemeRelativeControl:
 
     @property
     def themes(self):
@@ -40,7 +38,6 @@ class ThemeRelativeControl(Control):
         return self.instances.current
 
 
-@dataclass(kw_only=True)
 class SelectTheme(Select, ThemeRelativeControl):
     icon: str = 'access-point'
     name: str = 'Theme'
@@ -76,7 +73,6 @@ class SelectTheme(Select, ThemeRelativeControl):
         await self.device.bsn_theme_streamable.state()
         return name
 
-@dataclass(kw_only=True)
 class SelectRecording(Select, ThemeRelativeControl):
     icon: str = 'waveform'
     name: str = 'Recording'
@@ -117,7 +113,6 @@ class SelectRecording(Select, ThemeRelativeControl):
 
 
 
-@dataclass(kw_only=True)
 class EnableRecording(Switch, ThemeRelativeControl):
     icon: str = 'playlist-plus'
     name: str = 'Enable Recording'
@@ -142,7 +137,6 @@ class EnableRecording(Switch, ThemeRelativeControl):
 
 
 
-@dataclass(kw_only=True)
 class NumberVolume(Number, ThemeRelativeControl):
     icon: str = 'volume-medium'
     name: str = 'Recording Volume'
@@ -167,7 +161,6 @@ class NumberVolume(Number, ThemeRelativeControl):
 
 
 
-@dataclass(kw_only=True)
 class SelectMediaPlayer(Select, ThemeRelativeControl):
     icon: str = 'cast-audio'
     name: str = 'Media Player'
@@ -185,7 +178,6 @@ class SelectMediaPlayer(Select, ThemeRelativeControl):
         return None
 
 
-@dataclass(kw_only=True)
 class StreamURL(Sensor, ThemeRelativeControl):
     icon: str = 'link-variant'
     name: str = 'Stream URL'
@@ -194,7 +186,6 @@ class StreamURL(Sensor, ThemeRelativeControl):
         return self.theme.url
 
 
-@dataclass(kw_only=True)
 class PlayStreamButton(Button, ThemeRelativeControl):
     icon: str = 'play-network'
     name: str = 'Stream'
@@ -234,7 +225,6 @@ class PlayStreamButton(Button, ThemeRelativeControl):
         response.raise_for_status()
 
 
-@dataclass(kw_only=True)
 class NewTheme(Text, ThemeRelativeControl):
     icon: str = 'access-point-plus'
     name: str = 'New Theme'
@@ -255,7 +245,6 @@ class NewTheme(Text, ThemeRelativeControl):
         return 'My New Theme'
 
 
-@dataclass(kw_only=True)
 class DeleteTheme(Button, ThemeRelativeControl):
     icon: str = 'access-point-remove'
     name: str = 'Delete Current Theme'
@@ -268,7 +257,6 @@ class DeleteTheme(Button, ThemeRelativeControl):
         return value
 
 
-@dataclass(kw_only=True)
 class DownloadLink(Text):
     """
 
@@ -278,7 +266,7 @@ class DownloadLink(Text):
 
     icon: str = 'cloud-download-outline'
     name: str = 'Download from YouTube'
-    downloader: youtube.AudioStreamDownloader | None = field(default=None, metadata=dict(exclude=True))
+    downloader: youtube.AudioStreamDownloader | None = Field(default=None, exclude=True, repr=False)
 
     @cached_property
     def status_state(self):
@@ -329,7 +317,7 @@ class DownloadLink(Text):
 
         except Exception as exception:
             message = 'Error downloading. See container logs for details.'
-            logger.error(message)
+            logger.exception(message)
             await self.status_state(value=message)
             raise exception
         finally:
@@ -338,7 +326,6 @@ class DownloadLink(Text):
             self.downloader = None
 
 
-@dataclass(kw_only=True)
 class DownloadStatus(Sensor):
     icon: str = 'cloud-sync-outline'
     name: str = 'Download Status'
@@ -347,7 +334,6 @@ class DownloadStatus(Sensor):
         return value or 'Idle'
 
 
-@dataclass(kw_only=True)
 class DownloadPercent(Sensor):
     icon: str = 'cloud-percent-outline'
     name: str = 'Download Percent Complete'
@@ -357,7 +343,6 @@ class DownloadPercent(Sensor):
         return value or 0
 
 
-@dataclass(kw_only=True)
 class RecordingsPresent(BinarySensor):
     icon: str = 'waves'
     name: str = 'Recordings Present'
@@ -367,11 +352,10 @@ class RecordingsPresent(BinarySensor):
         return value
 
 
-@dataclass(kw_only=True)
 class ThemeStreamable(BinarySensor, ThemeRelativeControl):
     icon: str = 'volume-vibrate'
     name: str = 'Theme Streamable'
-    device_class = binary_sensor.DeviceClass.SOUND
+    device_class: binary_sensor.DeviceClass = binary_sensor.DeviceClass.SOUND
 
     async def state(self, value=None):
         value = self.theme.is_enabled
