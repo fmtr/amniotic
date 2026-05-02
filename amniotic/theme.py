@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import time
 
+import anyio
 import numpy as np
 import typing
 from functools import cached_property
@@ -9,7 +10,8 @@ from starlette.requests import Request
 
 from amniotic.obs import logger
 from amniotic.recording import LOG_THRESHOLD, RecordingThemeInstance, RecordingThemeStream
-from corio import av
+from corio import av, dt
+from corio.constants import Constants
 from corio.iterator_tools import IndexList
 from corio.string_tools import sanitize
 from haco.base import Base
@@ -122,8 +124,13 @@ class ThemeStream:
     def __init__(self, theme_def: ThemeDefinition, request: Request):
         self.theme_def = theme_def
         self.request = request
+        self.started_at = dt.now()
+        self.started_at_str = self.started_at.strftime(Constants.DATETIME_FILENAME_FORMAT)
         self.recording_streams = IndexList[RecordingThemeStream]()
-        logger.debug(f'Initialized {repr(self)}')
+        self.iter_chunks_gen = None
+        self.output = None
+        self._is_closed = False
+        logger.info(f'Initialized {repr(self)}')
 
     @cached_property
     def chunk_silence(self):
@@ -161,10 +168,10 @@ class ThemeStream:
             yield data
 
     def __iter__(self):
-        output = av.open(file='.mp3', mode="w")
+        self.output = av.open(file='.mp3', mode="w")
         bitrate = 128_000
-        out_stream = output.add_stream(codec_name='mp3', rate=44100, bit_rate=bitrate)
-        iter_chunks = self.iter_chunks()
+        out_stream = self.output.add_stream(codec_name='mp3', rate=44100, bit_rate=bitrate)
+        self.iter_chunks_gen = self.iter_chunks()
 
         start_time = time.time()
         audio_time = 0.0  # total audio duration sent
@@ -173,7 +180,11 @@ class ThemeStream:
 
         try:
             while True:
-                for i, data in enumerate(iter_chunks):
+                for i, data in enumerate(self.iter_chunks_gen):
+                    if self._is_disconnected():
+                        logger.info(f'{repr(self)}: Client disconnected. Stopping stream.')
+                        return
+
                     vol_rms = round(float(np.sqrt((data.astype(np.float32) ** 2).mean())), 2)
                     frame = av.AudioFrame.from_ndarray(data, format='s16', layout='mono')
                     frame.rate = 44100
@@ -200,12 +211,58 @@ class ThemeStream:
             logger.exception(f'{repr(self)}: Error in transcoding loop.')
             raise
         finally:
-            logger.info(f'{repr(self)}: Closing transcoder...')
-            iter_chunks.close()
-            output.close()
+            self.close()
+
+    def _is_disconnected(self) -> bool:
+        try:
+            return anyio.from_thread.run(self.request.is_disconnected)
+        except RuntimeError:
+            return False
+        except Exception:
+            logger.exception(f'{repr(self)}: Error checking client disconnection state.')
+            return False
+
+    def close(self):
+        if self._is_closed:
+            logger.debug(f'{repr(self)}: close() called, already closed.')
+            return
+        self._is_closed = True
+        logger.info(f'{repr(self)}: Closing transcoder...')
+
+        iter_chunks = self.iter_chunks_gen
+        self.iter_chunks_gen = None
+        if iter_chunks is not None:
+            try:
+                iter_chunks.close()
+                logger.debug(f'{repr(self)}: Closed chunk mixer iterator.')
+            except Exception:
+                logger.exception(f'{repr(self)}: Error closing chunk mixer iterator.')
+        else:
+            logger.debug(f'{repr(self)}: No chunk mixer iterator to close.')
+
+        logger.debug(f'{repr(self)}: Closing {len(self.recording_streams)} recording stream(s)...')
+        for stream in list(self.recording_streams):
+            try:
+                stream.close()
+            except Exception:
+                logger.exception(f'{repr(self)}: Error closing recording stream {repr(stream)}.')
+        self.recording_streams.clear()
+
+        output = self.output
+        self.output = None
+        if output is not None:
+            try:
+                output.close()
+                logger.debug(f'{repr(self)}: Closed output container.')
+            except Exception:
+                logger.exception(f'{repr(self)}: Error closing output container.')
+        else:
+            logger.debug(f'{repr(self)}: No output container to close.')
+
+        logger.info(f'{repr(self)}: Transcoder closed.')
 
     def __repr__(self):
-        return f'{self.__class__.__name__}(name={repr(self.theme_def.name)}, request={repr(self.request.client)})'
+        return f'{self.__class__.__name__}(name={repr(self.theme_def.name)}, request={repr(self.request.client)}, started_at={self.started_at_str!r})'
 
 class IndexThemes(IndexList[ThemeDefinition]):
 
