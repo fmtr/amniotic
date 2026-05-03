@@ -14,7 +14,7 @@ panel_icon: mdi:waveform
 slug: amniotic
 url: https://fmtr.link/amniotic
 ports:
-  8080/tcp: 8007
+  8007/tcp: 8007
   22/tcp: null
 audio: false
 options:
@@ -29,5 +29,5 @@ schema:
   amniotic__mqtt__username: str?
   amniotic__mqtt__password: password?
   fmtr_dev: bool
-webui: http://[HOST]:[PORT:8080]/
+webui: http://[HOST]:[PORT:8007]/
 version: 1.8.0

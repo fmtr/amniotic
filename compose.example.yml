@@ -7,7 +7,7 @@ services:
 
     # Expose container port to host
     ports:
-      - "8007:8080"  # Amniotic audio stream over HTTP port.
+      - "8007:8007"  # Amniotic audio stream over HTTP port.
 
     # Mount local audio and config directories to container
     volumes:
