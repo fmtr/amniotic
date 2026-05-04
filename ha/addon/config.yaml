@@ -30,4 +30,4 @@ schema:
   amniotic__mqtt__password: password?
   fmtr_dev: bool
 webui: http://[HOST]:[PORT:8007]/
-version: 1.8.0
+version: 1.9.0

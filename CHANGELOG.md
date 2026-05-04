@@ -1,1 +1,1 @@
-docs/changelog/1.8.0.md
+docs/changelog/1.9.0.md
