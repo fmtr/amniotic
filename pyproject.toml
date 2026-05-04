@@ -58,7 +58,7 @@ include = ["amniotic*"]
 namespaces = false
 
 [tool.setuptools.package-data]
-amniotic = ["pyproject.toml"]
+amniotic = ["pyproject.package.toml"]
 
 [tool.uv.sources.corio]
 path = "../corio"
