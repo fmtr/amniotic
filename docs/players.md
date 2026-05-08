@@ -1,3 +1,5 @@
+# Players
+
 ## Media Player Entities
 
 Amniotic principally streams audio to Media Players Entities controlled by Home Assistant.

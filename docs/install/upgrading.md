@@ -1,3 +1,5 @@
+# Upgrading
+
 ## Upgrading from Amniotic 0.x and fixing entity IDs
 
 If you upgraded from the old version and need to fix entity IDs:

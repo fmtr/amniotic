@@ -1,6 +1,8 @@
+# Quick Start
+
 The easiest way to get started is to:
 
-# Install
+## Install
 
 --8<--
 docs/addon-install-button.md
@@ -16,7 +18,7 @@ docs/addon-install-button.md
 - Add some audio files to the Home Assistant `/media/Amniotic` directory.
 - Add the [Lovelace Dashboard](install/dashboard.md)
 
-# Usage
+## Usage
 
 With the Addon and Dashboard installed:
 

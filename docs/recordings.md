@@ -1,3 +1,5 @@
+# Recordings
+
 !!! note "What's a Recording?"
 Recording just means a atomic, un-mixed piece of ambient audio content represented by a file on disk, like birdsong, white noise, etc. The name has been chosen to differentiate the ambient nature of the content from terms typically used by music-focused services like Spotify.
 

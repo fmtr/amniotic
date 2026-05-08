@@ -16,37 +16,6 @@ keywords = ["ambient sound", "audio", "white noise", "masking", "sleep"]
 is_pypi = true
 is_dockerhub = true
 
-[[tool.corio.metadata.docs.nav]]
-Home = "index.md"
-
-[[tool.corio.metadata.docs.nav]]
-"Quick Start" = "quick-start.md"
-
-[[tool.corio.metadata.docs.nav]]
-[[tool.corio.metadata.docs.nav.Install]]
-Docker = "install/docker.md"
-
-[[tool.corio.metadata.docs.nav.Install]]
-"Lovelace Dashboard" = "install/dashboard.md"
-
-[[tool.corio.metadata.docs.nav.Install]]
-MQTT = "install/mqtt.md"
-
-[[tool.corio.metadata.docs.nav.Install]]
-"Upgrading from the Old Version" = "install/upgrading.md"
-
-[[tool.corio.metadata.docs.nav]]
-Recordings = "recordings.md"
-
-[[tool.corio.metadata.docs.nav]]
-Themes = "themes.md"
-
-[[tool.corio.metadata.docs.nav]]
-Players = "players.md"
-
-[[tool.corio.metadata.docs.nav]]
-Changelog = "changelog/"
-
 [tool.corio.metadata.setup]
 
 [tool.setuptools]

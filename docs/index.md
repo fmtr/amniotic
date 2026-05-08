@@ -1,3 +1,5 @@
+# Getting Started
+
 !!! tip "How Do I Get Started?"
 
     See the [Quick Start](quick-start.md) section.

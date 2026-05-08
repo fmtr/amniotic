@@ -2,7 +2,7 @@
 
 Below is an example dashboard for the Amniotic integration. You don't need to use this dashboard, and can create your own. but it's a good starting point.
 
-#### Adding the Dashboard to Lovelace
+## Adding the Dashboard to Lovelace
 
 - Click on the Copy :material-content-copy: icon on the code box below.
 - In your Home Assistant UI, navigate to a dashboard you'd like to add the View to.
