@@ -3,7 +3,7 @@ import asyncio
 from amniotic.api import ApiAmniotic
 from amniotic.device import Amniotic
 from amniotic.obs import logger
-from corio import http
+from corio import https as http
 from haco.client import ClientHaco
 
 

@@ -12,7 +12,7 @@ from amniotic.obs import logger
 from amniotic.recording import RecordingMetadata
 from amniotic.theme import ThemeDefinition, IndexThemes
 from corio import Path
-from corio.iterator_tools import IndexList, IterDiffer
+from corio.iterator import IndexList, IterDiffer
 from haco.device import Device
 from pydantic import Field
 

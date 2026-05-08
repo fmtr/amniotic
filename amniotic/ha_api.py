@@ -1,4 +1,4 @@
-from corio import http
+from corio import https as http
 
 
 class ClientHA(http.Client):

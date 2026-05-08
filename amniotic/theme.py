@@ -12,8 +12,8 @@ from amniotic.obs import logger
 from amniotic.recording import LOG_THRESHOLD, RecordingThemeInstance, RecordingThemeStream
 from corio import av, dt
 from corio.constants import Constants
-from corio.iterator_tools import IndexList
-from corio.string_tools import sanitize
+from corio.iterator import IndexList
+from corio.strings import sanitize
 from haco.base import Base
 from pydantic import Field
 

@@ -1,8 +1,8 @@
 import logging as logging_native
 
 from amniotic.paths import paths
-from corio import logging, debug, Constants
-from corio.environment_tools import get_bool
+from corio import logs as logging, debug, Constants
+from corio.env import get_bool
 
 debug.trace()
 
