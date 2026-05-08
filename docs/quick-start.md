@@ -5,7 +5,7 @@ The easiest way to get started is to:
 ## Install
 
 --8<--
-docs/addon-install-button.md
+docs/addon-install-button.hidden.md
 --8<--
 
 !!! tip "Amniotic Requires MQTT"
