@@ -3,7 +3,7 @@ requires = ["setuptools>=82", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.corio.metadata]
-version = "1.9.17"
+version = "1.9.18"
 port = 7
 base = "python"
 description = "A multi-output ambient sound mixer for Home Assistant"
@@ -48,7 +48,7 @@ commands = [["python", "-m", "pytest", "-q", "amniotic/tests"]]
 
 [project]
 name = "amniotic"
-version = "1.9.17"
+version = "1.9.18"
 description = "A multi-output ambient sound mixer for Home Assistant"
 readme = "README.md"
 license = "Apache-2.0"
