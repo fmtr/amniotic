@@ -28,7 +28,7 @@ services:
       # Application-specific settings
       AMNIOTIC__STREAM_URL: "http://<ip_or_hostname>:8007"  # URL where media players can access Amniotic on your network.
       AMNIOTIC__PATH_AUDIO: "/amniotic/audio"               # Path inside container for audio files (mapped above)
-      AMNIOTIC__PATH_CONFIG: "/amniotic/config"              # Path inside container for config files (mapped above)
+      AMNIOTIC__PATH_CONFIG: "/amniotic/config"              # Path inside container for runtime data (mapped above)
 
     # No need for root
     # You should probably keep as 1000 as custom UIDs might not get the right paths in the container.

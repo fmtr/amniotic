@@ -1,7 +1,6 @@
 # Native
 
-This section covers installing Amniotic outside of Home Assistant (i.e. on a separate, dedicated machine, a desktop PC,
-etc.)
+This section covers installing Amniotic outside of Home Assistant (i.e. on a separate, dedicated machine, a desktop PC, etc.)
 
 ## Hardware
 
@@ -29,13 +28,7 @@ Once done, you should find `amniotic` installed in `~/.local/bin/amniotic`.
 
 ## Configuration
 
-Amniotic uses [Pydantic Settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/), meaning it can be configured via a YAML file, environment variables, or CLI flags.
-
-## Config File
-
-By default, Amniotic looks for a config file at `~/.config/amniotic/config.yml` (or `~/.config/amniotic/settings.yaml`). It's primarily used for adding your MQTT credentials and Home Assistant connection details.
-
-A commented example file that you can modify is [`config.example.yml`](https://github.com/fmtr/amniotic/blob/main/config.example.yml).
+Amniotic uses [Pydantic Settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/), and is configured via environment variables or CLI flags.
 
 ## Environment Variables
 
@@ -58,20 +51,16 @@ You can also pass configuration directly when running the `amniotic` command. Fl
 | `mqtt.username` | MQTT Username | `None` |
 | `mqtt.password` | MQTT Password | `None` |
 | `--path-audio` | Directory containing audio files | `~/.local/share/amniotic` |
-| `--path-config` | Directory for configuration files | `~/.config/amniotic` |
+| `--path-config` | Directory for runtime data (e.g. themes) | `~/.config/amniotic` |
 
 Example:
 ```console
 amniotic --token "your_token" --stream-url "http://192.168.1.10:8080" mqtt.hostname "192.168.1.5"
 ```
 
-## Default Audio Directory
-
-This can be set in the Config File, as above, but by default it's the following path: `~/.local/share/amniotic`
-
 ## Running
 
-You should now simply be able to run `~/.local/bin/amniotic`, which will connect to MQTT:
+You should now simply be able to run `amniotic <flags>`, which will connect to MQTT:
 
 ```console
 amniotic --token "your_token" --stream-url "http://192.168.1.10:8080"
@@ -79,9 +68,8 @@ amniotic --token "your_token" --stream-url "http://192.168.1.10:8080"
 
 Expected output:
 ```console
-2022-05-20 15:14:51 INFO  amniotic.mqtt    : Amniotic 0.0.1 has started.
-2022-05-20 15:14:51 INFO  amniotic.mqtt    : Amniotic 0.0.1 starting MQTT...
-2022-05-20 15:14:51 INFO  amniotic.mqtt    : Attempting to connect to MQTT "homeassistant.local:1883": Connection successful
+15:23:30.929 Launching amniotic paths.metadata.version='1.9.5' corio.get_version()='2.3.0' from entrypoint.
+15:23:30.931 Launching...
 ```
 
 
@@ -107,11 +95,6 @@ pip3 install amniotic
 ```
 
 ## Updating
-
-Amniotic also exposes its updater to Home Assistant, so newer versions can be installed from there. Updating
-will restart automatically and the device will reappear running the latest version, so all quite seamless.
-
-<figure><img src="assets/ha-updater.png" width="280"/></figure>
 
 To update manually, enter:
 
