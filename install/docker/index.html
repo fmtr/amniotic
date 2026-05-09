@@ -1074,7 +1074,7 @@ home server etc. Below is an example compose and .env file for running the conta
 <span class="w">      </span><span class="c1"># Application-specific settings</span>
 <span class="w">      </span><span class="nt">AMNIOTIC__STREAM_URL</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;http://&lt;ip_or_hostname&gt;:8007&quot;</span><span class="w">  </span><span class="c1"># URL where media players can access Amniotic on your network.</span>
 <span class="w">      </span><span class="nt">AMNIOTIC__PATH_AUDIO</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/amniotic/audio&quot;</span><span class="w">               </span><span class="c1"># Path inside container for audio files (mapped above)</span>
-<span class="w">      </span><span class="nt">AMNIOTIC__PATH_CONFIG</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/amniotic/config&quot;</span><span class="w">              </span><span class="c1"># Path inside container for config files (mapped above)</span>
+<span class="w">      </span><span class="nt">AMNIOTIC__PATH_CONFIG</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/amniotic/config&quot;</span><span class="w">              </span><span class="c1"># Path inside container for runtime data (mapped above)</span>
 
 <span class="w">    </span><span class="c1"># No need for root</span>
 <span class="w">    </span><span class="c1"># You should probably keep as 1000 as custom UIDs might not get the right paths in the container.</span>

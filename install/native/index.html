@@ -968,17 +968,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#config-file" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Config File
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#environment-variables" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -994,17 +983,6 @@
     <span class="md-ellipsis">
       
         CLI Flags
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#default-audio-directory" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Default Audio Directory
       
     </span>
   </a>
@@ -1159,17 +1137,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#config-file" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Config File
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#environment-variables" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1185,17 +1152,6 @@
     <span class="md-ellipsis">
       
         CLI Flags
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#default-audio-directory" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Default Audio Directory
       
     </span>
   </a>
@@ -1256,8 +1212,7 @@
 
 
 <h1 id="native">Native</h1>
-<p>This section covers installing Amniotic outside of Home Assistant (i.e. on a separate, dedicated machine, a desktop PC,
-etc.)</p>
+<p>This section covers installing Amniotic outside of Home Assistant (i.e. on a separate, dedicated machine, a desktop PC, etc.)</p>
 <h2 id="hardware">Hardware</h2>
 <p>Any vaguely suitable device (i.e. with a network connection) should work, but it was primarily
 intended for (and developed on) a dedicated Raspberry Pi 4B. The lowest spec I've tested on is a Pi Zero W 1, which
@@ -1274,10 +1229,7 @@ the <a href="#other-platforms">Other Platforms</a> section.</p>
 </code></pre></div>
 <p>Once done, you should find <code>amniotic</code> installed in <code>~/.local/bin/amniotic</code>.</p>
 <h2 id="configuration">Configuration</h2>
-<p>Amniotic uses <a href="https://docs.pydantic.dev/latest/concepts/pydantic_settings/">Pydantic Settings</a>, meaning it can be configured via a YAML file, environment variables, or CLI flags.</p>
-<h2 id="config-file">Config File</h2>
-<p>By default, Amniotic looks for a config file at <code>~/.config/amniotic/config.yml</code> (or <code>~/.config/amniotic/settings.yaml</code>). It's primarily used for adding your MQTT credentials and Home Assistant connection details.</p>
-<p>A commented example file that you can modify is <a href="https://github.com/fmtr/amniotic/blob/main/config.example.yml"><code>config.example.yml</code></a>.</p>
+<p>Amniotic uses <a href="https://docs.pydantic.dev/latest/concepts/pydantic_settings/">Pydantic Settings</a>, and is configured via environment variables or CLI flags.</p>
 <h2 id="environment-variables">Environment Variables</h2>
 <p>All settings can be set via environment variables prefixed with <code>AMNIOTIC__</code>. Nested settings (like MQTT) use a double underscore <code>__</code> as a delimiter.</p>
 <ul>
@@ -1333,7 +1285,7 @@ the <a href="#other-platforms">Other Platforms</a> section.</p>
 </tr>
 <tr>
 <td><code>--path-config</code></td>
-<td>Directory for configuration files</td>
+<td>Directory for runtime data (e.g. themes)</td>
 <td><code>~/.config/amniotic</code></td>
 </tr>
 </tbody>
@@ -1341,16 +1293,13 @@ the <a href="#other-platforms">Other Platforms</a> section.</p>
 <p>Example:
 <div class="language-console highlight"><pre><span></span><code><span class="go">amniotic --token &quot;your_token&quot; --stream-url &quot;http://192.168.1.10:8080&quot; mqtt.hostname &quot;192.168.1.5&quot;</span>
 </code></pre></div></p>
-<h2 id="default-audio-directory">Default Audio Directory</h2>
-<p>This can be set in the Config File, as above, but by default it's the following path: <code>~/.local/share/amniotic</code></p>
 <h2 id="running">Running</h2>
-<p>You should now simply be able to run <code>~/.local/bin/amniotic</code>, which will connect to MQTT:</p>
+<p>You should now simply be able to run <code>amniotic &lt;flags&gt;</code>, which will connect to MQTT:</p>
 <div class="language-console highlight"><pre><span></span><code><span class="go">amniotic --token &quot;your_token&quot; --stream-url &quot;http://192.168.1.10:8080&quot;</span>
 </code></pre></div>
 <p>Expected output:
-<div class="language-console highlight"><pre><span></span><code><span class="go">2022-05-20 15:14:51 INFO  amniotic.mqtt    : Amniotic 0.0.1 has started.</span>
-<span class="go">2022-05-20 15:14:51 INFO  amniotic.mqtt    : Amniotic 0.0.1 starting MQTT...</span>
-<span class="go">2022-05-20 15:14:51 INFO  amniotic.mqtt    : Attempting to connect to MQTT &quot;homeassistant.local:1883&quot;: Connection successful</span>
+<div class="language-console highlight"><pre><span></span><code><span class="go">15:23:30.929 Launching amniotic paths.metadata.version=&#39;1.9.5&#39; corio.get_version()=&#39;2.3.0&#39; from entrypoint.</span>
+<span class="go">15:23:30.931 Launching...</span>
 </code></pre></div></p>
 <h2 id="installing-as-a-service">Installing as a Service</h2>
 <p>Since a dedicated Amniotic device (e.g. a Pi) functions like an appliance, you might want to install as a service, so
@@ -1370,10 +1319,6 @@ that restarts, running on boot etc., are handled automatically.</p>
 <span class="go">pip3 install amniotic</span>
 </code></pre></div>
 <h2 id="updating">Updating</h2>
-<p>Amniotic also exposes its updater to Home Assistant, so newer versions can be installed from there. Updating
-will restart automatically and the device will reappear running the latest version, so all quite seamless.</p>
-<figure><img src="assets/ha-updater.png" width="280"/></figure>
-
 <p>To update manually, enter:</p>
 <p><code>pip install amniotic --upgrade</code></p>
 
