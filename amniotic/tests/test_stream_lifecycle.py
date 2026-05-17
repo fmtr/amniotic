@@ -9,6 +9,10 @@ from amniotic.theme import ThemeStream
 
 
 def test_recording_stream_close_releases_container(monkeypatch):
+    class FakeInputFrame:
+        def to_ndarray(self):
+            return np.ones((1, RecordingThemeStream.CHUNK_SIZE), dtype=np.int16)
+
     class FakeResampledFrame:
         def to_ndarray(self):
             return np.ones((1, RecordingThemeStream.CHUNK_SIZE), dtype=np.int16)
@@ -30,7 +34,7 @@ def test_recording_stream_close_releases_container(monkeypatch):
 
         def decode(self, _stream):
             while True:
-                yield object()
+                yield FakeInputFrame()
 
         def close(self):
             self.closed = True

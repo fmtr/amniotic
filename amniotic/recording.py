@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from itertools import batched
+
 import numpy as np
 import typing
 
@@ -85,12 +87,13 @@ class RecordingThemeStream:
 
     """
     CHUNK_SIZE = 1_024
+    SAMPLE_RATE = 44_100
 
     def __init__(self, instance: RecordingThemeInstance):
         self.instance = instance
         self.started_at = dt.now()
         self.started_at_str = self.started_at.strftime(Constants.DATETIME_FILENAME_FORMAT)
-        self.resampler = av.AudioResampler(format='s16', layout='mono', rate=44100)
+        self.resampler = av.AudioResampler(format='s16', layout='mono', rate=self.SAMPLE_RATE)
         self.chunks = self.iter_chunks()
 
         self.container = None
@@ -102,10 +105,8 @@ class RecordingThemeStream:
     def name(self):
         return self.instance.name
 
-    def iter_chunks(self):
-
+    def iter_samples(self):
         while True:
-
             self.container = av.open(self.instance.meta.path)
 
             try:
@@ -116,30 +117,39 @@ class RecordingThemeStream:
                 with logger.span(f'Started transcoding: {repr(self)}'):
                     logger.info(self.description)
 
-                buffer = np.empty((1, 0), dtype=np.int16)
-
-                i = 0
                 for frame_orig in self.container.decode(self.stream):
-
-                    for frame_resamp in self.resampler.resample(frame_orig):
-                        data_resamp = frame_resamp.to_ndarray()
-                        data_resamp = data_resamp.mean(axis=0).astype(data_resamp.dtype).reshape(data_resamp.shape)  # Downmix to mono
-                        data_resamp = (data_resamp * self.instance.volume).astype(data_resamp.dtype)  # Apply relative volume
-
-                        buffer = np.hstack((buffer, data_resamp))  # Accumulate the array in the buffer
-
-                        while buffer.shape[1] >= self.CHUNK_SIZE:
-                            data = buffer[:, :self.CHUNK_SIZE]
-                            buffer = buffer[:, self.CHUNK_SIZE:]  # Remove the yielded part from the buffer
-
-                            yield data
-
-                            if i % LOG_THRESHOLD == 0:
-                                vol_rms = round(float(np.sqrt((data.astype(np.float32) ** 2).mean())), 2)
-                                logger.info(f'{repr(self)}: Yielding chunk #{i} {data_resamp.shape=} {data.shape=}, {buffer.shape=}, {vol_rms=}')
-                            i += 1
+                    data_orig = frame_orig.to_ndarray()
+                    source_dtype = data_orig.dtype
+                    data_orig = data_orig.mean(axis=0).reshape(1, -1)  # Downmix to mono
+                    data_orig = data_orig.astype(np.float32) * self.instance.volume  # Apply relative volume
+                    if np.issubdtype(source_dtype, np.floating):
+                        data_orig = np.clip(data_orig, -1.0, 1.0)
+                        data_orig = (data_orig * np.iinfo(np.int16).max).astype(np.int16)
+                    else:
+                        data_orig = np.clip(data_orig, np.iinfo(np.int16).min, np.iinfo(np.int16).max).astype(np.int16)
+                    frame_mono = av.AudioFrame.from_ndarray(data_orig, format='s16', layout='mono')
+                    frame_mono.rate = self.stream.codec_context.rate
+                    for frame_resamp in self.resampler.resample(frame_mono):
+                        data_resamp = frame_resamp.to_ndarray().reshape(1, -1)
+                        for sample in data_resamp[0]:
+                            yield sample
             finally:
                 self._close_container()
+
+    def iter_chunks(self):
+        samples_iter = self.iter_samples()
+        i = 0
+        try:
+            for samples in batched(samples_iter, self.CHUNK_SIZE):
+                data = np.hstack(samples).astype(np.int16).reshape(1, -1)
+                yield data
+
+                if i % LOG_THRESHOLD == 0:
+                    vol_rms = round(float(np.sqrt((data.astype(np.float32) ** 2).mean())), 2)
+                    logger.info(f'{repr(self)}: Yielding chunk #{i} {data.shape=}, {vol_rms=}')
+                i += 1
+        finally:
+            samples_iter.close()
 
     def __iter__(self):
         return self  # This returns the instance itself
