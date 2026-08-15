@@ -3,7 +3,7 @@ requires = ["setuptools>=82", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.corio.metadata]
-version = "1.9.19-alpha001"
+version = "1.9.19-alpha002"
 port = 7
 base = "python"
 description = "A multi-output ambient sound mixer for Home Assistant"
@@ -48,13 +48,13 @@ commands = [["python", "-m", "pytest", "-q", "amniotic/tests"]]
 
 [project]
 name = "amniotic"
-version = "1.9.19-alpha001"
+version = "1.9.19-alpha002"
 description = "A multi-output ambient sound mixer for Home Assistant"
 readme = "README.md"
 license = "Apache-2.0"
 keywords = ["ambient sound", "audio", "white noise", "masking", "sleep"]
 requires-python = ">=3.14"
-dependencies = ["corio[api,av,caching,debug,ha.api,http,logging,mqtt,path.app,sets,tabular,version.dev,yaml,youtube]~=2.7.3", "haco~=0.3.9", "psutil"]
+dependencies = ["corio[api,av,caching,debug,ha.api,http,logging,mqtt,path.app,sets,tabular,version.dev,yaml,youtube]~=2.7.3", "haco~=0.4.0", "psutil"]
 
 [[project.authors]]
 name = "Frontmatter AI"
