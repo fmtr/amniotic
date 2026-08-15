@@ -4,8 +4,51 @@ import numpy as np
 import pytest
 
 from amniotic.api import ApiAmniotic
+from amniotic import recording
 from amniotic.recording import RecordingThemeStream
 from amniotic.theme import ThemeStream
+
+
+def test_native_heap_trim_is_rate_limited(monkeypatch):
+    class FakeLibc:
+        def __init__(self):
+            self.calls = 0
+
+        def malloc_trim(self, _padding):
+            self.calls += 1
+
+    libc = FakeLibc()
+    times = iter([100.0, 100.0, 101.0, 131.0, 131.0])
+    monkeypatch.setattr(recording, "_libc", libc)
+    monkeypatch.setattr(recording, "_heap_trim_last", 0.0)
+    monkeypatch.setattr(recording.time, "monotonic", lambda: next(times))
+
+    recording.trim_native_heap()
+    recording.trim_native_heap()
+    recording.trim_native_heap()
+
+    assert libc.calls == 2
+
+
+def test_recording_stream_chunks_sample_blocks_without_losing_samples(monkeypatch):
+    stream = RecordingThemeStream.__new__(RecordingThemeStream)
+    stream.CHUNK_SIZE = 4
+    stream.instance = SimpleNamespace(name="demo")
+    stream.started_at_str = "test"
+
+    def sample_blocks():
+        yield np.array([0, 1, 2], dtype=np.int16)
+        yield np.array([3, 4, 5, 6, 7, 8], dtype=np.int16)
+
+    monkeypatch.setattr(stream, "iter_samples", sample_blocks)
+    monkeypatch.setattr("amniotic.recording.LOG_THRESHOLD", 10_000)
+
+    chunks = list(stream.iter_chunks())
+
+    assert [chunk.tolist() for chunk in chunks] == [
+        [[0, 1, 2, 3]],
+        [[4, 5, 6, 7]],
+    ]
 
 
 def test_recording_stream_close_releases_container(monkeypatch):

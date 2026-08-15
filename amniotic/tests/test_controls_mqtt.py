@@ -3,6 +3,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from pydantic import BaseModel, ConfigDict, Field
 
 from amniotic.controls import EnableRecording, NumberVolume
 
@@ -47,6 +48,19 @@ class FakeInstances(list):
         return {item.name: item for item in self}
 
 
+class FakeDevice(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    name: str
+    name_san: str
+    identifiers: list[str]
+
+    topic: Path = Field(exclude=True)
+    client: FakeClient = Field(exclude=True)
+    themes: FakeThemes = Field(exclude=True)
+    bsn_theme_streamable: SimpleNamespace = Field(exclude=True)
+
+
 def build_device_for_control(control):
     client = FakeClient()
     instance = SimpleNamespace(name="Rain", volume=0.2, is_enabled=False)
@@ -64,9 +78,10 @@ def build_device_for_control(control):
 
     bsn_theme_streamable.state = streamable_state
 
-    device = SimpleNamespace(
+    device = FakeDevice(
         name="Amniotic Development",
         name_san="amniotic-development",
+        identifiers=["amniotic-development"],
         topic=client.topic / "amniotic-development",
         client=client,
         themes=themes,
@@ -95,6 +110,7 @@ async def test_enable_recording_announce_message_is_published():
     assert payload["state_topic"] == "amniotic/amniotic-development/enable-recording/default/state"
     assert payload["command_topic"] == "amniotic/amniotic-development/enable-recording/default/command"
     assert payload["availability_topic"] == "amniotic/status"
+    assert payload["device"]["name"] == "Amniotic Development"
 
 
 @pytest.mark.asyncio

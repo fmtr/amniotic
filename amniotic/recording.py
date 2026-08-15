@@ -1,9 +1,13 @@
 from __future__ import annotations
 
-from itertools import batched
+import ctypes
+import gc
+import sys
+import threading
+import time
+import typing
 
 import numpy as np
-import typing
 
 from amniotic.obs import logger
 from corio import av, dt
@@ -18,6 +22,30 @@ else:
     AmnioticRef = object
 
 LOG_THRESHOLD = 500
+HEAP_TRIM_INTERVAL = 30
+_heap_trim_lock = threading.Lock()
+_heap_trim_last = 0.0
+_libc = ctypes.CDLL(None) if sys.platform.startswith('linux') else None
+
+
+def trim_native_heap():
+    """Periodically return released PyAV/NumPy allocations to the OS on Linux."""
+    global _heap_trim_last
+
+    if _libc is None or not hasattr(_libc, 'malloc_trim'):
+        return
+
+    now = time.monotonic()
+    if now - _heap_trim_last < HEAP_TRIM_INTERVAL:
+        return
+
+    with _heap_trim_lock:
+        now = time.monotonic()
+        if now - _heap_trim_last < HEAP_TRIM_INTERVAL:
+            return
+        gc.collect()
+        _libc.malloc_trim(0)
+        _heap_trim_last = now
 
 
 class RecordingMetadata:
@@ -120,36 +148,55 @@ class RecordingThemeStream:
                 for frame_orig in self.container.decode(self.stream):
                     data_orig = frame_orig.to_ndarray()
                     source_dtype = data_orig.dtype
-                    data_orig = data_orig.mean(axis=0).reshape(1, -1)  # Downmix to mono
-                    data_orig = data_orig.astype(np.float32) * self.instance.volume  # Apply relative volume
+                    if data_orig.shape[0] > 1:
+                        data_orig = data_orig.mean(axis=0, dtype=np.float32).reshape(1, -1)
+                    else:
+                        data_orig = data_orig.reshape(1, -1)
+
                     if np.issubdtype(source_dtype, np.floating):
-                        data_orig = np.clip(data_orig, -1.0, 1.0)
+                        data_orig = data_orig.astype(np.float32, copy=False)
+                        data_orig *= self.instance.volume
+                        np.clip(data_orig, -1.0, 1.0, out=data_orig)
                         data_orig = (data_orig * np.iinfo(np.int16).max).astype(np.int16)
                     else:
-                        data_orig = np.clip(data_orig, np.iinfo(np.int16).min, np.iinfo(np.int16).max).astype(np.int16)
+                        np.multiply(data_orig, self.instance.volume, out=data_orig, casting='unsafe')
+                        np.clip(data_orig, np.iinfo(np.int16).min, np.iinfo(np.int16).max, out=data_orig)
+                        data_orig = data_orig.astype(np.int16, copy=False)
                     frame_mono = av.AudioFrame.from_ndarray(data_orig, format='s16', layout='mono')
                     frame_mono.rate = self.stream.codec_context.rate
                     for frame_resamp in self.resampler.resample(frame_mono):
-                        data_resamp = frame_resamp.to_ndarray().reshape(1, -1)
-                        for sample in data_resamp[0]:
-                            yield sample
+                        yield frame_resamp.to_ndarray().reshape(-1)
             finally:
                 self._close_container()
 
     def iter_chunks(self):
-        samples_iter = self.iter_samples()
+        sample_blocks = self.iter_samples()
+        buffer = np.empty(self.CHUNK_SIZE, dtype=np.int16)
+        buffered = 0
         i = 0
         try:
-            for samples in batched(samples_iter, self.CHUNK_SIZE):
-                data = np.hstack(samples).astype(np.int16).reshape(1, -1)
-                yield data
+            for block in sample_blocks:
+                offset = 0
+                while offset < block.size:
+                    copied = min(self.CHUNK_SIZE - buffered, block.size - offset)
+                    buffer[buffered:buffered + copied] = block[offset:offset + copied]
+                    buffered += copied
+                    offset += copied
 
-                if i % LOG_THRESHOLD == 0:
-                    vol_rms = round(float(np.sqrt((data.astype(np.float32) ** 2).mean())), 2)
-                    logger.info(f'{repr(self)}: Yielding chunk #{i} {data.shape=}, {vol_rms=}')
-                i += 1
+                    if buffered < self.CHUNK_SIZE:
+                        continue
+
+                    data = buffer.copy().reshape(1, -1)
+                    buffered = 0
+                    yield data
+
+                    if i % LOG_THRESHOLD == 0:
+                        trim_native_heap()
+                        vol_rms = round(float(np.sqrt((data.astype(np.float32) ** 2).mean())), 2)
+                        logger.info(f'{repr(self)}: Yielding chunk #{i} {data.shape=}, {vol_rms=}')
+                    i += 1
         finally:
-            samples_iter.close()
+            sample_blocks.close()
 
     def __iter__(self):
         return self  # This returns the instance itself

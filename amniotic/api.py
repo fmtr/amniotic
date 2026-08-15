@@ -7,30 +7,30 @@ from amniotic.paths import paths
 from amniotic.theme import ThemeDefinition, ThemeStream
 from corio import api, mqtt
 
-
 class ApiAmniotic(api.Base):
     TITLE = f'Amniotic {paths.metadata.version} Streaming API'
     URL_DOCS = '/'
-    PORT =  8000+paths.metadata.port
+    PORT =  8000+paths.metadata.port+(1000 if paths.repo else 0)
 
     def __init__(self, client: mqtt.Client):
         super().__init__()
 
         self.client = client
 
-    def get_endpoints(self):
-        endpoints = [
-            api.Endpoint(method_http=self.app.get, path='/stream/{id}', method=self.stream),
+    @property
+    def ENDPOINTS(self):
+        return [Stream]
 
-        ]
 
-        return endpoints
+class Stream(api.endpoint.API):
+    """Stream a theme's audio."""
 
-    async def stream(self, id: str, request: Request):
+    PATH = '/stream/{id}'
+
+    async def run(self, id: str, request: Request):
         logger.info(f'Got streaming audio request {id=} {request.client=}')
-        theme_def: ThemeDefinition = self.client.device.themes.id[id]
+        theme_def: ThemeDefinition = self.api.client.device.themes.id[id]
         stream = ThemeStream(theme_def=theme_def, request=request)
-
 
         if not stream.is_enabled:
             logger.warning(f'Theme "{theme_def.name}" is streaming, but it has no recordings enabled. The stream will be silent. Enable some recordings to hear output.')
