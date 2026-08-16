@@ -11,10 +11,10 @@
       
       
       
-        <link rel="prev" href="../1.5.0/">
+        <link rel="prev" href="../../themes/">
       
       
-        <link rel="next" href="../1.5.2/">
+        <link rel="next" href="../1.3.0/">
       
       
         
@@ -25,7 +25,7 @@
     
     
       
-        <title>1.5.13 - amniotic</title>
+        <title>1.10.0 - amniotic</title>
       
     
     
@@ -103,7 +103,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              1.5.13
+              1.10.0
             
           </span>
         </div>
@@ -428,10 +428,17 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../1.10.0/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -447,6 +454,7 @@
   
 
       </a>
+      
     </li>
   
 
@@ -568,17 +576,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../1.5.13/" class="md-nav__link">
         
   
   
@@ -594,7 +595,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -989,11 +989,14 @@
   
 
 
-  <h1>1.5.13</h1>
+  <h1>1.10.0</h1>
 
 <ul>
-<li>Clarify error messages resulting from no MQTT broker being set up.</li>
-<li>Add docs section for MQTT broker.</li>
+<li>Fixed serious memory leaks in audio streaming that could cause memory usage to grow significantly over time. Streams now release their resources more reliably, making long-running and repeatedly restarted streams much more stable.</li>
+<li>Reduced the memory and processing overhead of preparing audio for playback, further improving stability during continuous use.</li>
+<li>Improved support for stereo and multichannel recordings, including more consistent volume handling when converting them for playback.</li>
+<li>Fixed an issue where enabling multiple recordings made the overall mix quieter. Recordings are now combined at their intended volume without allowing the output to become distorted when the mix gets too loud.</li>
+<li>Reduced the size of the pre-built Docker image by approximately 50%.</li>
 </ul>
 
 
