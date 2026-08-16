@@ -104,6 +104,21 @@ def test_recording_stream_close_releases_container(monkeypatch):
     assert stream.chunks is None
 
 
+def test_theme_stream_mixes_without_attenuating_enabled_recordings(monkeypatch):
+    theme_def = SimpleNamespace(name="Sleep", is_enabled=True, instances=[])
+    request = SimpleNamespace(client=("127.0.0.1", 1234), is_disconnected=lambda: False)
+    stream = ThemeStream(theme_def=theme_def, request=request)
+    chunks = [
+        np.array([[10_000, 20_000]], dtype=np.int16),
+        np.array([[10_000, 20_000]], dtype=np.int16),
+    ]
+    monkeypatch.setattr(stream, "get_streams", lambda: (iter(chunk) for chunk in chunks))
+
+    mixed = next(stream.iter_chunks())
+
+    assert mixed.tolist() == [[20_000, np.iinfo(np.int16).max]]
+
+
 def test_theme_stream_generator_close_releases_output_and_children(monkeypatch):
     class FakeOutputStream:
         def encode(self, _frame):

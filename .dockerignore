@@ -5,5 +5,11 @@ build.sh
 compose.yml
 Dockerfile
 build.env
-
-
+.venv/
+.git/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.tox/
+*.egg-info/
+.env

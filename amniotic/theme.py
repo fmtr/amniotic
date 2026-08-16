@@ -164,8 +164,9 @@ class ThemeStream:
             if not data_recs:
                 data_recs.append(self.chunk_silence)
             data = np.vstack(data_recs)
-            data = data.mean(axis=0).astype(data.dtype).reshape(1, -1)  # Mix recordings
-            yield data
+            data = data.sum(axis=0, dtype=np.int32)
+            data = np.clip(data, np.iinfo(np.int16).min, np.iinfo(np.int16).max)
+            yield data.astype(np.int16).reshape(1, -1)
 
     def __iter__(self):
         self.output = av.open(file='.mp3', mode="w")
