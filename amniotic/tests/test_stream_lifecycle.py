@@ -3,7 +3,7 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 
-from amniotic.api import ApiAmniotic
+from amniotic.api import ApiAmniotic, Stream
 from amniotic import recording
 from amniotic.recording import RecordingThemeStream
 from amniotic.theme import ThemeStream
@@ -199,7 +199,7 @@ async def test_api_stream_response_registers_background_cleanup(monkeypatch):
     monkeypatch.setattr("amniotic.api.ThemeStream", FakeThemeStream)
 
     request = SimpleNamespace(client=("127.0.0.1", 1234))
-    response = await api.stream("sleep", request)
+    response = await api.endpoints.cls[Stream].run("sleep", request)
 
     assert response.background is not None
     response.background.func()
