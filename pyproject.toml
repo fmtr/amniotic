@@ -53,7 +53,7 @@ description = "A multi-output ambient sound mixer for Home Assistant"
 readme = "README.md"
 license = "Apache-2.0"
 keywords = ["ambient sound", "audio", "white noise", "masking", "sleep"]
-requires-python = ">=3.14"
+requires-python = ">=3.12,<3.15"
 dependencies = ["corio[api,av,caching,debug,ha.api,http,logging,mqtt,path.app,sets,tabular,version.dev,yaml,youtube]~=2.8.0", "haco~=0.4.1", "psutil"]
 
 [[project.authors]]
