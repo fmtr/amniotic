@@ -19,5 +19,11 @@ When running for the first time, you'll have a single theme called **Default
 
     When you first create a Theme, it will have no Recordings enabled. In order to be able to stream the Theme, you'll need to enable at least one Recording for it. To enable a Recording, select one from the "Theme Recordings" control, then toggle "Enable Recording".
 
+## Backing Up and Sharing Themes
 
+Themes will be saved into your config directory, so can be accessed there. You can also edit them directly too, if needed, assuming Amniotic isn't currently running.
+
+!!! note "Add-On Themes Location"
+
+    For Add-On installs, the config directory defaults to `/config/Amniotic`
 
