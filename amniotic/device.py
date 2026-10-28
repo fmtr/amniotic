@@ -12,7 +12,7 @@ from amniotic.obs import logger
 from amniotic.recording import RecordingMetadata
 from amniotic.theme import ThemeDefinition, IndexThemes
 from corio import Path
-from corio.iterator import IndexList, IterDiffer
+from corio.iterator import ilist, IterDiffer
 from haco.device import Device
 from pydantic import Field
 
@@ -37,9 +37,9 @@ class MediaState:
 
 
 class Amniotic(Device):
-    themes: IndexList[ThemeDefinition] = Field(default_factory=IndexList, exclude=True, repr=False)
-    metas: IndexList[RecordingMetadata] = Field(default_factory=IndexList, exclude=True, repr=False)
-    media_player_states: IndexList[MediaState] = Field(default_factory=IndexList, exclude=True, repr=False)
+    themes: ilist[ThemeDefinition] = Field(default_factory=ilist, exclude=True, repr=False)
+    metas: ilist[RecordingMetadata] = Field(default_factory=ilist, exclude=True, repr=False)
+    media_player_states: ilist[MediaState] = Field(default_factory=ilist, exclude=True, repr=False)
 
     client_ha: homeassistant_api.Client | None = Field(default=None, exclude=True, repr=False)
 
@@ -55,7 +55,7 @@ class Amniotic(Device):
         if not self.path_audio.exists():
             logger.warning(f'Audio path "{self.path_audio}" does not exist. Will be created.')
             self.path_audio.mkdir()
-        self.metas = IndexList()
+        self.metas = ilist()
         self.refresh_metas()
 
         if not self.metas:
@@ -63,7 +63,7 @@ class Amniotic(Device):
 
         self.themes = IndexThemes.load(self)
 
-        self.media_player_states = IndexList(self.get_media_players())
+        self.media_player_states = ilist(self.get_media_players())
 
         self.controls = [
             self.select_theme,

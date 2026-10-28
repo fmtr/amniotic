@@ -29,18 +29,15 @@ class Settings(sets.Base):
     def path_themes(self):
         return self.path_config / 'themes.json'
 
-    def run(self):
-        super().run()
-        asyncio.run(self.run_async())
-
-    async def run_async(self):
+    async def run(self):
+        await super().run()
         from corio import debug
         debug.trace()
 
         from amniotic.obs import logger
         from amniotic.paths import paths
 
-        logger.info(f'Launching {paths.name_ns} {paths.metadata.version=} {corio.get_version()=} from entrypoint.')
+        logger.info(f'Launching {paths.name} {paths.metadata.version=} {corio.get_version()=} from entrypoint.')
         logger.debug(f'{paths.settings.exists()=} {str(paths.settings)=}')
 
         logger.info(f'Launching...')

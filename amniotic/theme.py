@@ -12,7 +12,7 @@ from amniotic.obs import logger
 from amniotic.recording import LOG_THRESHOLD, RecordingThemeInstance, RecordingThemeStream
 from corio import av, dt
 from corio.constants import Constants
-from corio.iterator import IndexList
+from corio.iterator import ilist
 from corio.strings import sanitize
 from haco.base import Base
 from pydantic import Field
@@ -24,7 +24,7 @@ else:
     AmnioticRef = object
 
 
-class IndexInstances(IndexList[RecordingThemeInstance]):
+class IndexInstances(ilist[RecordingThemeInstance]):
 
     def model_dump(self):
         return [item.model_dump() for item in self]
@@ -52,7 +52,7 @@ class ThemeDefinition(Base):
     # Persistence
 
     - Have this class and RecordingInstance inherit from Base, and get model_dump method.
-    - Subclass IndexList for Theme to Implement a save method that writes model_dump to disk.
+    - Subclass ilist for Theme to Implement a save method that writes model_dump to disk.
     - Add a load classmethod(amniotic) to that class that loads from disk.
     - Saving will need to be manual, but there are limited places where it is needed, namely things like volume control command method.
 
@@ -126,7 +126,7 @@ class ThemeStream:
         self.request = request
         self.started_at = dt.now()
         self.started_at_str = self.started_at.strftime(Constants.DATETIME_FILENAME_FORMAT)
-        self.recording_streams = IndexList[RecordingThemeStream]()
+        self.recording_streams = ilist[RecordingThemeStream]()
         self.iter_chunks_gen = None
         self.output = None
         self._is_closed = False
@@ -265,7 +265,7 @@ class ThemeStream:
     def __repr__(self):
         return f'{self.__class__.__name__}(name={repr(self.theme_def.name)}, request={repr(self.request.client)}, started_at={self.started_at_str!r})'
 
-class IndexThemes(IndexList[ThemeDefinition]):
+class IndexThemes(ilist[ThemeDefinition]):
 
     @classmethod
     def get_path_themes(cls):
