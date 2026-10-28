@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -29,7 +29,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
       
 
@@ -1083,7 +1083,7 @@ home server etc. Below is an example compose and .env file for running the conta
 
 <span class="w">    </span><span class="c1"># Expose container port to host</span>
 <span class="w">    </span><span class="nt">ports</span><span class="p">:</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;8007:8007&quot;</span><span class="w">  </span><span class="c1"># Amniotic audio stream over HTTP port.</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">"8007:8007"</span><span class="w">  </span><span class="c1"># Amniotic audio stream over HTTP port.</span>
 
 <span class="w">    </span><span class="c1"># Mount local audio and config directories to container</span>
 <span class="w">    </span><span class="nt">volumes</span><span class="p">:</span>
@@ -1092,23 +1092,23 @@ home server etc. Below is an example compose and .env file for running the conta
 
 <span class="w">    </span><span class="nt">environment</span><span class="p">:</span>
 <span class="w">      </span><span class="c1"># Home Assistant URL and token</span>
-<span class="w">      </span><span class="nt">AMNIOTIC__HA_CORE_API</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;http://homeassistant.local:8123/api&quot;</span><span class="w">  </span><span class="c1"># API URL for your HA instance</span>
-<span class="w">      </span><span class="nt">SUPERVISOR_TOKEN</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;your_long_lived_access_token&quot;</span><span class="w">              </span><span class="c1"># HA access token, to let Amniotic interact with media players. Generate here. https://my.home-assistant.io/redirect/profile_security/</span>
+<span class="w">      </span><span class="nt">AMNIOTIC__HA_CORE_API</span><span class="p">:</span><span class="w"> </span><span class="s">"http://homeassistant.local:8123/api"</span><span class="w">  </span><span class="c1"># API URL for your HA instance</span>
+<span class="w">      </span><span class="nt">SUPERVISOR_TOKEN</span><span class="p">:</span><span class="w"> </span><span class="s">"your_long_lived_access_token"</span><span class="w">              </span><span class="c1"># HA access token, to let Amniotic interact with media players. Generate here. https://my.home-assistant.io/redirect/profile_security/</span>
 
 <span class="w">      </span><span class="c1"># MQTT settings</span>
-<span class="w">      </span><span class="nt">AMNIOTIC__MQTT__HOSTNAME</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;mqtt.local&quot;</span><span class="w">   </span><span class="c1"># MQTT broker hostname or IP</span>
-<span class="w">      </span><span class="c1">#AMNIOTIC__MQTT__PORT: &quot;1883&quot;             # Optional MQTT port (defaults to 1883 for TCP)</span>
-<span class="w">      </span><span class="c1">#AMNIOTIC__MQTT__USERNAME: &quot;mqtt_user&quot;    # Optional MQTT username</span>
-<span class="w">      </span><span class="c1">#AMNIOTIC__MQTT__PASSWORD: &quot;mqtt_pass&quot;    # Optional MQTT password</span>
+<span class="w">      </span><span class="nt">AMNIOTIC__MQTT__HOSTNAME</span><span class="p">:</span><span class="w"> </span><span class="s">"mqtt.local"</span><span class="w">   </span><span class="c1"># MQTT broker hostname or IP</span>
+<span class="w">      </span><span class="c1">#AMNIOTIC__MQTT__PORT: "1883"             # Optional MQTT port (defaults to 1883 for TCP)</span>
+<span class="w">      </span><span class="c1">#AMNIOTIC__MQTT__USERNAME: "mqtt_user"    # Optional MQTT username</span>
+<span class="w">      </span><span class="c1">#AMNIOTIC__MQTT__PASSWORD: "mqtt_pass"    # Optional MQTT password</span>
 
 <span class="w">      </span><span class="c1"># Application-specific settings</span>
-<span class="w">      </span><span class="nt">AMNIOTIC__STREAM_URL</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;http://&lt;ip_or_hostname&gt;:8007&quot;</span><span class="w">  </span><span class="c1"># URL where media players can access Amniotic on your network.</span>
-<span class="w">      </span><span class="nt">AMNIOTIC__PATH_AUDIO</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/amniotic/audio&quot;</span><span class="w">               </span><span class="c1"># Path inside container for audio files (mapped above)</span>
-<span class="w">      </span><span class="nt">AMNIOTIC__PATH_CONFIG</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/amniotic/config&quot;</span><span class="w">              </span><span class="c1"># Path inside container for runtime data (mapped above)</span>
+<span class="w">      </span><span class="nt">AMNIOTIC__STREAM_URL</span><span class="p">:</span><span class="w"> </span><span class="s">"http://&lt;ip_or_hostname&gt;:8007"</span><span class="w">  </span><span class="c1"># URL where media players can access Amniotic on your network.</span>
+<span class="w">      </span><span class="nt">AMNIOTIC__PATH_AUDIO</span><span class="p">:</span><span class="w"> </span><span class="s">"/amniotic/audio"</span><span class="w">               </span><span class="c1"># Path inside container for audio files (mapped above)</span>
+<span class="w">      </span><span class="nt">AMNIOTIC__PATH_CONFIG</span><span class="p">:</span><span class="w"> </span><span class="s">"/amniotic/config"</span><span class="w">              </span><span class="c1"># Path inside container for runtime data (mapped above)</span>
 
 <span class="w">    </span><span class="c1"># No need for root</span>
 <span class="w">    </span><span class="c1"># You should probably keep as 1000 as custom UIDs might not get the right paths in the container.</span>
-<span class="w">    </span><span class="nt">user</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1000:1000&quot;</span>
+<span class="w">    </span><span class="nt">user</span><span class="p">:</span><span class="w"> </span><span class="s">"1000:1000"</span>
 </code></pre></div>
 
 
@@ -1162,7 +1162,7 @@ home server etc. Below is an example compose and .env file for running the conta
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.indexes", "content.code.annotate", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>
