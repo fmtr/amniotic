@@ -9,6 +9,7 @@ RUN apt-get update && \
         make \
         openssh-server \
         rsync \
+        ca-certificates \
         sudo && \
     rm -rf /var/lib/apt/lists/*
 
