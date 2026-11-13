@@ -16,6 +16,8 @@ There are two ways to add Recordings to Amniotic:
 
 This can be done via the [Lovelace Dashboard](install/dashboard.md), specifically the "Recording Download" section. The input accepts both YouTube URLs or YouTube video IDs. Paste one of these into the control and hit Enter. You should then see download progress and messages appear as the audio stream is downloaded. Once it completes, you will find the new Recording listed in the "Theme Recording" pulldown.
 
+Amniotic normalizes the video title for the downloaded filename: text is lowercased, spaces become hyphens, punctuation and path separators are removed, and Unicode letters and numbers are preserved. The audio extension remains unchanged.
+
 ## Adding Recordings Manually
 
 ### Addon via Media Browser
