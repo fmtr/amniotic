@@ -525,6 +525,8 @@
       
         
       
+        
+      
     
     
     
@@ -608,6 +610,34 @@
     
   
     1.10.2
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/1.10.3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1.10.3
   
 
     
@@ -1265,6 +1295,7 @@
 </div>
 <h2 id="adding-recordings-via-youtube">Adding Recordings via YouTube</h2>
 <p>This can be done via the <a href="../install/dashboard/">Lovelace Dashboard</a>, specifically the "Recording Download" section. The input accepts both YouTube URLs or YouTube video IDs. Paste one of these into the control and hit Enter. You should then see download progress and messages appear as the audio stream is downloaded. Once it completes, you will find the new Recording listed in the "Theme Recording" pulldown.</p>
+<p>Amniotic normalizes the video title for the downloaded filename: text is lowercased, spaces become hyphens, punctuation and path separators are removed, and Unicode letters and numbers are preserved. The audio extension remains unchanged.</p>
 <h2 id="adding-recordings-manually">Adding Recordings Manually</h2>
 <h3 id="addon-via-media-browser">Addon via Media Browser</h3>
 <p>If you're running as a Home Assistant addon, you can simply use the Home Assistant Media Browser to add/modify Recordings.</p>
